@@ -1,4 +1,5 @@
 .requirements
 .env
 .agents
+.codex
 /data

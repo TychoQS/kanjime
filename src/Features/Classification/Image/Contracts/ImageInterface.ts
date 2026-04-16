@@ -29,7 +29,8 @@ export interface ImageInterface {
    * Requirement IDs: R19.
    *
    * @pre A valid image is currently loaded.
-   * @post The image state becomes null and no inference is executed during the removal.
+   * @inv No inference is executed during this action
+   * @post The image state becomes null.
    */
   clearImage(): void;
 
@@ -63,12 +64,12 @@ export interface ImageInterface {
       mimeType: string;
     } | null;
     crop:
-      | {
-          x: number;
-          y: number;
-          width: number;
-          height: number;
-        }
-      | null;
+    | {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }
+    | null;
   };
 }

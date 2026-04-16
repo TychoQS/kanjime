@@ -3,7 +3,7 @@
  *
  * Requirement IDs: R1.
  *
- * @pre The classification feature is in drawing mode.
+ * @pre The classification feature is in drawing mode of the OCR screen.
  * @inv The configured background and stroke colors preserve a constant visible contrast.
  * @post The rendered drawing area makes every captured stroke visually distinguishable from the canvas background.
  */

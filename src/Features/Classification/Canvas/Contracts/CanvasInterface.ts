@@ -1,7 +1,6 @@
 /**
  * Contract for the drawing canvas classification workflow.
  *
- * @inv Stroke history only contains valid stroke objects.
  * @inv Drawing predictions never expose more than five visible candidates.
  * @inv No classification is triggered when the canvas has no strokes.
  */
@@ -13,6 +12,7 @@ export interface CanvasInterface {
    *
    * @pre A stroke has just been completed by the user.
    * @post The stroke is appended to history and the returned predictions are filtered to the X plus or minus one stroke rule with a maximum of five items.
+   * @post Exactly one inference is executed during the registerStroke operation.
    */
   registerStroke(
     stroke: {
@@ -27,7 +27,9 @@ export interface CanvasInterface {
    *
    * Requirement IDs: R3, R4.
    *
-   * @pre The canvas contains at least one stroke and drawable data.
+   * @pre The canvas contains at least one stroke
+   * @inv The operation is not executed if the canvas is empty
+   * @post The canvas is cleared
    * @post The canvas content, stroke history, and suggestion list are empty and no inference is executed during the clear operation.
    */
   clearCanvas(): void;
@@ -37,7 +39,7 @@ export interface CanvasInterface {
    *
    * Requirement IDs: R5.
    *
-   * @post The returned collection contains only previously registered strokes.
+   @inv Stroke history only contains valid stroke objects.
    */
   getStrokeHistory(): ReadonlyArray<{
     points: ReadonlyArray<{ x: number; y: number }>;

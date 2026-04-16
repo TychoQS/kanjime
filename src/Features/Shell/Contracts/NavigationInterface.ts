@@ -10,7 +10,7 @@ export interface NavigationInterface {
    *
    * Requirement IDs: R27.
    *
-   * @pre The user is on a navigable page that currently owns active state.
+   * @pre The user is on a navigable page.
    * @post The current page state is discarded and navigation moves to the selected page without changing user preferences.
    */
   navigateTo(page: "classification" | "search" | "history" | "about" | "kanjiEntry"): void;

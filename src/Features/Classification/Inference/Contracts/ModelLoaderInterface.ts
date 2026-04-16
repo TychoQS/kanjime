@@ -11,6 +11,7 @@ export interface ModelLoaderInterface {
    * Requirement IDs: R1.
    *
    * @pre The inference model is not yet loaded in memory.
+   * @inv The model is loaded at most once per application session.
    * @post The model is loaded, initialized, and ready to receive inference inputs.
    */
   loadModel(): Promise<void>;

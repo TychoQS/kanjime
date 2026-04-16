@@ -25,7 +25,7 @@ export interface DisplayInferencesInterface {
    *
    * Requirement IDs: R9.
    *
-   * @pre A valid drawing inference has been received.
+   * @pre A valid drawing inference has been received in draw mode.
    * @post The visible result list is refreshed for the new drawing inference with no more than five items.
    */
   updateResultsFromDrawingInference(
@@ -52,7 +52,8 @@ export interface DisplayInferencesInterface {
    * Requirement IDs: R11.
    *
    * @pre Results are available and the user is on the classification screen.
-   * @post The selected kanji entry is opened and the action is recorded in history without mutating the current result list or mode state.
+   * @inv The navitation to the kanji entry don't modify the current result list or mode state.
+   * @post The selected kanji entry is opened and the action is recorded in history.
    */
   openKanjiEntry(character: string): Promise<void>;
 }

@@ -2,7 +2,8 @@
 .env
 .agents
 .codex
-/data
+.cache
+/data/
 node_modules
 dist
 .DS_Store

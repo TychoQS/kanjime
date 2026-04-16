@@ -1,14 +1,16 @@
-import { IonApp } from "@ionic/react";
+import { IonApp, IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from "@ionic/react";
 
-import { AppContextProvider } from "./Shared/State/AppContext";
-import { AppRouter } from "./Shared/Navigation/AppRouter";
-
-function App(): JSX.Element {
+function App() {
   return (
     <IonApp>
-      <AppContextProvider>
-        <AppRouter />
-      </AppContextProvider>
+      <IonPage>
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle>TFG-APP</IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent fullscreen />
+      </IonPage>
     </IonApp>
   );
 }

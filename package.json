@@ -8,6 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:unit": "vitest run tests/Unit",
+    "test:integration": "vitest run tests/Integration",
+    "test:e2e": "playwright test",
     "data:download": "node ./scripts/data/download-sources.mjs",
     "data:build": "node ./scripts/data/build-database.mjs",
     "data:prepare": "npm run data:download && npm run data:build"
@@ -25,6 +28,11 @@
     "sql.js": "^1.14.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.7.2",
     "@capacitor/cli": "^7.6.1",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",

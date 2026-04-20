@@ -1,0 +1,150 @@
+import type {
+  ApplicationTheme,
+  CharacterSummary,
+  CropRegion,
+  DetailedKanjiEntry,
+  HistoryGroup,
+  ImageDescriptor,
+  InferencePrediction,
+  Stroke
+} from "../../src/Shared/DomainTypes";
+
+import { PROJECT_METADATA } from "./ProjectMetadata";
+
+/**
+ * Shared deterministic inputs used across the RED test suite.
+ */
+export const TEST_LANGUAGE = "en-US";
+export const TEST_THEME: ApplicationTheme = "dark";
+export const TEST_SEARCH_TERM = PROJECT_METADATA.primaryCharacter;
+export const TEST_SEARCH_READING = "nichi";
+export const TEST_PRIMARY_CHARACTER = PROJECT_METADATA.primaryCharacter;
+export const TEST_SECONDARY_CHARACTER = PROJECT_METADATA.secondaryCharacter;
+export const TEST_TERTIARY_CHARACTER = PROJECT_METADATA.thirdCharacter;
+export const TEST_TIMESTAMP = "2026-04-20T10:00:00.000Z";
+
+/**
+ * Canonical stroke sample used by drawing-related tests.
+ */
+export const TEST_STROKE: Stroke = {
+  points: [
+    { x: 12, y: 18 },
+    { x: 48, y: 54 }
+  ],
+  startedAt: TEST_TIMESTAMP,
+  endedAt: "2026-04-20T10:00:01.000Z"
+};
+
+/**
+ * Canonical image sample used by image-related tests.
+ */
+export const TEST_IMAGE: ImageDescriptor = {
+  uri: "file:///kanji.png",
+  width: 224,
+  height: 224,
+  mimeType: "image/png"
+};
+
+/**
+ * Canonical crop sample used by crop-related tests.
+ */
+export const TEST_CROP: CropRegion = {
+  x: 10,
+  y: 10,
+  width: 80,
+  height: 80
+};
+
+/**
+ * Raw predictions used by inference-related tests.
+ */
+export const TEST_PREDICTIONS: ReadonlyArray<InferencePrediction> = [
+  { character: TEST_PRIMARY_CHARACTER, confidence: 0.98, strokeCount: 4 },
+  { character: TEST_SECONDARY_CHARACTER, confidence: 0.92, strokeCount: 5 },
+  { character: TEST_TERTIARY_CHARACTER, confidence: 0.88, strokeCount: 3 }
+];
+
+/**
+ * Visible summaries used by search and list rendering tests.
+ */
+export const TEST_SUMMARIES: ReadonlyArray<CharacterSummary> = [
+  {
+    character: TEST_PRIMARY_CHARACTER,
+    primaryReadings: ["にち", "nichi"],
+    levels: ["JLPT N5", "Joyo 1"]
+  },
+  {
+    character: TEST_SECONDARY_CHARACTER,
+    primaryReadings: ["ちょう", "cho"],
+    levels: ["JLPT N4", "Joyo 2"]
+  }
+];
+
+/**
+ * Detailed kanji entry used by kanji-detail tests.
+ */
+export const TEST_KANJI_DETAILS: DetailedKanjiEntry = {
+  character: TEST_PRIMARY_CHARACTER,
+  radical: TEST_PRIMARY_CHARACTER,
+  components: [TEST_PRIMARY_CHARACTER, TEST_SECONDARY_CHARACTER],
+  meanings: [
+    {
+      language: TEST_LANGUAGE,
+      value: PROJECT_METADATA.packageName
+    }
+  ],
+  kunyomi: ["ひ"],
+  kunyomiExamples: [TEST_PRIMARY_CHARACTER],
+  onyomi: ["ニチ"],
+  onyomiExamples: [TEST_SECONDARY_CHARACTER],
+  strokeCount: 4,
+  strokeOrder: "/assets/database/stroke-order.svg",
+  jlptLevel: "N5",
+  joyoLevel: "1"
+};
+
+/**
+ * Persisted history groups used by history-related tests.
+ */
+export const TEST_HISTORY_GROUPS: ReadonlyArray<HistoryGroup> = [
+  {
+    category: "search",
+    entries: [
+      {
+        character: TEST_PRIMARY_CHARACTER,
+        createdAt: TEST_TIMESTAMP,
+        summary: TEST_SEARCH_TERM
+      }
+    ]
+  },
+  {
+    category: "visitedEntry",
+    entries: [
+      {
+        character: TEST_SECONDARY_CHARACTER,
+        createdAt: "2026-04-20T09:00:00.000Z",
+        summary: TEST_SEARCH_READING
+      }
+    ]
+  },
+  {
+    category: "imageClassification",
+    entries: [
+      {
+        character: TEST_TERTIARY_CHARACTER,
+        createdAt: "2026-04-20T08:00:00.000Z",
+        summary: TEST_IMAGE.uri
+      }
+    ]
+  },
+  {
+    category: "drawingClassification",
+    entries: [
+      {
+        character: TEST_PRIMARY_CHARACTER,
+        createdAt: "2026-04-20T07:00:00.000Z",
+        summary: String(TEST_STROKE.points.length)
+      }
+    ]
+  }
+];

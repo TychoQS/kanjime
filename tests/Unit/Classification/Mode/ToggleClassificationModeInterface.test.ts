@@ -6,18 +6,53 @@ import { buildRequirementTitle } from "../../../Support/RequirementTest";
 
 describe("ToggleClassificationModeInterface", () => {
   /**
+ * Requirement: R36
+ * Type: Unit
+ * Condition: Precondition - valid
+ */
+  it(buildRequirementTitle("R36", "Unit", "Precondition", "accepts a valid mode to switch to"), () => {
+    const clearRecorder = createVoidArgumentRecorder<"image" | "drawing">();
+    const controller = CreateToggleClassificationModeController({
+      clearCurrentModeState: clearRecorder.handler
+    });
+
+    expect(() => controller.switchMode("drawing")).not.toThrow(
+      "ToggleClassificationModeInterface rejected a valid mode."
+    );
+  });
+
+  /**
    * Requirement: R36
    * Type: Unit
-   * Condition: Precondition + Invariant + Postcondition
+   * Condition: Precondition - invalid
    */
-  it(buildRequirementTitle("R36", "Unit", "Postcondition", "clears the previous OCR mode state when switching"), () => {
+  it(buildRequirementTitle("R36", "Unit", "Precondition", "rejects an invalid mode"), () => {
+    const clearRecorder = createVoidArgumentRecorder<"image" | "drawing">();
+    const controller = CreateToggleClassificationModeController({
+      clearCurrentModeState: clearRecorder.handler
+    });
+
+    expect(() => controller.switchMode("invalid" as any)).toThrow(
+      "ToggleClassificationModeInterface accepted an invalid mode."
+    );
+  });
+
+  it(buildRequirementTitle("R36", "Unit", "Postcondition", "correctly toggles and clears states in both directions"), () => {
     const clearRecorder = createVoidArgumentRecorder<"image" | "drawing">();
     const controller = CreateToggleClassificationModeController({
       clearCurrentModeState: clearRecorder.handler
     });
 
     controller.switchMode("drawing");
+    expect(clearRecorder.calls).toEqual(["image"],
+      "Failed to clear 'image' state when switching to 'drawing'."
+    );
 
-    expect(clearRecorder.calls).toEqual(["drawing"], "ToggleClassificationModeInterface did not clear the previous mode state.");
+    clearRecorder.calls.length = 0;
+    controller.switchMode("image");
+    expect(clearRecorder.calls).toEqual(["drawing"],
+      "Failed to clear 'drawing' state when switching back to 'image'."
+    );
   });
+
 });

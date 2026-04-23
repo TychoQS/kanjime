@@ -4,7 +4,7 @@
  * @inv Visible results are ordered by descending confidence.
  * @inv Visible results never expose numeric confidence values.
  * @inv The result list contains between one and five visible items whenever results are available.
- * @inv A single image or crop source can update the visible results only once.
+ * @inv Results are not overwritten when receiving the same source again.
  */
 export interface DisplayInferencesInterface {
   /**

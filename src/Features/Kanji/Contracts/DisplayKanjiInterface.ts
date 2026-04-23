@@ -35,6 +35,7 @@ export interface DisplayKanjiInterface {
    * Requirement IDs: R13.
    *
    * @pre The user is currently on the kanji information screen.
+   * @pre A valid kanji has been selected.
    * @post The kanji character is copied to the clipboard without changing the application state.
    */
   copyKanjiCharacter(character: string): Promise<void>;
@@ -45,6 +46,7 @@ export interface DisplayKanjiInterface {
    * Requirement IDs: R14.
    *
    * @pre The user is currently on the kanji information screen.
+   * @pre A valid kanji has been selected.
    * @post Navigation returns to the previous screen and restores the preserved state that existed before the kanji entry was opened.
    */
   returnToPreviousScreen(): void;

@@ -15,5 +15,10 @@ export interface ImageProps {
     altText: string;
   } | null;
   readonly isProcessing: boolean;
+  /**
+   * Callback function invoked when the user requests to clear the image.
+   * @pre An image must be loaded to be cleared.
+   * @post The image is cleared from the view.
+   */
   readonly onClearImage: () => void;
 }

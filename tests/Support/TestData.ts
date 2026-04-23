@@ -36,6 +36,26 @@ export const TEST_STROKE: Stroke = {
 };
 
 /**
+ * Canonical canvas data URL sample used by drawing preprocessing tests.
+ * Represents a minimal valid 1x1 black PNG in base64 format.
+ */
+export const TEST_CANVAS_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+/**
+ * Representative colors and thresholds for canvas testing.
+ */
+export const TEST_CANVAS_BG_COLOR = "#000000";
+export const TEST_CANVAS_STROKE_COLOR = "#FFFFFF";
+export const TEST_CANVAS_CUSTOM_BG = "#1A1A1A";
+export const TEST_CANVAS_CUSTOM_STROKE = "#EBEBEB";
+export const WCAG_AAA_CONTRAST_THRESHOLD = 7.0;
+
+/**
+ * Inference model image size
+ */
+export const MODEL_INPUT_SIZE = 224
+
+/**
  * Canonical image sample used by image-related tests.
  */
 export const TEST_IMAGE: ImageDescriptor = {
@@ -59,9 +79,31 @@ export const TEST_CROP: CropRegion = {
  * Raw predictions used by inference-related tests.
  */
 export const TEST_PREDICTIONS: ReadonlyArray<InferencePrediction> = [
-  { character: TEST_PRIMARY_CHARACTER, confidence: 0.98, strokeCount: 4 },
+  { character: TEST_PRIMARY_CHARACTER, confidence: 0.78, strokeCount: 4 },
   { character: TEST_SECONDARY_CHARACTER, confidence: 0.92, strokeCount: 5 },
   { character: TEST_TERTIARY_CHARACTER, confidence: 0.88, strokeCount: 3 }
+];
+
+/**
+ * Extended predictions for strict truncation and filtering tests.
+ * Uses real kanjis with their actual stroke counts.
+ */
+export const TEST_EXTENDED_PREDICTIONS: ReadonlyArray<InferencePrediction> = [
+  { character: "一", confidence: 0.99, strokeCount: 1 },
+  { character: "二", confidence: 0.98, strokeCount: 2 },
+  { character: "七", confidence: 0.97, strokeCount: 2 },
+  { character: "八", confidence: 0.96, strokeCount: 2 },
+  { character: "九", confidence: 0.95, strokeCount: 2 },
+  { character: "十", confidence: 0.94, strokeCount: 2 },
+  { character: "空", confidence: 0.93, strokeCount: 8 },
+  { character: "海", confidence: 0.92, strokeCount: 9 },
+];
+
+/**
+ * Alternative predictions.
+ */
+export const TEST_OTHER_PREDICTIONS: ReadonlyArray<InferencePrediction> = [
+  { character: TEST_TERTIARY_CHARACTER, confidence: 0.95, strokeCount: 3 },
 ];
 
 /**
@@ -101,6 +143,24 @@ export const TEST_KANJI_DETAILS: DetailedKanjiEntry = {
   strokeOrder: "/assets/database/stroke-order.svg",
   jlptLevel: "N5",
   joyoLevel: "1"
+};
+
+/**
+ * Standardized search result info used by SearchResultProps tests.
+ * Includes all fields required by R12 (character, readings, levels).
+ */
+export const TEST_KANJI_INFO = {
+  character: TEST_PRIMARY_CHARACTER,
+  mainReadings: ["ニチ", "ひ"],
+  levels: ["JLPT N5", "Joyo 1"],
+};
+
+/**
+ * Partial kanji entry for testing incomplete kanji data structures.
+ */
+export const TEST_PARTIAL_KANJI_DETAILS: DetailedKanjiEntry = {
+  character: TEST_SECONDARY_CHARACTER,
+  strokeCount: 5
 };
 
 /**
@@ -148,3 +208,15 @@ export const TEST_HISTORY_GROUPS: ReadonlyArray<HistoryGroup> = [
     ]
   }
 ];
+
+/**
+ * Default props for CanvasInputView tests.
+ */
+export const TEST_CANVAS_PROPS = {
+  backgroundColor: TEST_CANVAS_BG_COLOR,
+  strokeColor: TEST_CANVAS_STROKE_COLOR,
+  isDrawingEnabled: true,
+  strokes: [TEST_STROKE],
+  onStrokeCommitted: () => undefined,
+  onClearRequested: () => undefined
+};

@@ -17,9 +17,9 @@ describe("OCR-DRAW-CLASSIFY", () => {
   /**
    * Requirement: OCR-DRAW-CLASSIFY
    * Type: Integration
-   * Condition: Precondition + Invariant + Postcondition
+   * Condition: All
    */
-  it(buildRequirementTitle("OCR-DRAW-CLASSIFY", "Integration", "Postcondition", "flows from a stroke to visible ordered predictions"), async () => {
+  it(buildRequirementTitle("OCR-DRAW-CLASSIFY", "Integration", "All", "flows from a stroke to visible ordered predictions"), async () => {
     const initializerRecorder = createAsyncValueRecorder({
       inputWidth: TEST_IMAGE.width,
       inputHeight: TEST_IMAGE.height,
@@ -49,13 +49,41 @@ describe("OCR-DRAW-CLASSIFY", () => {
       saveHistoryEntry: historyRecorder.handler
     });
 
+    // Precondition: model is loaded and drawing mode is active
     await modelLoader.loadModel();
-    const predictions = await canvas.registerStroke(TEST_STROKE);
-    display.updateResultsFromDrawingInference(TEST_PREDICTIONS);
+    expect(modelLoader.isModelReady()).toBe(true,
+      "OCR-DRAW-CLASSIFY precondition failed: after calling loadModel(), the model loader still reports not-ready. Implement loadModel()/isModelReady() so drawing OCR only starts once the model is available."
+    );
+    expect(initializerRecorder.calls).toHaveLength(1,
+      "OCR-DRAW-CLASSIFY precondition failed: the model runtime must be initialized exactly once before processing the first stroke."
+    );
 
-    expect(modelLoader.isModelReady()).toBe(true, "OCR draw flow did not expose a ready model state.");
-    expect(predictions.length).toBeGreaterThan(0, "OCR draw flow produced no predictions from the completed stroke.");
-    expect(classifierRecorder.calls).toHaveLength(1, "OCR draw flow did not classify the stroke exactly once.");
-    expect(display.getVisibleResults().length).toBeGreaterThan(0, "OCR draw flow did not expose visible predictions.");
+    // Invariant: inference is executed exactly once per completed stroke
+    const predictions = await canvas.registerStroke(TEST_STROKE);
+    expect(classifierRecorder.calls).toHaveLength(1,
+      "OCR-DRAW-CLASSIFY invariant failed: completing one new stroke must trigger exactly one classification request."
+    );
+    expect(classifierRecorder.calls[0]).toEqual(
+      ["draw-source", "data:image/png;base64,AAAA"],
+      "OCR-DRAW-CLASSIFY invariant failed: the classifier did not receive the expected drawing sourceId/inputUrl contract for the completed stroke."
+    );
+
+    // Postcondition: a non-empty ordered list of predictions (≤5) is generated and displayed
+    expect(predictions.length).toBeGreaterThan(0,
+      "OCR-DRAW-CLASSIFY postcondition failed: drawing OCR returned no predictions after a completed stroke."
+    );
+    expect(predictions.length).toBeLessThanOrEqual(5,
+      "OCR-DRAW-CLASSIFY postcondition failed: drawing OCR returned more than 5 predictions, violating the visible results limit."
+    );
+    display.updateResultsFromDrawingInference(TEST_PREDICTIONS);
+    const visibleResults = display.getVisibleResults();
+    expect(visibleResults.length).toBeGreaterThan(0,
+      "OCR-DRAW-CLASSIFY postcondition failed: predictions were not propagated to the visible inference list."
+    );
+    expect(TEST_PREDICTIONS.every((prediction, index, allPredictions) => (
+      index === 0 || allPredictions[index - 1].confidence >= prediction.confidence
+    ))).toBe(true,
+      "OCR-DRAW-CLASSIFY postcondition failed: predictions are not ordered by descending confidence before being shown."
+    );
   });
 });

@@ -12,4 +12,5 @@ export interface GlobalProps {
   readonly language: string;
   readonly theme: "light" | "dark" | "system";
   readonly translationsReady: boolean;
+  readonly children?: React.ReactNode;
 }

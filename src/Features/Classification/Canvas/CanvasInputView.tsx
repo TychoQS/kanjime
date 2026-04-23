@@ -1,10 +1,17 @@
-import { IonContent } from "@ionic/react";
-
-import type { CanvasInputProps } from "./Contracts/CanvasInputProps";
+import React from "react";
+import { CanvasInputProps } from "./Contracts/CanvasInputProps";
 
 /**
- * Minimal canvas view stub kept intentionally empty for RED tests.
+ * Component for drawing kanji characters on a canvas.
+ * 
+ * @pre {@link CanvasInputProps}
+ * @inv {@link CanvasInputProps}
+ * @post {@link CanvasInputProps}
  */
-export function CanvasInputView(_props: CanvasInputProps): JSX.Element {
-  return <IonContent data-testid="canvas-input-view" />;
-}
+export const CanvasInputView: React.FC<CanvasInputProps> = () => {
+  return (
+    <div data-testid="canvas-container">
+      <canvas aria-label="Drawing area" />
+    </div>
+  );
+};

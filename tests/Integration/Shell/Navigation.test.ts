@@ -17,9 +17,9 @@ describe("NAVIGATION", () => {
   /**
    * Requirement: NAVIGATION
    * Type: Integration
-   * Condition: Precondition + Invariant + Postcondition
+   * Condition: All
    */
-  it(buildRequirementTitle("NAVIGATION", "Integration", "Postcondition", "clears page state while preserving user preferences"), async () => {
+  it(buildRequirementTitle("NAVIGATION", "Integration", "All", "clears page state while preserving user preferences"), async () => {
     const clearRecorder = createVoidArgumentRecorder<"classification" | "search" | "history" | "about" | "kanjiEntry">();
     const publishRecorder = createVoidArgumentRecorder<{ page: "classification"; mode: "image" }>();
     const languageRecorder = createVoidArgumentRecorder<string>();
@@ -50,21 +50,39 @@ describe("NAVIGATION", () => {
       saveHistoryEntry: historyRecorder.handler
     });
 
+    // Precondition: user has configured preferences and the page has active state
     preferences.setLanguage(TEST_LANGUAGE);
     preferences.setTheme(TEST_THEME);
     await canvas.registerStroke(TEST_STROKE);
     imageController.setImage(TEST_IMAGE);
+    imageController.setActiveCrop(TEST_CROP);
     display.updateResultsFromDrawingInference(TEST_PREDICTIONS);
-    navigation.navigateTo("history");
 
-    expect(clearRecorder.calls).toEqual(["history"], "Navigation flow did not clear the previous page state.");
-    expect(preferences.getCurrentPreferences().language).toBe(
-      TEST_LANGUAGE,
-      "Navigation flow did not preserve the selected language."
+    // Invariant: preferences are preserved; page state is not carried over
+    navigation.navigateTo("history");
+    navigation.navigateTo("classification");
+
+    // Postcondition: previous page state is cleared and preferences remain intact
+    expect(clearRecorder.calls).toEqual(["history", "classification"],
+      "NAVIGATION invariant failed: navigating between pages must clear the previous page state on each transition."
     );
-    expect(preferences.getCurrentPreferences().theme).toBe(TEST_THEME, "Navigation flow did not preserve the selected theme.");
-    expect(canvas.getStrokeHistory()).toHaveLength(0);
-    expect(imageController.getImageState().image).toBeNull();
-    expect(display.getVisibleResults()).toHaveLength(0);
+    expect(preferences.getCurrentPreferences().language).toBe(TEST_LANGUAGE,
+      "NAVIGATION invariant failed: the selected language preference was not preserved across navigation."
+    );
+    expect(preferences.getCurrentPreferences().theme).toBe(TEST_THEME,
+      "NAVIGATION invariant failed: the selected theme preference was not preserved across navigation."
+    );
+    expect(canvas.getStrokeHistory()).toHaveLength(0,
+      "NAVIGATION postcondition failed: stroke history from the previous page remained after navigation."
+    );
+    expect(imageController.getImageState().image).toBeNull(
+      "NAVIGATION postcondition failed: an image from the previous page remained after navigation."
+    );
+    expect(imageController.getImageState().crop).toBeNull(
+      "NAVIGATION postcondition failed: a crop from the previous page remained after navigation."
+    );
+    expect(display.getVisibleResults()).toHaveLength(0,
+      "NAVIGATION postcondition failed: inference results from the previous page remained visible after navigation."
+    );
   });
 });

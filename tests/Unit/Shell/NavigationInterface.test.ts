@@ -8,7 +8,7 @@ describe("NavigationInterface", () => {
   /**
    * Requirement: R27
    * Type: Unit
-   * Condition: Precondition + Invariant + Postcondition
+   * Condition: Postcondition
    */
   it(buildRequirementTitle("R27", "Unit", "Postcondition", "clears the current page state during navigation"), () => {
     const clearRecorder = createVoidArgumentRecorder<"classification" | "search" | "history" | "about" | "kanjiEntry">();
@@ -24,11 +24,11 @@ describe("NavigationInterface", () => {
   });
 
   /**
-   * Requirement: R28
-   * Type: Unit
-   * Condition: Precondition + Invariant + Postcondition
-   */
-  it(buildRequirementTitle("R28", "Unit", "Postcondition", "publishes the OCR image route as the initial state"), () => {
+ * Requirement: R28
+ * Type: Unit
+ * Condition: Invariant
+ */
+  it(buildRequirementTitle("R28", "Unit", "Invariant", "publishes the initial route as consistent state"), () => {
     const clearRecorder = createVoidArgumentRecorder<"classification" | "search" | "history" | "about" | "kanjiEntry">();
     const publishRecorder = createVoidArgumentRecorder<{ page: "classification"; mode: "image" }>();
     const controller = CreateNavigationController({
@@ -38,7 +38,28 @@ describe("NavigationInterface", () => {
 
     const route = controller.getInitialRoute();
 
-    expect(publishRecorder.calls).toEqual([route], "NavigationInterface did not publish the initial OCR route.");
-    expect(route).toEqual({ page: "classification", mode: "image" }, "NavigationInterface returned an unexpected initial route.");
+    expect(publishRecorder.calls).toEqual([route],
+      "NavigationInterface did not publish the initial route as consistent state."
+    );
+  });
+
+  /**
+   * Requirement: R28
+   * Type: Unit
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R28", "Unit", "Postcondition", "initial mode is OCR image mode"), () => {
+    const clearRecorder = createVoidArgumentRecorder<"classification" | "search" | "history" | "about" | "kanjiEntry">();
+    const publishRecorder = createVoidArgumentRecorder<{ page: "classification"; mode: "image" }>();
+    const controller = CreateNavigationController({
+      clearPageState: clearRecorder.handler,
+      publishInitialRoute: publishRecorder.handler
+    });
+
+    const route = controller.getInitialRoute();
+
+    expect(route).toEqual({ page: "classification", mode: "image" },
+      "NavigationInterface did not return OCR image mode as the initial route."
+    );
   });
 });

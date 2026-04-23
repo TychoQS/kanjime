@@ -7,11 +7,43 @@ import { buildRequirementTitle } from "../../Support/RequirementTest";
 
 describe("HistoryInterface", () => {
   /**
+ * Requirement: R15
+ * Type: Unit
+ * Condition: Invariant
+ */
+  it(buildRequirementTitle("R15", "Unit", "Invariant", "does not trigger persistence or navigation when retrieving history groups"), async () => {
+    const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
+    const persistRecorder = createVoidArgumentRecorder<{
+      character: string;
+      category: "search" | "visitedEntry" | "imageClassification" | "drawingClassification";
+      createdAt: string;
+    }>();
+    const navigationRecorder = createVoidArgumentRecorder<string>();
+    const controller = CreateHistoryController({
+      loadGroups: groupsRecorder.handler,
+      persistEntry: persistRecorder.handler,
+      navigateToKanjiEntry: navigationRecorder.handler
+    });
+
+    await controller.getEntriesByCategory();
+
+    expect(persistRecorder.calls).toHaveLength(
+      0,
+      "HistoryInterface unexpectedly attempted to persist entries while retrieving grouped history."
+    );
+
+    expect(navigationRecorder.calls).toHaveLength(
+      0,
+      "HistoryInterface unexpectedly triggered navigation while retrieving grouped history."
+    );
+  });
+
+  /**
    * Requirement: R15
    * Type: Unit
-   * Condition: Precondition + Invariant + Postcondition
+   * Condition: Postcondition
    */
-  it(buildRequirementTitle("R15", "Unit", "Postcondition", "loads persistent history grouped by category"), async () => {
+  it(buildRequirementTitle("R15", "Unit", "Postcondition", "returns the stored history entries grouped by category"), async () => {
     const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
     const persistRecorder = createVoidArgumentRecorder<{
       character: string;
@@ -27,14 +59,95 @@ describe("HistoryInterface", () => {
 
     const groups = await controller.getEntriesByCategory();
 
-    expect(groupsRecorder.calls.length).toBeGreaterThan(0, "HistoryInterface never queried the persistent history.");
-    expect(groups).toEqual(TEST_HISTORY_GROUPS, "HistoryInterface returned unexpected history groups.");
+    expect(groups).toEqual(
+      TEST_HISTORY_GROUPS,
+      "HistoryInterface did not return the stored history entries grouped by category."
+    );
+  });
+
+  /**
+ * Requirement: R16
+ * Type: Unit
+ * Condition: Precondition
+ */
+  it(buildRequirementTitle("R16", "Unit", "Precondition", "rejects opening a kanji entry when history is empty"), async () => {
+    const groupsRecorder = createAsyncValueRecorder([]);
+    const persistRecorder = createVoidArgumentRecorder<{
+      character: string;
+      category: "search" | "visitedEntry" | "imageClassification" | "drawingClassification";
+      createdAt: string;
+    }>();
+    const navigationRecorder = createVoidArgumentRecorder<string>();
+    const controller = CreateHistoryController({
+      loadGroups: groupsRecorder.handler,
+      persistEntry: persistRecorder.handler,
+      navigateToKanjiEntry: navigationRecorder.handler
+    });
+
+    await expect(
+      controller.openKanjiEntry(TEST_PRIMARY_CHARACTER),
+      "HistoryInterface did not reject opening a history entry when history was empty."
+    ).rejects.toThrow();
+
+    expect(navigationRecorder.calls).toHaveLength(
+      0,
+      "HistoryInterface attempted to navigate to a history entry when no history entries were available."
+    );
   });
 
   /**
    * Requirement: R16
    * Type: Unit
-   * Condition: Precondition + Invariant + Postcondition
+   * Condition: Precondition
+   */
+  it(buildRequirementTitle("R16", "Unit", "Precondition", "accepts opening a kanji entry when history is not empty"), async () => {
+    const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
+    const persistRecorder = createVoidArgumentRecorder<{
+      character: string;
+      category: "search" | "visitedEntry" | "imageClassification" | "drawingClassification";
+      createdAt: string;
+    }>();
+    const navigationRecorder = createVoidArgumentRecorder<string>();
+    const controller = CreateHistoryController({
+      loadGroups: groupsRecorder.handler,
+      persistEntry: persistRecorder.handler,
+      navigateToKanjiEntry: navigationRecorder.handler
+    });
+
+    await expect(controller.openKanjiEntry(TEST_PRIMARY_CHARACTER)).resolves.not.toThrow();
+  });
+
+  /**
+   * Requirement: R16
+   * Type: Unit
+   * Condition: Invariant
+   */
+  it(buildRequirementTitle("R16", "Unit", "Invariant", "does not modify stored history when opening a kanji entry"), async () => {
+    const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
+    const persistRecorder = createVoidArgumentRecorder<{
+      character: string;
+      category: "search" | "visitedEntry" | "imageClassification" | "drawingClassification";
+      createdAt: string;
+    }>();
+    const navigationRecorder = createVoidArgumentRecorder<string>();
+    const controller = CreateHistoryController({
+      loadGroups: groupsRecorder.handler,
+      persistEntry: persistRecorder.handler,
+      navigateToKanjiEntry: navigationRecorder.handler
+    });
+
+    await controller.openKanjiEntry(TEST_PRIMARY_CHARACTER);
+
+    expect(persistRecorder.calls).toHaveLength(
+      0,
+      "HistoryInterface unexpectedly modified stored history when opening a history entry."
+    );
+  });
+
+  /**
+   * Requirement: R16
+   * Type: Unit
+   * Condition: Postcondition
    */
   it(buildRequirementTitle("R16", "Unit", "Postcondition", "opens a kanji entry from history"), async () => {
     const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
@@ -52,13 +165,149 @@ describe("HistoryInterface", () => {
 
     await controller.openKanjiEntry(TEST_PRIMARY_CHARACTER);
 
-    expect(navigationRecorder.calls).toEqual([TEST_PRIMARY_CHARACTER], "HistoryInterface did not open the selected history item.");
+    expect(navigationRecorder.calls).toEqual(
+      [TEST_PRIMARY_CHARACTER],
+      "HistoryInterface did not open the selected history item."
+    );
+
+  });
+
+  /**
+ * Requirement: R17
+ * Type: Unit
+ * Condition: Precondition
+ */
+  it(buildRequirementTitle("R17", "Unit", "Precondition", "rejects saving a history entry when the character is invalid"), async () => {
+    const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
+    const persistRecorder = createVoidArgumentRecorder<{
+      character: string;
+      category: "search" | "visitedEntry" | "imageClassification" | "drawingClassification";
+      createdAt: string;
+    }>();
+    const navigationRecorder = createVoidArgumentRecorder<string>();
+    const controller = CreateHistoryController({
+      loadGroups: groupsRecorder.handler,
+      persistEntry: persistRecorder.handler,
+      navigateToKanjiEntry: navigationRecorder.handler
+    });
+
+    await expect(
+      controller.saveEntry({
+        character: "",
+        category: "search",
+        createdAt: TEST_TIMESTAMP
+      }),
+      "HistoryInterface did not reject saving a history entry with an invalid character."
+    ).rejects.toThrow();
+
+    expect(persistRecorder.calls).toHaveLength(
+      0,
+      "HistoryInterface attempted to persist a history entry with an invalid character."
+    );
   });
 
   /**
    * Requirement: R17
    * Type: Unit
-   * Condition: Precondition + Invariant + Postcondition
+   * Condition: Precondition
+   */
+  it(buildRequirementTitle("R17", "Unit", "Precondition", "rejects saving a history entry when the category is invalid"), async () => {
+    const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
+    const persistRecorder = createVoidArgumentRecorder<{
+      character: string;
+      category: "search" | "visitedEntry" | "imageClassification" | "drawingClassification";
+      createdAt: string;
+    }>();
+    const navigationRecorder = createVoidArgumentRecorder<string>();
+    const controller = CreateHistoryController({
+      loadGroups: groupsRecorder.handler,
+      persistEntry: persistRecorder.handler,
+      navigateToKanjiEntry: navigationRecorder.handler
+    });
+
+    await expect(
+      controller.saveEntry({
+        character: TEST_PRIMARY_CHARACTER,
+        category: "invalidCategory" as unknown as "search" | "visitedEntry" | "imageClassification" | "drawingClassification",
+        createdAt: TEST_TIMESTAMP
+      }),
+      "HistoryInterface did not reject saving a history entry with an invalid category."
+    ).rejects.toThrow();
+
+    expect(persistRecorder.calls).toHaveLength(
+      0,
+      "HistoryInterface attempted to persist a history entry with an invalid category."
+    );
+  });
+
+  /**
+   * Requirement: R17
+   * Type: Unit
+   * Condition: Precondition
+   */
+  it(buildRequirementTitle("R17", "Unit", "Precondition", "accepts saving a history entry when parameters are valid"), async () => {
+    const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
+    const persistRecorder = createVoidArgumentRecorder<{
+      character: string;
+      category: "search" | "visitedEntry" | "imageClassification" | "drawingClassification";
+      createdAt: string;
+    }>();
+    const navigationRecorder = createVoidArgumentRecorder<string>();
+    const controller = CreateHistoryController({
+      loadGroups: groupsRecorder.handler,
+      persistEntry: persistRecorder.handler,
+      navigateToKanjiEntry: navigationRecorder.handler
+    });
+
+    const newEntry = {
+      character: "新",
+      category: "search" as const,
+      createdAt: TEST_TIMESTAMP
+    };
+
+    await expect(controller.saveEntry(newEntry)).resolves.not.toThrow();
+  });
+
+  /**
+   * Requirement: R17
+   * Type: Unit
+   * Condition: Invariant
+   */
+  it(buildRequirementTitle("R17", "Unit", "Invariant", "does not persist duplicated history entries"), async () => {
+    const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
+    const persistRecorder = createVoidArgumentRecorder<{
+      character: string;
+      category: "search" | "visitedEntry" | "imageClassification" | "drawingClassification";
+      createdAt: string;
+    }>();
+    const navigationRecorder = createVoidArgumentRecorder<string>();
+    const controller = CreateHistoryController({
+      loadGroups: groupsRecorder.handler,
+      persistEntry: persistRecorder.handler,
+      navigateToKanjiEntry: navigationRecorder.handler
+    });
+
+    await expect(
+      controller.saveEntry({
+        character: TEST_PRIMARY_CHARACTER,
+        category: "search",
+        createdAt: TEST_TIMESTAMP
+      }),
+      "HistoryInterface did not reject saving a duplicated history entry."
+    ).rejects.toThrow();
+
+    expect(persistRecorder.calls).toHaveLength(
+      0,
+      "HistoryInterface attempted to persist a duplicated history entry."
+    );
+  });
+
+
+
+  /**
+   * Requirement: R17
+   * Type: Unit
+   * Condition: Postcondition
    */
   it(buildRequirementTitle("R17", "Unit", "Postcondition", "stores a new persistent history entry"), async () => {
     const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
@@ -74,21 +323,26 @@ describe("HistoryInterface", () => {
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
-    await controller.saveEntry({
+    const newEntry = {
       character: TEST_PRIMARY_CHARACTER,
-      category: "search",
+      category: "search" as const,
       createdAt: TEST_TIMESTAMP
-    });
+    };
 
-    expect(persistRecorder.calls).toHaveLength(1, "HistoryInterface did not persist the new history entry.");
+    await controller.saveEntry(newEntry);
+
+    expect(persistRecorder.calls).toEqual(
+      [newEntry],
+      "HistoryInterface did not persist the new history entry correctly."
+    );
   });
 
   /**
-   * Requirement: R18
-   * Type: Unit
-   * Condition: Precondition + Invariant + Postcondition
-   */
-  it(buildRequirementTitle("R18", "Unit", "Invariant", "exposes the four supported history categories"), async () => {
+ * Requirement: R18
+ * Type: Unit
+ * Condition: Invariant
+ */
+  it(buildRequirementTitle("R18", "Unit", "Invariant", "exposes only the four supported history categories"), async () => {
     const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
     const persistRecorder = createVoidArgumentRecorder<{
       character: string;
@@ -96,6 +350,7 @@ describe("HistoryInterface", () => {
       createdAt: string;
     }>();
     const navigationRecorder = createVoidArgumentRecorder<string>();
+
     const controller = CreateHistoryController({
       loadGroups: groupsRecorder.handler,
       persistEntry: persistRecorder.handler,
@@ -107,6 +362,34 @@ describe("HistoryInterface", () => {
     expect(groups.map((group) => group.category)).toEqual(
       ["search", "visitedEntry", "imageClassification", "drawingClassification"],
       "HistoryInterface returned unexpected history categories."
+    );
+  });
+
+  /**
+   * Requirement: R18
+   * Type: Unit
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R18", "Unit", "Postcondition", "returns history entries grouped by category"), async () => {
+    const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
+    const persistRecorder = createVoidArgumentRecorder<{
+      character: string;
+      category: "search" | "visitedEntry" | "imageClassification" | "drawingClassification";
+      createdAt: string;
+    }>();
+    const navigationRecorder = createVoidArgumentRecorder<string>();
+
+    const controller = CreateHistoryController({
+      loadGroups: groupsRecorder.handler,
+      persistEntry: persistRecorder.handler,
+      navigateToKanjiEntry: navigationRecorder.handler
+    });
+
+    const groups = await controller.getEntriesByCategory();
+
+    expect(groups).toEqual(
+      TEST_HISTORY_GROUPS,
+      "HistoryInterface did not return history entries grouped by category."
     );
   });
 });

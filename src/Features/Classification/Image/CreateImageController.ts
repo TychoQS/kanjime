@@ -1,5 +1,6 @@
 import type { ImageInterface } from "./Contracts/ImageInterface";
 import type { CropRegion, ImageDescriptor, ImageState } from "../../../Shared/DomainTypes";
+import { createImageViewModel } from "./ViewModel/ImageViewModel";
 
 /**
  * External collaborators consumed by the image controller.
@@ -10,18 +11,8 @@ export interface CreateImageControllerDependencies {
 }
 
 /**
- * Creates the image-state controller stub used by the RED test suite.
+ * Creates the image-state controller.
  */
-export function CreateImageController(_dependencies: CreateImageControllerDependencies): ImageInterface {
-  return {
-    setImage(_image: ImageDescriptor): void {},
-    clearImage(): void {},
-    setActiveCrop(_crop: CropRegion): void {},
-    getImageState(): ImageState {
-      return {
-        image: null,
-        crop: null
-      };
-    }
-  };
+export function CreateImageController(dependencies: CreateImageControllerDependencies): ImageInterface {
+  return createImageViewModel(dependencies);
 }

@@ -1,5 +1,6 @@
 import type { ToggleClassificationModeInterface } from "./Contracts/ToggleClassificationModeInterface";
 import type { ClassificationMode } from "../../../Shared/DomainTypes";
+import { createToggleClassificationModeViewModel } from "./ViewModel/ToggleClassificationModeViewModel";
 
 /**
  * External collaborators consumed by the mode-toggle controller.
@@ -9,12 +10,10 @@ export interface CreateToggleClassificationModeControllerDependencies {
 }
 
 /**
- * Creates the mode-toggle controller stub used by the RED test suite.
+ * Creates the mode-toggle controller.
  */
 export function CreateToggleClassificationModeController(
-  _dependencies: CreateToggleClassificationModeControllerDependencies
+  dependencies: CreateToggleClassificationModeControllerDependencies
 ): ToggleClassificationModeInterface {
-  return {
-    switchMode(_mode: ClassificationMode): void {}
-  };
+  return createToggleClassificationModeViewModel(dependencies);
 }

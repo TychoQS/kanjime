@@ -1,5 +1,6 @@
 import type { SearchInterface } from "./Contracts/SearchInterface";
 import type { CharacterSummary } from "../../Shared/DomainTypes";
+import { createSearchViewModel } from "./ViewModel/SearchViewModel";
 
 /**
  * External collaborators consumed by the search controller.
@@ -10,16 +11,10 @@ export interface CreateSearchControllerDependencies {
 }
 
 /**
- * Creates the search controller stub used by the RED test suite.
+ * Creates the search controller.
  */
 export function CreateSearchController(
-  _dependencies: CreateSearchControllerDependencies
+  dependencies: CreateSearchControllerDependencies
 ): SearchInterface {
-  return {
-    async search(_term: string): Promise<ReadonlyArray<CharacterSummary>> {
-      return [];
-    },
-    clearSearch(): void {},
-    async openKanjiEntry(_character: string): Promise<void> {}
-  };
+  return createSearchViewModel(dependencies);
 }

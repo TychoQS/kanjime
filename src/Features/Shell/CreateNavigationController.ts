@@ -1,5 +1,6 @@
 import type { NavigationInterface } from "./Contracts/NavigationInterface";
 import type { NavigationPage } from "../../Shared/DomainTypes";
+import { createNavigationViewModel } from "./ViewModel/NavigationViewModel";
 
 /**
  * External collaborators consumed by the navigation controller.
@@ -10,18 +11,10 @@ export interface CreateNavigationControllerDependencies {
 }
 
 /**
- * Creates the navigation controller stub used by the RED test suite.
+ * Creates the navigation controller.
  */
 export function CreateNavigationController(
-  _dependencies: CreateNavigationControllerDependencies
+  dependencies: CreateNavigationControllerDependencies
 ): NavigationInterface {
-  return {
-    navigateTo(_page: NavigationPage): void {},
-    getInitialRoute(): { page: "classification"; mode: "image" } {
-      return {
-        page: "classification",
-        mode: "image"
-      };
-    }
-  };
+  return createNavigationViewModel(dependencies);
 }

@@ -1,5 +1,6 @@
 import type { AboutInterface } from "./Contracts/AboutInterface";
 import type { AboutInformationItem } from "../../Shared/DomainTypes";
+import { createAboutViewModel } from "./ViewModel/AboutViewModel";
 
 /**
  * External collaborators consumed by the About controller.
@@ -10,15 +11,8 @@ export interface CreateAboutControllerDependencies {
 }
 
 /**
- * Creates the About controller stub used to keep the RED test suite compilable.
+ * Creates the About controller.
  */
-export function CreateAboutController(_dependencies: CreateAboutControllerDependencies): AboutInterface {
-  return {
-    async getAboutInformation(): Promise<ReadonlyArray<AboutInformationItem>> {
-      return [];
-    },
-    async getApplicationVersion(): Promise<string> {
-      return "";
-    }
-  };
+export function CreateAboutController(dependencies: CreateAboutControllerDependencies): AboutInterface {
+  return createAboutViewModel(dependencies);
 }

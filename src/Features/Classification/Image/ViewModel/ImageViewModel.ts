@@ -1,0 +1,108 @@
+import type { ImageInterface } from "../Contracts/ImageInterface";
+import type { CreateImageControllerDependencies } from "../CreateImageController";
+import type { CropRegion, ImageDescriptor, ImageState } from "../../../../Shared/DomainTypes";
+
+let registeredImageClear: (() => void) | null = null;
+
+/**
+ * Clears the most recently created image state, when available.
+ *
+ * @post Registered image state is empty after this operation.
+ */
+export function clearRegisteredImageState(): void {
+  registeredImageClear?.();
+}
+
+/**
+ * Validates image descriptors before they enter image classification state.
+ *
+ * @pre The descriptor is produced by camera, library, or a supported file input.
+ * @post The operation completes only for non-empty image descriptors.
+ */
+function assertValidImage(image: ImageDescriptor): void {
+  if (
+    image.uri.trim().length === 0 ||
+    image.mimeType.trim().length === 0 ||
+    image.width <= 0 ||
+    image.height <= 0
+  ) {
+    throw new Error("The selected image could not be used.");
+  }
+}
+
+/**
+ * Validates that a crop lies inside the loaded image.
+ *
+ * @pre A valid image is loaded.
+ * @post The operation completes only when the crop is fully bounded by the image.
+ */
+function assertValidCrop(crop: CropRegion, image: ImageDescriptor): void {
+  const cropRight = crop.x + crop.width;
+  const cropBottom = crop.y + crop.height;
+
+  if (
+    crop.x < 0 ||
+    crop.y < 0 ||
+    crop.width <= 0 ||
+    crop.height <= 0 ||
+    cropRight > image.width ||
+    cropBottom > image.height
+  ) {
+    throw new Error("ImageInterface accepted a crop outside the image bounds.");
+  }
+}
+
+/**
+ * Creates the image state view model.
+ *
+ * @pre Image and crop callbacks are available for the classification workflow.
+ * @inv At most one image and one crop are active at a time.
+ * @post The returned controller preserves immutable snapshots of image state.
+ */
+export function createImageViewModel(dependencies: CreateImageControllerDependencies): ImageInterface {
+  let state: ImageState = {
+    image: null,
+    crop: null
+  };
+  registeredImageClear = () => {
+    state = {
+      image: null,
+      crop: null
+    };
+  };
+
+  return {
+    setImage(image: ImageDescriptor): void {
+      assertValidImage(image);
+      state = {
+        image: { ...image },
+        crop: null
+      };
+      void dependencies.onImageSelected({ ...image });
+    },
+    clearImage(): void {
+      state = {
+        image: null,
+        crop: null
+      };
+    },
+    setActiveCrop(crop: CropRegion): void {
+      if (state.image === null) {
+        throw new Error("Select an image before choosing an area.");
+      }
+
+      assertValidCrop(crop, state.image);
+      state = {
+        image: { ...state.image },
+        crop: { ...crop }
+      };
+      void dependencies.onCropSelected({ ...crop });
+    },
+    getImageState(): ImageState {
+      return {
+        image: state.image ? { ...state.image } : null,
+        crop: state.crop ? { ...state.crop } : null
+      };
+    }
+  };
+}

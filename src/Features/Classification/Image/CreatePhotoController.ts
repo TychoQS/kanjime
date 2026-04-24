@@ -1,5 +1,6 @@
 import type { PhotoInterface } from "./Contracts/PhotoInterface";
 import type { ImageDescriptor } from "../../../Shared/DomainTypes";
+import { createPhotoViewModel } from "./ViewModel/PhotoViewModel";
 
 /**
  * External collaborators consumed by the photo controller.
@@ -10,25 +11,8 @@ export interface CreatePhotoControllerDependencies {
 }
 
 /**
- * Creates the photo controller stub used by the RED test suite.
+ * Creates the photo controller.
  */
-export function CreatePhotoController(_dependencies: CreatePhotoControllerDependencies): PhotoInterface {
-  return {
-    async capturePhoto(): Promise<ImageDescriptor> {
-      return {
-        uri: "",
-        width: 0,
-        height: 0,
-        mimeType: ""
-      };
-    },
-    async pickPhotoFromLibrary(): Promise<ImageDescriptor> {
-      return {
-        uri: "",
-        width: 0,
-        height: 0,
-        mimeType: ""
-      };
-    }
-  };
+export function CreatePhotoController(dependencies: CreatePhotoControllerDependencies): PhotoInterface {
+  return createPhotoViewModel(dependencies);
 }

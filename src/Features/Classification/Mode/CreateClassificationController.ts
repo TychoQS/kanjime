@@ -1,5 +1,6 @@
 import type { ClassificationInterface } from "./Contracts/ClassificationInterface";
 import type { ClassificationMode } from "../../../Shared/DomainTypes";
+import { createClassificationViewModel } from "./ViewModel/ClassificationViewModel";
 
 /**
  * External collaborators consumed by the classification-mode controller.
@@ -9,15 +10,10 @@ export interface CreateClassificationControllerDependencies {
 }
 
 /**
- * Creates the classification-mode controller stub used by the RED test suite.
+ * Creates the classification-mode controller.
  */
 export function CreateClassificationController(
-  _dependencies: CreateClassificationControllerDependencies
+  dependencies: CreateClassificationControllerDependencies
 ): ClassificationInterface {
-  return {
-    getActiveMode(): ClassificationMode {
-      return "image";
-    },
-    activateMode(_mode: ClassificationMode): void {}
-  };
+  return createClassificationViewModel(dependencies);
 }

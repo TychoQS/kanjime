@@ -1,5 +1,6 @@
 import type { ModelLoaderInterface } from "./Contracts/ModelLoaderInterface";
 import type { ModelConfiguration } from "../../../Shared/DomainTypes";
+import { createModelLoaderViewModel } from "./ViewModel/ModelLoaderViewModel";
 
 /**
  * External collaborators consumed by the model-loader controller.
@@ -9,22 +10,10 @@ export interface CreateModelLoaderControllerDependencies {
 }
 
 /**
- * Creates the model-loader controller stub used by the RED test suite.
+ * Creates the model-loader controller.
  */
 export function CreateModelLoaderController(
-  _dependencies: CreateModelLoaderControllerDependencies
+  dependencies: CreateModelLoaderControllerDependencies
 ): ModelLoaderInterface {
-  return {
-    async loadModel(): Promise<void> {},
-    isModelReady(): boolean {
-      return false;
-    },
-    getModelConfiguration(): ModelConfiguration {
-      return {
-        inputWidth: 0,
-        inputHeight: 0,
-        isLoaded: false
-      };
-    }
-  };
+  return createModelLoaderViewModel(dependencies);
 }

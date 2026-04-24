@@ -1,5 +1,6 @@
 import type { DisplayKanjiInterface } from "./Contracts/DisplayKanjiInterface";
 import type { DetailedKanjiEntry } from "../../Shared/DomainTypes";
+import { createDisplayKanjiViewModel } from "./ViewModel/DisplayKanjiViewModel";
 
 /**
  * External collaborators consumed by the kanji-detail controller.
@@ -11,19 +12,10 @@ export interface CreateDisplayKanjiControllerDependencies {
 }
 
 /**
- * Creates the kanji-detail controller stub used by the RED test suite.
+ * Creates the kanji-detail controller.
  */
 export function CreateDisplayKanjiController(
-  _dependencies: CreateDisplayKanjiControllerDependencies
+  dependencies: CreateDisplayKanjiControllerDependencies
 ): DisplayKanjiInterface {
-  return {
-    async getKanjiDetails(character: string): Promise<DetailedKanjiEntry> {
-      return {
-        character,
-        strokeCount: 0
-      };
-    },
-    async copyKanjiCharacter(_character: string): Promise<void> {},
-    returnToPreviousScreen(): void {}
-  };
+  return createDisplayKanjiViewModel(dependencies);
 }

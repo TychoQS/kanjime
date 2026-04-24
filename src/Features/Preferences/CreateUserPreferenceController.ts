@@ -1,5 +1,6 @@
 import type { UserPreferenceInterface } from "./Contracts/UserPreferenceInterface";
 import type { ApplicationTheme } from "../../Shared/DomainTypes";
+import { createUserPreferenceViewModel } from "./ViewModel/UserPreferenceViewModel";
 
 /**
  * External collaborators consumed by the preference controller.
@@ -10,19 +11,10 @@ export interface CreateUserPreferenceControllerDependencies {
 }
 
 /**
- * Creates the preference controller stub used by the RED test suite.
+ * Creates the preference controller.
  */
 export function CreateUserPreferenceController(
-  _dependencies: CreateUserPreferenceControllerDependencies
+  dependencies: CreateUserPreferenceControllerDependencies
 ): UserPreferenceInterface {
-  return {
-    setLanguage(_language: string): void {},
-    setTheme(_theme: ApplicationTheme): void {},
-    getCurrentPreferences(): { language: string; theme: ApplicationTheme } {
-      return {
-        language: "en-US",
-        theme: "system"
-      };
-    }
-  };
+  return createUserPreferenceViewModel(dependencies);
 }

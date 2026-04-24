@@ -65,7 +65,7 @@ Scope: whole repo.
 - Important information should be visible without requiring complex interactions; Texts should be clear, simple, and understandable for the user.
 
 ### Accessibility
-- Text and UI elements must be readable across different lighting conditions and screens; Interactive elements must have sufficient size for touch interaction; Visual indicators must exist for important actions (loading, error, selection).
+- Text and UI elements must be readable across different lighting conditions and screens; Interactive elements must have sufficient size for touch interaction; Visual indicators must exist for important actions (loading, error, selection); When developing UI&UX WCAG guidelines for mobile applications.
 
 ### Consistency
 - The same action should always produce the same result across the application; Components should reuse common visual and interaction patterns; Different screens must maintain visual and structural consistency.

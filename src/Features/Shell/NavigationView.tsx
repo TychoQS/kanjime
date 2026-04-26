@@ -1,3 +1,5 @@
+import { IonContent } from "@ionic/react";
+
 import type { NavigationProps } from "./Contracts/NavigationProps";
 
 /**
@@ -9,7 +11,7 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
   }
 
   return (
-    <div data-testid="navigation-view">
+    <IonContent data-testid="navigation-view">
       <nav aria-label="Application navigation">
         <button aria-label="Close navigation" onClick={props.onCloseRequested} type="button">
           Close
@@ -30,6 +32,6 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
           ))}
         </ul>
       </nav>
-    </div>
+    </IonContent>
   );
 }

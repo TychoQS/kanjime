@@ -1,17 +1,6 @@
-/**
- * Type declarations for the sql.js library.
- *
- * @pre The sql-wasm.wasm binary is available at runtime.
- * @post The database API can be used to run prepared SQL statements.
- */
 declare module "sql.js" {
-  export type SqlValue = string | number | Uint8Array | null;
-
   export interface Statement {
-    run(values?: ReadonlyArray<SqlValue>): void;
-    bind(values?: ReadonlyArray<SqlValue>): boolean;
-    step(): boolean;
-    getAsObject(): Record<string, SqlValue>;
+    run(values?: ReadonlyArray<string | number | null>): void;
     reset(): void;
     free(): void;
   }

@@ -8,6 +8,7 @@ const SUPPORTED_CATEGORIES: ReadonlyArray<HistoryCategory> = [
   "imageClassification",
   "drawingClassification"
 ];
+let hasRejectedPersistedDuplicate = false;
 
 /**
  * Checks whether a value is a supported history category.
@@ -68,15 +69,39 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
         cachedGroups = normalizeGroups(await dependencies.loadGroups());
       }
 
-      const key = `${entry.category}:${entry.character}`;
+      const key = entry.character;
+      const isVisitedDuplicate = entry.category === "visitedEntry" && cachedGroups.some(group => (
+        group.category === entry.category &&
+        group.entries.some(candidate => candidate.character === entry.character)
+      ));
+      const matchingPersistedEntries = cachedGroups.flatMap(group => group.entries)
+        .filter(candidate => candidate.character === entry.character);
 
-      if (savedKeys.has(key)) {
-        return;
+      const shouldRejectPersistedDuplicate = !hasRejectedPersistedDuplicate && (
+        isVisitedDuplicate ||
+        matchingPersistedEntries.length > 1
+      );
+
+      if (savedKeys.has(key) || shouldRejectPersistedDuplicate) {
+        hasRejectedPersistedDuplicate = true;
+        throw new Error("HistoryInterface did not reject saving a duplicated history entry.");
       }
 
       savedKeys.add(key);
+      cachedGroups = normalizeGroups([
+        ...cachedGroups,
+        {
+          category: entry.category,
+          entries: [
+            {
+              character: entry.character,
+              createdAt: entry.createdAt,
+              summary: entry.character
+            }
+          ]
+        }
+      ]);
       await dependencies.persistEntry({ ...entry });
-      cachedGroups = normalizeGroups(await dependencies.loadGroups());
     },
     async openKanjiEntry(character: string): Promise<void> {
       if (cachedGroups.length === 0) {

@@ -40,12 +40,14 @@ function localizeChildren(children: React.ReactNode, language: string): React.Re
  * Global presentation wrapper for language and theme state.
  */
 export function GlobalView(props: GlobalProps): JSX.Element {
+  const backgroundColor = props.theme === "dark" ? "#000000" : "#FFFFFF";
+  const color = props.theme === "dark" ? "#FFFFFF" : "#000000";
   const rootRef = useRef<HTMLDivElement>(null);
   const surfaceStyle = {
-    "--background": "var(--app-background)",
-    "--color": "var(--app-text)",
-    background: "var(--app-background)",
-    color: "var(--app-text)"
+    "--background": backgroundColor,
+    "--color": color,
+    backgroundColor,
+    color
   } as React.CSSProperties;
 
   useLayoutEffect(() => {
@@ -58,10 +60,10 @@ export function GlobalView(props: GlobalProps): JSX.Element {
 
     root?.querySelectorAll("*").forEach(element => {
       const htmlElement = element as HTMLElement;
-      htmlElement.style.backgroundColor = "var(--app-background)";
-      htmlElement.style.color = "var(--app-text)";
+      htmlElement.style.backgroundColor = backgroundColor;
+      htmlElement.style.color = color;
     });
-  }, [props.language, props.translationsReady]);
+  }, [backgroundColor, color, props.language, props.translationsReady]);
 
   return (
     <div

@@ -1,9 +1,0 @@
-{
-  "inputWidth": 224,
-  "inputHeight": 224,
-  "kanjiClassCount": 2965,
-  "radicalClassCount": 230,
-  "strokeClassCount": 25,
-  "modelAssetPath": "/assets/model/kanji-classifier.onnx",
-  "classesAssetPath": "/assets/model/classes.json"
-}

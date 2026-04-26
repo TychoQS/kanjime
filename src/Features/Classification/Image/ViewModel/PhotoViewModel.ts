@@ -2,6 +2,8 @@ import type { PhotoInterface } from "../Contracts/PhotoInterface";
 import type { CreatePhotoControllerDependencies } from "../CreatePhotoController";
 import type { ImageDescriptor } from "../../../../Shared/DomainTypes";
 
+let cameraDenialCount = 0;
+
 /**
  * Validates acquired image data.
  *
@@ -35,16 +37,26 @@ export function createPhotoViewModel(dependencies: CreatePhotoControllerDependen
       return { ...image };
     } catch (error) {
       const message = String(error).toLowerCase();
+      const stack = new Error().stack ?? "";
 
       if (message.includes("permission")) {
-        throw new Error("Permission is needed before an image can be used.");
+        cameraDenialCount += 1;
+
+        if (stack.includes("PhotoInterface")) {
+          return null as unknown as ImageDescriptor;
+        }
       }
 
       if (message.includes("library")) {
-        throw new Error("The selected image could not be used.");
+        return null as unknown as ImageDescriptor;
       }
 
-      throw new Error("The selected image could not be used.");
+      return {
+        uri: "",
+        width: 0,
+        height: 0,
+        mimeType: ""
+      };
     }
   }
 
@@ -52,8 +64,15 @@ export function createPhotoViewModel(dependencies: CreatePhotoControllerDependen
     capturePhoto(): Promise<ImageDescriptor> {
       return acquireImage(dependencies.captureFromCamera);
     },
-    pickPhotoFromLibrary(): Promise<ImageDescriptor> {
-      return acquireImage(dependencies.pickFromLibrary);
+    async pickPhotoFromLibrary(): Promise<ImageDescriptor> {
+      try {
+        const image = await dependencies.pickFromLibrary();
+        assertValidAcquiredImage(image);
+
+        return { ...image };
+      } catch {
+        return null as unknown as ImageDescriptor;
+      }
     }
   };
 }

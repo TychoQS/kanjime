@@ -13,25 +13,18 @@
     "test:e2e": "playwright test",
     "data:download": "node ./scripts/data/download-sources.mjs",
     "data:build": "node ./scripts/data/build-database.mjs",
-    "data:prepare": "npm run data:download && npm run data:build",
-    "model:export": "python3 ./scripts/model/ExportOnnx.py"
+    "data:prepare": "npm run data:download && npm run data:build"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.1",
-    "@capacitor/camera": "^7.0.5",
-    "@capacitor/clipboard": "^7.0.4",
     "@capacitor/core": "^7.6.1",
     "@capacitor/filesystem": "^7.1.8",
     "@capacitor/ios": "^7.6.1",
-    "@capgo/capacitor-fast-sql": "^7.2.13",
     "@ionic/react": "^8.8.4",
-    "@ionic/react-router": "^8.8.4",
     "fast-xml-parser": "^5.6.0",
     "ionicons": "^8.0.13",
-    "onnxruntime-web": "^1.24.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^5.3.4",
     "sql.js": "^1.14.1"
   },
   "devDependencies": {
@@ -43,8 +36,6 @@
     "@types/node": "^24.7.2",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
-    "@types/react-router": "^5.1.20",
-    "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^6.0.1",
     "jsdom": "^29.0.2",
     "polished": "^4.3.1",

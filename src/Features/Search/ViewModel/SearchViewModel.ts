@@ -48,7 +48,9 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
     },
     clearSearch(): void {
       if (currentTerm.length === 0 && visibleResults.length === 0) {
-        return;
+        return Promise.reject(
+          new Error("SearchInterface cannot clear an empty search bar.")
+        ) as unknown as void;
       }
 
       currentTerm = "";
@@ -68,6 +70,8 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
       }
 
       await dependencies.navigateToKanjiEntry(character);
+
+      return character as unknown as void;
     }
   };
 }

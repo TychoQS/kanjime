@@ -1,3 +1,5 @@
+import { IonContent } from "@ionic/react";
+
 import type { InferenceListProps } from "./Contracts/InferenceListProps";
 
 /**
@@ -5,14 +7,12 @@ import type { InferenceListProps } from "./Contracts/InferenceListProps";
  */
 export function InferenceListView(props: InferenceListProps): JSX.Element {
   return (
-    <section data-testid="inference-list-view" className="resultList">
+    <IonContent data-testid="inference-list-view">
       <ul>
         {props.results.map(result => (
           <li key={result.character}>
             <button
               aria-pressed={result.isSelected}
-              className="resultButton"
-              data-testid={`inference-result-${result.character}`}
               onClick={() => props.onResultSelected(result.character)}
               type="button"
             >
@@ -23,6 +23,6 @@ export function InferenceListView(props: InferenceListProps): JSX.Element {
           </li>
         ))}
       </ul>
-    </section>
+    </IonContent>
   );
 }

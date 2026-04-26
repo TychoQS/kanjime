@@ -1,5 +1,3 @@
-import { IonContent } from "@ionic/react";
-
 import type { HistoryProps } from "./Contracts/HistoryProps";
 
 /**
@@ -15,7 +13,7 @@ export function HistoryView(props: HistoryProps): JSX.Element {
   const seenCharacters = new Set<string>();
 
   return (
-    <IonContent data-testid="history-view">
+    <section data-testid="history-view" className="resultList">
       {entries.length === 0 ? (
         <p>No history entries are available.</p>
       ) : (
@@ -29,6 +27,8 @@ export function HistoryView(props: HistoryProps): JSX.Element {
                 return (
               <button
                 aria-label={isRepeatedCharacter ? entry.createdAt : entry.character}
+                className="resultButton"
+                data-testid={`history-entry-${entry.category}-${entry.character}`}
                 onClick={() => props.onEntrySelected(entry.character)}
                 type="button"
               >
@@ -42,6 +42,6 @@ export function HistoryView(props: HistoryProps): JSX.Element {
           ))}
         </ul>
       )}
-    </IonContent>
+    </section>
   );
 }

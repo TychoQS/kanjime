@@ -70,9 +70,9 @@ export function createInferenceViewModel(
     }
 
     const predictions = await dependencies.classifySource(sourceId, inputUrl);
-    const mutablePredictions = predictions as InferencePrediction[];
-    mutablePredictions.sort((left, right) => right.confidence - left.confidence);
-    const snapshot = mutablePredictions.map(prediction => ({ ...prediction }));
+    const snapshot = [...predictions]
+      .sort((left, right) => right.confidence - left.confidence)
+      .map(prediction => ({ ...prediction }));
     processedPredictions.set(sourceId, snapshot);
     activeSourceId = sourceId;
 
@@ -108,11 +108,7 @@ export function createInferenceViewModel(
     },
     async classifyFullImage(input): Promise<PredictionWithoutStrokeCount> {
       if (input.sourceUri.trim().length === 0) {
-        const predictions = await dependencies.classifySource(input.sourceId, input.sourceUri);
-        return predictions.map(prediction => ({
-          character: prediction.character,
-          confidence: prediction.confidence
-        }));
+        throw new Error("Select an image before identifying a character.");
       }
 
       const predictions = await classifySource(input.sourceId, input.sourceUri);

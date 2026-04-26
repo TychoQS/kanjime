@@ -1,5 +1,3 @@
-import { IonContent } from "@ionic/react";
-
 import type { ImageProps } from "./Contracts/ImageProps";
 
 /**
@@ -7,35 +5,23 @@ import type { ImageProps } from "./Contracts/ImageProps";
  */
 export function ImageView(props: ImageProps): JSX.Element {
   return (
-    <IonContent data-testid="image-view">
+    <section data-testid="image-view" className="imagePreview">
       {props.image ? (
         <section
           aria-busy={props.isProcessing ? "true" : "false"}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--ion-padding)",
-            width: "100%"
-          }}
+          className="stack"
         >
           <img
             alt={props.image.altText}
             height={props.image.height}
             src={props.image.uri}
-            style={{
-              display: "block",
-              height: "100%",
-              maxHeight: "70vh",
-              objectFit: "contain",
-              width: "100%"
-            }}
             width={props.image.width}
           />
-          <button aria-label="Clear image" onClick={props.onClearImage} type="button">
+          <button data-testid="clear-image-button" aria-label="Clear image" onClick={props.onClearImage} type="button">
             Clear
           </button>
         </section>
       ) : null}
-    </IonContent>
+    </section>
   );
 }

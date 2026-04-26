@@ -1,5 +1,3 @@
-import { IonContent } from "@ionic/react";
-
 import type { ImageProps } from "./Contracts/ImageProps";
 
 /**
@@ -7,7 +5,7 @@ import type { ImageProps } from "./Contracts/ImageProps";
  */
 export function ImageView(props: ImageProps): JSX.Element {
   return (
-    <IonContent data-testid="image-view">
+    <div data-testid="image-view">
       {props.image ? (
         <section
           aria-busy={props.isProcessing ? "true" : "false"}
@@ -36,6 +34,6 @@ export function ImageView(props: ImageProps): JSX.Element {
           </button>
         </section>
       ) : null}
-    </IonContent>
+    </div>
   );
 }

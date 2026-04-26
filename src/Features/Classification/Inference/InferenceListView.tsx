@@ -1,5 +1,3 @@
-import { IonContent } from "@ionic/react";
-
 import type { InferenceListProps } from "./Contracts/InferenceListProps";
 
 /**
@@ -7,7 +5,7 @@ import type { InferenceListProps } from "./Contracts/InferenceListProps";
  */
 export function InferenceListView(props: InferenceListProps): JSX.Element {
   return (
-    <IonContent data-testid="inference-list-view">
+    <div data-testid="inference-list-view">
       <ul>
         {props.results.map(result => (
           <li key={result.character}>
@@ -23,6 +21,6 @@ export function InferenceListView(props: InferenceListProps): JSX.Element {
           </li>
         ))}
       </ul>
-    </IonContent>
+    </div>
   );
 }

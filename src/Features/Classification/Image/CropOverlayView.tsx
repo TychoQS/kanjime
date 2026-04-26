@@ -1,5 +1,3 @@
-import { IonContent } from "@ionic/react";
-
 import type { CropProps } from "./Contracts/CropProps";
 
 /**
@@ -16,7 +14,7 @@ export function CropOverlayView(props: CropProps): JSX.Element | null {
   const height = `${(props.activeCrop.height / props.imageHeight) * 100}%`;
 
   return (
-    <IonContent
+    <div
       data-crop-x={String(props.activeCrop.x)}
       data-crop-y={String(props.activeCrop.y)}
       data-testid="crop-overlay-view"
@@ -35,6 +33,6 @@ export function CropOverlayView(props: CropProps): JSX.Element | null {
           width
         }}
       />
-    </IonContent>
+    </div>
   );
 }

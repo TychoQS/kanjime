@@ -74,7 +74,18 @@ export type TranslationKey =
   | "strokeOrder"
   | "terms"
   | "version"
-  | "visitedEntries";
+  | "visitedEntries"
+  | "authorship"
+  | "authorshipName"
+  | "model"
+  | "modelDetail"
+  | "modelDetailEmpty"
+  | "textConversion"
+  | "textConversionValue"
+  | "interface"
+  | "interfaceValue"
+  | "licenseDetail"
+  | "termsDetail";
 
 type TranslationMap = Record<TranslationKey, string>;
 
@@ -129,7 +140,18 @@ const ENGLISH_TRANSLATIONS: TranslationMap = {
   strokeOrder: "Stroke order",
   terms: "Terms of use",
   version: "Version",
-  visitedEntries: "Visited"
+  visitedEntries: "Visited",
+  authorship: "Authorship",
+  authorshipName: "Tycho Quintana Santana",
+  model: "Model",
+  modelDetail: "{{count}} kanji classes with ONNX Runtime Web",
+  modelDetailEmpty: "ONNX Runtime Web",
+  textConversion: "Text conversion",
+  textConversionValue: "Wanakana",
+  interface: "Interface",
+  interfaceValue: "Ionic React and Capacitor",
+  licenseDetail: "Academic project. Data source licenses apply.",
+  termsDetail: "Works offline and stores recognition history on this device."
 };
 
 const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = {
@@ -169,7 +191,18 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     strokeCount: "Trazos",
     strokeOrder: "Orden de trazos",
     version: "Versión",
-    visitedEntries: "Visitadas"
+    visitedEntries: "Visitadas",
+    authorship: "Autoría",
+    authorshipName: "Tycho Quintana Santana",
+    model: "Modelo",
+    modelDetail: "{{count}} clases de kanji con ONNX Runtime Web",
+    modelDetailEmpty: "ONNX Runtime Web",
+    textConversion: "Conversión de texto",
+    textConversionValue: "Wanakana",
+    interface: "Interfaz",
+    interfaceValue: "Ionic React y Capacitor",
+    licenseDetail: "Proyecto académico. Se aplican las licencias de las fuentes de datos.",
+    termsDetail: "Funciona sin conexión y guarda el historial de reconocimiento en este dispositivo."
   },
   "fr-FR": {
     about: "À propos",

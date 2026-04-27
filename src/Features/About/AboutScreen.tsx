@@ -1,9 +1,10 @@
-import { IonText } from "@ionic/react";
 import { useEffect, useState } from "react";
 
-import type { AboutDisplayItem, CompositionRoot } from "../../CompositionRoot";
+import type { CompositionRoot } from "../../CompositionRoot";
+import type { AboutInformationItem } from "../../Shared/DomainTypes";
 import { translate } from "../../Shared/I18n";
 import { MobilePage } from "../Shell/MobilePage";
+import { AboutView } from "./View/AboutView";
 
 interface AboutScreenProps {
   readonly root: CompositionRoot;
@@ -11,57 +12,40 @@ interface AboutScreenProps {
 }
 
 /**
- * Application information, licenses, terms, and acknowledgments.
+ * Application information screen using MVVM architecture.
  *
- * @pre Application metadata and attribution assets are bundled.
- * @post The About screen presents localized headings and non-empty information.
+ * @pre The about controller is initialized in the composition root.
+ * @post The About screen presents information obtained from the view model.
  */
 export function AboutScreen(props: AboutScreenProps): JSX.Element {
-  const [items, setItems] = useState<ReadonlyArray<AboutDisplayItem>>([]);
+  const [items, setItems] = useState<ReadonlyArray<AboutInformationItem>>([]);
 
   useEffect(() => {
-    void props.root.loadAboutItems().then(setItems).catch(() => setItems([]));
-  }, [props.root]);
+    let isMounted = true;
+    void props.root.aboutController.getAboutInformation()
+      .then(nextItems => {
+        if (isMounted) {
+          setItems(nextItems);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setItems([]);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [props.root.aboutController, props.language]);
 
   return (
-    <MobilePage title={translate(props.language, "about")} testId="about-screen">
+    <MobilePage title="" testId="about-screen">
       <div className="screen-shell">
         <div className="detail-scroll">
-          <section className="detail-section">
-            <h2>{translate(props.language, "about")}</h2>
-            {items.length === 0 ? (
-              <IonText color="medium">
-                <p>{translate(props.language, "loadingApplication")}</p>
-              </IonText>
-            ) : (
-              <dl className="about-list">
-                {items.map(item => (
-                  <div key={`${item.label}-${item.value}`} className="about-row">
-                    <dt>{localizeAboutLabel(props.language, item.label)}</dt>
-                    <dd>{item.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            )}
-          </section>
+          <AboutView items={items} language={props.language} />
         </div>
       </div>
     </MobilePage>
   );
-}
-
-function localizeAboutLabel(language: string, label: string): string {
-  if (label === "Version") {
-    return translate(language, "version");
-  }
-
-  if (label === "License") {
-    return translate(language, "license");
-  }
-
-  if (label === "Terms of use") {
-    return translate(language, "terms");
-  }
-
-  return label;
 }

@@ -1,10 +1,12 @@
 import packageMetadata from "../package.json";
 
 import { AppPersistence } from "./Shared/AppPersistence";
-import type { ApplicationTheme, DetailedKanjiEntry, HistoryCategory, HistoryGroup } from "./Shared/DomainTypes";
-import { getMeaningLanguagePriority, normalizeLocale, type SupportedLocale } from "./Shared/I18n";
+import type { AboutInformationItem, ApplicationTheme, DetailedKanjiEntry, HistoryCategory, HistoryGroup } from "./Shared/DomainTypes";
+import { getMeaningLanguagePriority, normalizeLocale, translate, type SupportedLocale } from "./Shared/I18n";
 import { KanjiRepository, type KanjiSummary, type SourceAttribution } from "./Shared/KanjiRepository";
 import { OcrWorkerClient } from "./Shared/OcrWorkerClient";
+import type { AboutInterface } from "./Features/About/Contracts/AboutInterface";
+import { CreateAboutController } from "./Features/About/CreateAboutController";
 
 export interface AboutDisplayItem {
   readonly label: string;
@@ -24,7 +26,7 @@ export interface CompositionRoot {
   recordHistory(character: string, category: HistoryCategory): Promise<void>;
   loadHistoryGroups(): Promise<ReadonlyArray<HistoryGroup>>;
   loadKanjiDetails(character: string, language: string, recordVisit?: boolean): Promise<DetailedKanjiEntry>;
-  loadAboutItems(): Promise<ReadonlyArray<AboutDisplayItem>>;
+  readonly aboutController: AboutInterface;
   savePreferences(preferences: ApplicationPreferences): Promise<void>;
 }
 
@@ -48,6 +50,48 @@ export function createCompositionRoot(): CompositionRoot {
       summary: summary ? createHistorySummary(summary) : character
     });
   };
+
+  const aboutController = CreateAboutController({
+    loadAboutInformation: async () => {
+      const attributions = await kanjiRepository.loadSourceAttributions();
+      const metadata = kanjiRepository.getMetadata();
+
+      return [
+        {
+          label: "version",
+          value: packageMetadata.version
+        },
+        {
+          label: "license",
+          value: "licenseDetail"
+        },
+        {
+          label: "terms",
+          value: "termsDetail"
+        },
+        {
+          label: "authorship",
+          value: "authorshipName"
+        },
+        {
+          label: "model",
+          value: metadata
+            ? `__MODEL_DETAIL__:${metadata.classCount}`
+            : "modelDetailEmpty"
+        },
+        {
+          label: "textConversion",
+          value: "textConversionValue"
+        },
+        {
+          label: "interface",
+          value: "interfaceValue"
+        },
+        ...formatAttributions(attributions)
+      ];
+    },
+    loadApplicationVersion: async () => packageMetadata.version
+  });
 
   return {
     kanjiRepository,
@@ -82,44 +126,7 @@ export function createCompositionRoot(): CompositionRoot {
         meanings: filterMeaningsByLanguage(details.meanings ?? [], language)
       };
     },
-    async loadAboutItems(): Promise<ReadonlyArray<AboutDisplayItem>> {
-      const [attributions] = await Promise.all([
-        kanjiRepository.loadSourceAttributions()
-      ]);
-      const metadata = kanjiRepository.getMetadata();
-
-      return [
-        {
-          label: "Version",
-          value: packageMetadata.version
-        },
-        {
-          label: "License",
-          value: "Academic project. Data source licenses apply."
-        },
-        {
-          label: "Terms of use",
-          value: "Works offline and stores recognition history on this device."
-        },
-        {
-          label: "Authorship",
-          value: "Tycho Quintana Santana"
-        },
-        {
-          label: "Model",
-          value: metadata ? `${metadata.classCount} kanji classes with ONNX Runtime Web` : "ONNX Runtime Web"
-        },
-        {
-          label: "Text conversion",
-          value: "Wanakana"
-        },
-        {
-          label: "Interface",
-          value: "Ionic React and Capacitor"
-        },
-        ...formatAttributions(attributions)
-      ];
-    },
+    aboutController,
     savePreferences(preferences: ApplicationPreferences): Promise<void> {
       return persistence.savePreferences(preferences);
     }
@@ -150,7 +157,7 @@ function filterMeaningsByLanguage(
   return [];
 }
 
-function formatAttributions(attributions: ReadonlyArray<SourceAttribution>): ReadonlyArray<AboutDisplayItem> {
+function formatAttributions(attributions: ReadonlyArray<SourceAttribution>): ReadonlyArray<AboutInformationItem> {
   return attributions.map(source => ({
     label: source.id,
     value: `${source.attribution}. ${source.license}.`

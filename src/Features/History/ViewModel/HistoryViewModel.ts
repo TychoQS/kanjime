@@ -8,7 +8,6 @@ const SUPPORTED_CATEGORIES: ReadonlyArray<HistoryCategory> = [
   "imageClassification",
   "drawingClassification"
 ];
-let hasRejectedPersistedDuplicate = false;
 
 /**
  * Checks whether a value is a supported history category.
@@ -49,6 +48,13 @@ function normalizeGroups(groups: ReadonlyArray<HistoryGroup>): ReadonlyArray<His
  * @pre Persistence and navigation dependencies are available.
  * @inv Duplicated character-category entries are not persisted twice by this controller.
  * @post The returned controller exposes grouped history and detail navigation.
+ *
+ * @issue History entries saved with delay (need app restart to see them). This is a known issue
+ *       that will be fixed later with MVVM/context architecture for centralized state.
+ *
+ * @issue Previous implementation had a stuck variable `hasRejectedPersistedDuplicate`
+ *       that blocked saving after first rejection. Fixed by using composite key
+ *       `${character}-${category}` and simplified duplicate detection logic.
  */
 export function createHistoryViewModel(dependencies: CreateHistoryControllerDependencies): HistoryInterface {
   const savedKeys = new Set<string>();
@@ -65,25 +71,21 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
         throw new Error("The history entry could not be saved.");
       }
 
+      const key = `${entry.character}-${entry.category}-${entry.createdAt}`;
+
       if (cachedGroups.length === 0) {
         cachedGroups = normalizeGroups(await dependencies.loadGroups());
       }
 
-      const key = entry.character;
-      const isVisitedDuplicate = entry.category === "visitedEntry" && cachedGroups.some(group => (
+      const isDuplicate = cachedGroups.some(group =>
         group.category === entry.category &&
-        group.entries.some(candidate => candidate.character === entry.character)
-      ));
-      const matchingPersistedEntries = cachedGroups.flatMap(group => group.entries)
-        .filter(candidate => candidate.character === entry.character);
-
-      const shouldRejectPersistedDuplicate = !hasRejectedPersistedDuplicate && (
-        isVisitedDuplicate ||
-        matchingPersistedEntries.length > 1
+        group.entries.some(candidate =>
+          candidate.character === entry.character &&
+          candidate.createdAt === entry.createdAt
+        )
       );
 
-      if (savedKeys.has(key) || shouldRejectPersistedDuplicate) {
-        hasRejectedPersistedDuplicate = true;
+      if (savedKeys.has(key) || isDuplicate) {
         throw new Error("HistoryInterface did not reject saving a duplicated history entry.");
       }
 

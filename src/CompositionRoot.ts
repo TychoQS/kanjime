@@ -13,6 +13,8 @@ import type { NavigationInterface } from "./Features/Shell/Contracts/NavigationI
 import { CreateNavigationController } from "./Features/Shell/CreateNavigationController";
 import type { SearchInterface } from "./Features/Search/Contracts/SearchInterface";
 import { CreateSearchController } from "./Features/Search/CreateSearchController";
+import type { HistoryInterface } from "./Features/History/Contracts/HistoryInterface";
+import { CreateHistoryController } from "./Features/History/CreateHistoryController";
 import type { NavigationPage } from "./Shared/DomainTypes";
 
 export interface AboutDisplayItem {
@@ -33,13 +35,13 @@ export interface CompositionRoot {
   readonly persistence: AppPersistence;
   readonly ocrClient: OcrWorkerClient;
   initialize(): Promise<ApplicationPreferences>;
-  recordHistory(character: string, category: HistoryCategory): Promise<void>;
   loadHistoryGroups(): Promise<ReadonlyArray<HistoryGroup>>;
   loadKanjiDetails(character: string, language: string, recordVisit?: boolean): Promise<DetailedKanjiEntry>;
   readonly aboutController: AboutInterface;
   readonly userPreferenceController: UserPreferenceInterface;
   readonly navigationController: NavigationInterface;
   readonly searchController: SearchInterface;
+  readonly historyController: HistoryInterface;
   registerNavigationDelegate(delegate: (page: NavigationPage) => void): void;
   registerPreferenceDelegate(delegate: (preferences: ApplicationPreferences) => void): void;
   savePreferences(preferences: ApplicationPreferences): Promise<void>;
@@ -56,15 +58,6 @@ export function createCompositionRoot(): CompositionRoot {
   const kanjiRepository = new KanjiRepository();
   const persistence = new AppPersistence();
   const ocrClient = new OcrWorkerClient();
-  const recordHistory = async (character: string, category: HistoryCategory): Promise<void> => {
-    const summary = await kanjiRepository.getSummary(character);
-    await persistence.saveHistoryEntry({
-      character,
-      category,
-      createdAt: new Date().toISOString(),
-      summary: summary ? createHistorySummary(summary) : character
-    });
-  };
 
   const aboutController = CreateAboutController({
     loadAboutInformation: async () => {
@@ -132,12 +125,25 @@ export function createCompositionRoot(): CompositionRoot {
     }
   });
 
+  const historyController = CreateHistoryController({
+    loadGroups: () => persistence.loadHistoryGroups(),
+    persistEntry: async (entry) => {
+      const summary = await kanjiRepository.getSummary(entry.character);
+      await persistence.saveHistoryEntry({
+        ...entry,
+        summary: summary ? createHistorySummary(summary) : entry.character
+      });
+    },
+    navigateToKanjiEntry: async (character: string) => {
+      navigationDelegate?.("kanjiEntry");
+    }
+  });
+
   const searchController = CreateSearchController({
     queryTerm: (term: string) => kanjiRepository.search(term),
+    historyController,
     navigateToKanjiEntry: async (character: string) => {
-      await recordHistory(character, "search");
       navigationDelegate?.("kanjiEntry");
-      // Note: Actual route pushing happens in AppShell via registerNavigationDelegate
     }
   });
 
@@ -162,7 +168,6 @@ export function createCompositionRoot(): CompositionRoot {
         theme: preferences.theme
       };
     },
-    recordHistory,
     loadHistoryGroups(): Promise<ReadonlyArray<HistoryGroup>> {
       return persistence.loadHistoryGroups();
     },
@@ -170,7 +175,11 @@ export function createCompositionRoot(): CompositionRoot {
       const details = await kanjiRepository.getDetails(character);
 
       if (recordVisit) {
-        await recordHistory(character, "visitedEntry");
+        await historyController.saveEntry({
+          character,
+          category: "visitedEntry",
+          createdAt: new Date().toISOString()
+        });
       }
 
       return {
@@ -182,6 +191,7 @@ export function createCompositionRoot(): CompositionRoot {
     userPreferenceController,
     navigationController,
     searchController,
+    historyController,
     registerNavigationDelegate(delegate: (page: NavigationPage) => void): void {
       navigationDelegate = delegate;
     },
@@ -195,10 +205,16 @@ export function createCompositionRoot(): CompositionRoot {
 }
 
 function createHistorySummary(summary: KanjiSummary): string {
-  const readingText = summary.primaryReadings.slice(0, 2).join(" ");
-  const levelText = summary.levels.join(" ");
+  const onyomi = summary.primaryReadings.filter(r => !r.match(/^[あ-ん]/)).slice(0, 3);
+  const kunyomi = summary.primaryReadings.filter(r => r.match(/^[あ-ん]/)).slice(0, 3);
 
-  return [readingText, levelText].filter(value => value.length > 0).join(" · ") || summary.character;
+  const onText = onyomi.join("・");
+  const kunText = kunyomi.join("・");
+
+  if (onText && kunText) {
+    return `${onText}・${kunText}`;
+  }
+  return onText || kunText || summary.character;
 }
 
 function filterMeaningsByLanguage(

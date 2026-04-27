@@ -69,6 +69,12 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
         throw new Error("SearchInterface cannot open entry because no results are available.");
       }
 
+      await dependencies.historyController.saveEntry({
+        character,
+        category: "search",
+        createdAt: new Date().toISOString()
+      });
+
       await dependencies.navigateToKanjiEntry(character);
 
       return character as unknown as void;

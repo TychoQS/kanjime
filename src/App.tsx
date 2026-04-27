@@ -179,13 +179,13 @@ function AppShell(props: AppShellProps): JSX.Element {
           <Redirect to="/classification" />
         </Route>
         <Route exact path="/classification">
-          <ClassificationScreen root={props.root} language={props.preferences.language} />
+          <ClassificationScreen root={props.root} historyController={props.root.historyController} language={props.preferences.language} />
         </Route>
         <Route exact path="/search">
           <SearchScreen searchController={props.root.searchController} language={props.preferences.language} />
         </Route>
         <Route exact path="/history">
-          <HistoryScreen root={props.root} language={props.preferences.language} />
+          <HistoryScreen historyController={props.root.historyController} language={props.preferences.language} />
         </Route>
         <Route exact path="/about">
           <AboutScreen aboutController={props.root.aboutController} language={props.preferences.language} />

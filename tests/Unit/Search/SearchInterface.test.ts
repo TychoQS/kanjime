@@ -5,6 +5,13 @@ import { createAsyncArgumentRecorder, createVoidArgumentRecorder } from "../../S
 import { TEST_PRIMARY_CHARACTER, TEST_SECONDARY_CHARACTER, TEST_TERTIARY_CHARACTER, TEST_SEARCH_READING, TEST_SEARCH_TERM, TEST_SUMMARIES } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 
+const mockHistoryRecorder = createVoidArgumentRecorder<{ character: string; category: string; createdAt: string }>();
+const mockHistoryController = {
+  getEntriesByCategory: async () => [],
+  saveEntry: mockHistoryRecorder.handler,
+  openKanjiEntry: async () => { }
+};
+
 describe("SearchInterface", () => {
   /**
  * Requirement: R31
@@ -16,6 +23,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -32,6 +40,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -58,6 +67,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -80,6 +90,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -100,6 +111,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -116,6 +128,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -143,6 +156,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
     const NI = "ni"
@@ -165,6 +179,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -183,6 +198,7 @@ describe("SearchInterface", () => {
   it(buildRequirementTitle("R33", "Unit", "Precondition", "fails when attempting to clear an already empty search bar"), async () => {
     const controller = CreateSearchController({
       queryTerm: () => Promise.resolve([]),
+      historyController: mockHistoryController,
       navigateToKanjiEntry: async () => { }
     });
 
@@ -199,6 +215,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -220,6 +237,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -242,6 +260,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -258,6 +277,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -274,6 +294,7 @@ describe("SearchInterface", () => {
   it(buildRequirementTitle("R34", "Unit", "Precondition", "fails to open kanji if results list is empty"), async () => {
     const controller = CreateSearchController({
       queryTerm: () => Promise.resolve([]),
+      historyController: mockHistoryController,
       navigateToKanjiEntry: async () => { }
     });
     await expect(controller.openKanjiEntry(TEST_PRIMARY_CHARACTER)).rejects.toThrow(
@@ -291,6 +312,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -312,6 +334,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -332,6 +355,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -348,6 +372,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -371,6 +396,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -392,6 +418,7 @@ describe("SearchInterface", () => {
     const navigationRecorder = createVoidArgumentRecorder<string>();
     const controller = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 

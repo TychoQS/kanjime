@@ -14,12 +14,14 @@ import { useHistory } from "react-router-dom";
 
 import type { CompositionRoot } from "../../CompositionRoot";
 import type { ClassificationMode, CropRegion, InferencePrediction, Stroke, StrokePoint } from "../../Shared/DomainTypes";
+import type { HistoryInterface } from "../History/Contracts/HistoryInterface";
 import { translate } from "../../Shared/I18n";
 import type { KanjiSummary } from "../../Shared/KanjiRepository";
 import { MobilePage } from "../Shell/MobilePage";
 
 interface ClassificationScreenProps {
   readonly root: CompositionRoot;
+  readonly historyController: HistoryInterface;
   readonly language: string;
 }
 
@@ -186,7 +188,11 @@ export function ClassificationScreen(props: ClassificationScreenProps): JSX.Elem
   };
 
   const openResult = async (character: string): Promise<void> => {
-    await props.root.recordHistory(character, mode === "image" ? "imageClassification" : "drawingClassification");
+    await props.historyController.saveEntry({
+      character,
+      category: mode === "image" ? "imageClassification" : "drawingClassification",
+      createdAt: new Date().toISOString()
+    });
     history.push(`/kanji/${encodeURIComponent(character)}`);
   };
 

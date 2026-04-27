@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { CreateHistoryController } from "../../../src/Features/History/CreateHistoryController";
 import { createAsyncValueRecorder, createVoidArgumentRecorder } from "../../Support/DependencyFactories";
-import { TEST_HISTORY_GROUPS, TEST_PRIMARY_CHARACTER, TEST_TIMESTAMP } from "../../Support/TestData";
+import { TEST_HISTORY_GROUPS, TEST_PRIMARY_CHARACTER, TEST_TERTIARY_CHARACTER, TEST_TIMESTAMP } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 
 describe("HistoryInterface", () => {
@@ -324,7 +324,7 @@ describe("HistoryInterface", () => {
     });
 
     const newEntry = {
-      character: TEST_PRIMARY_CHARACTER,
+      character: TEST_TERTIARY_CHARACTER,
       category: "search" as const,
       createdAt: TEST_TIMESTAMP
     };

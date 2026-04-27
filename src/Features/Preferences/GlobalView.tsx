@@ -40,9 +40,9 @@ function localizeChildren(children: React.ReactNode, language: string): React.Re
  * Global presentation wrapper for language and theme state.
  */
 export function GlobalView(props: GlobalProps): JSX.Element {
-  const backgroundColor = props.theme === "dark" ? "#000000" : "#FFFFFF";
-  const color = props.theme === "dark" ? "#FFFFFF" : "#000000";
   const rootRef = useRef<HTMLDivElement>(null);
+  const backgroundColor = "var(--ion-background-color)";
+  const color = "var(--ion-text-color)";
   const surfaceStyle = {
     "--background": backgroundColor,
     "--color": color,

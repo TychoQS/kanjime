@@ -1,0 +1,430 @@
+:root {
+  --ion-font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ion-color-primary: #2457d6;
+  --ion-color-primary-rgb: 36, 87, 214;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #1f4bbc;
+  --ion-color-primary-tint: #3a68da;
+  --ion-color-secondary: #eef3ff;
+  --ion-color-secondary-rgb: 238, 243, 255;
+  --ion-color-secondary-contrast: #102044;
+  --ion-color-secondary-contrast-rgb: 16, 32, 68;
+  --ion-color-secondary-shade: #d1d6e0;
+  --ion-color-secondary-tint: #f0f4ff;
+  --ion-color-tertiary: #237a63;
+  --ion-color-success: #19764f;
+  --ion-color-warning: #8a5a00;
+  --ion-color-danger: #b42318;
+  --ion-color-medium: #687385;
+  --ion-color-light: #f6f8fb;
+  --ion-background-color: #f6f8fb;
+  --ion-text-color: #101828;
+  --app-surface: #ffffff;
+  --app-surface-strong: #edf2f7;
+  --app-border: #d7dee8;
+  --app-muted: #667085;
+  --app-shadow: 0 10px 28px rgba(16, 24, 40, 0.08);
+  --app-radius: 8px;
+  --app-gap: 12px;
+}
+
+html[data-theme="dark"] {
+  --ion-color-primary: #8fb4ff;
+  --ion-color-primary-rgb: 143, 180, 255;
+  --ion-color-primary-contrast: #07142f;
+  --ion-color-primary-contrast-rgb: 7, 20, 47;
+  --ion-color-primary-shade: #7e9ee0;
+  --ion-color-primary-tint: #9abcfb;
+  --ion-color-secondary: #172033;
+  --ion-color-secondary-rgb: 23, 32, 51;
+  --ion-color-secondary-contrast: #f8fbff;
+  --ion-color-secondary-contrast-rgb: 248, 251, 255;
+  --ion-color-secondary-shade: #141c2d;
+  --ion-color-secondary-tint: #2e3a4b;
+  --ion-color-tertiary: #76d6be;
+  --ion-color-success: #79d9a7;
+  --ion-color-warning: #f5c76b;
+  --ion-color-danger: #ff928a;
+  --ion-color-medium: #a7b0c0;
+  --ion-color-light: #202a3a;
+  --ion-background-color: #0b1220;
+  --ion-text-color: #f8fbff;
+  --app-surface: #111827;
+  --app-surface-strong: #1b2535;
+  --app-border: #314057;
+  --app-muted: #b4becf;
+  --app-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+}
+
+html,
+body,
+#root,
+ion-app {
+  height: 100%;
+  overflow: hidden;
+}
+
+ion-content {
+  --background: var(--ion-background-color);
+  --color: var(--ion-text-color);
+}
+
+ion-toolbar {
+  --background: var(--app-surface);
+  --color: var(--ion-text-color);
+  --border-color: var(--app-border);
+}
+
+button {
+  font: inherit;
+}
+
+.screen-shell {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-gap);
+  height: 100%;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.screen-flow {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--app-gap);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mode-segment {
+  flex: 0 0 auto;
+}
+
+.ocr-input-zone {
+  align-items: stretch;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow);
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.image-crop-frame {
+  align-items: center;
+  aspect-ratio: 1 / 1;
+  background: var(--app-surface-strong);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  display: flex;
+  justify-content: center;
+  max-height: 42vh;
+  min-height: 220px;
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+  width: 100%;
+}
+
+.image-preview {
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  width: 100%;
+}
+
+.crop-overlay {
+  border: 2px solid var(--ion-color-primary);
+  box-shadow: 0 0 0 999px rgba(var(--ion-color-primary-rgb), 0.18);
+  box-sizing: border-box;
+  pointer-events: none;
+  position: absolute;
+}
+
+.drawing-canvas {
+  align-self: center;
+  aspect-ratio: 1 / 1;
+  background: var(--ion-color-secondary);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  display: block;
+  max-height: min(48vh, 420px);
+  max-width: 100%;
+  touch-action: none;
+  width: min(100%, 420px);
+}
+
+.center-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.helper-text {
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+}
+
+.results-panel {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.grow-panel {
+  flex: 1 1 auto;
+}
+
+.section-heading {
+  align-items: center;
+  color: var(--ion-text-color);
+  display: flex;
+  font-size: 0.95rem;
+  font-weight: 700;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.result-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scroll-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.result-row {
+  align-items: center;
+  background: var(--app-surface-strong);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  color: var(--ion-text-color);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 48px 1fr auto;
+  min-height: 58px;
+  padding: 8px 10px;
+  text-align: start;
+  width: 100%;
+}
+
+.result-row:active {
+  background: var(--ion-color-secondary);
+}
+
+.result-kanji {
+  color: var(--ion-color-primary);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+}
+
+.result-meta {
+  color: var(--ion-text-color);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-levels {
+  color: var(--app-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.detail-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 16px;
+}
+
+.center-state {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 220px;
+}
+
+.kanji-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kanji-hero {
+  align-items: center;
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
+  display: flex;
+  justify-content: center;
+  padding: 14px 0 18px;
+}
+
+.kanji-hero h1 {
+  color: var(--ion-color-primary);
+  font-size: 7rem;
+  line-height: 1;
+  margin: 0;
+}
+
+.detail-section {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 14px;
+}
+
+.detail-section h2 {
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
+
+.detail-section h3 {
+  color: var(--app-muted);
+  font-size: 0.82rem;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.detail-section p {
+  line-height: 1.45;
+  margin: 0;
+}
+
+.two-column {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.info-grid {
+  display: grid;
+  gap: 8px 12px;
+  grid-template-columns: max-content 1fr;
+  margin: 0;
+}
+
+.info-grid dt {
+  color: var(--app-muted);
+  font-weight: 700;
+}
+
+.info-grid dd {
+  margin: 0;
+}
+
+.example-group + .example-group {
+  margin-top: 12px;
+}
+
+.example-group ul {
+  margin: 0;
+  padding-inline-start: 18px;
+}
+
+.stroke-order-svg {
+  background: var(--app-surface-strong);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  display: block;
+  height: auto;
+  max-height: 360px;
+  width: 100%;
+}
+
+.stroke-order-svg path {
+  fill: none;
+  stroke: var(--ion-color-primary);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.about-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.about-row {
+  border-bottom: 1px solid var(--app-border);
+  padding-bottom: 10px;
+}
+
+.about-row dt {
+  color: var(--app-muted);
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.about-row dd {
+  line-height: 1.4;
+  margin: 0;
+}
+
+.menu-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.menu-list {
+  background: transparent;
+}
+
+.menu-item-active {
+  --background: var(--ion-color-secondary);
+  --color: var(--ion-color-primary);
+  font-weight: 700;
+}
+
+.menu-settings {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+
+@media (min-width: 700px) {
+  .screen-shell {
+    margin: 0 auto;
+    max-width: 680px;
+    width: 100%;
+  }
+
+  .kanji-hero h1 {
+    font-size: 9rem;
+  }
+}

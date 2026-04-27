@@ -1,6 +1,7 @@
 import type { UserPreferenceInterface } from "../Contracts/UserPreferenceInterface";
 import type { CreateUserPreferenceControllerDependencies } from "../CreateUserPreferenceController";
 import type { ApplicationTheme } from "../../../Shared/DomainTypes";
+import type { SupportedLocale } from "../../../Shared/I18n";
 
 const SUPPORTED_LANGUAGES = new Set([
   "en-US",
@@ -57,9 +58,9 @@ export function createUserPreferenceViewModel(
       theme = nextTheme;
       void dependencies.applyTheme(nextTheme);
     },
-    getCurrentPreferences(): { language: string; theme: ApplicationTheme } {
+    getCurrentPreferences(): { language: SupportedLocale; theme: ApplicationTheme } {
       return {
-        language,
+        language: language as SupportedLocale,
         theme
       };
     }

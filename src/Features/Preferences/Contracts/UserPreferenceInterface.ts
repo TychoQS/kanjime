@@ -1,3 +1,6 @@
+import type { ApplicationTheme } from "../../../Shared/DomainTypes";
+import type { SupportedLocale } from "../../../Shared/I18n";
+
 /**
  * Contract for user preference updates.
  *
@@ -30,7 +33,7 @@ export interface UserPreferenceInterface {
    * @post The returned preferences reflect the language and theme currently applied by the application.
    */
   getCurrentPreferences(): {
-    language: string;
-    theme: "light" | "dark" | "system";
+    language: SupportedLocale;
+    theme: ApplicationTheme;
   };
 }

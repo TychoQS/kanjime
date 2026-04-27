@@ -5,9 +5,6 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
   IonMenu,
   IonSelect,
   IonSelectOption,
@@ -16,7 +13,7 @@ import {
   IonRouterOutlet
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-import { brush, informationCircleOutline, moon, phonePortrait, search, sunny, timeOutline } from "ionicons/icons";
+import { moon, phonePortrait, sunny } from "ionicons/icons";
 import { useEffect, useMemo, useState } from "react";
 import { Redirect, Route, useHistory, useLocation } from "react-router-dom";
 
@@ -26,9 +23,10 @@ import { HistoryScreen } from "./Features/History/HistoryScreen";
 import { KanjiDetailScreen } from "./Features/Kanji/KanjiDetailScreen";
 import { SearchScreen } from "./Features/Search/SearchScreen";
 import { LoadingScreenView } from "./Features/Shell/LoadingScreenView";
+import { NavigationView } from "./Features/Shell/NavigationView";
 import { createCompositionRoot, type ApplicationPreferences, type CompositionRoot } from "./CompositionRoot";
 import type { ApplicationTheme, NavigationPage } from "./Shared/DomainTypes";
-import { LANGUAGE_NAMES, SUPPORTED_LOCALES, THEME_LABELS, normalizeLocale, translate } from "./Shared/I18n";
+import { LANGUAGE_NAMES, SUPPORTED_LOCALES, THEME_LABELS, normalizeLocale, translate, type TranslationKey } from "./Shared/I18n";
 
 import "./Theme/Variables.css";
 
@@ -47,9 +45,15 @@ function App(): JSX.Element {
 
   useEffect(() => {
     let isMounted = true;
-    void root.initialize().then(nextPreferences => {
+
+    root.registerPreferenceDelegate(nextPreferences => {
       if (isMounted) {
         setPreferences(nextPreferences);
+      }
+    });
+
+    void root.initialize().then(() => {
+      if (isMounted) {
         setIsReady(true);
       }
     });
@@ -100,20 +104,24 @@ function AppShell(props: AppShellProps): JSX.Element {
   const location = useLocation();
   const currentPage = getCurrentPage(location.pathname);
 
-  const updatePreferences = async (nextPreferences: ApplicationPreferences): Promise<void> => {
-    props.onPreferencesChanged(nextPreferences);
-    await props.root.savePreferences(nextPreferences);
-  };
+  useEffect(() => {
+    props.root.registerNavigationDelegate(page => {
+      const paths: Record<NavigationPage, string> = {
+        classification: "/classification",
+        search: "/search",
+        history: "/history",
+        about: "/about",
+        kanjiEntry: "/classification"
+      };
 
-  const navigateTo = async (path: string): Promise<void> => {
-    const menu = document.querySelector("ion-menu");
+      const menu = document.querySelector("ion-menu");
+      if (menu !== null) {
+        void (menu as HTMLIonMenuElement).close();
+      }
 
-    if (menu !== null) {
-      await (menu as HTMLIonMenuElement).close();
-    }
-
-    history.push(path);
-  };
+      history.push(paths[page]);
+    });
+  }, [props.root, history]);
 
   return (
     <>
@@ -124,10 +132,7 @@ function AppShell(props: AppShellProps): JSX.Element {
             <IonButtons slot="end">
               <IonButton
                 data-testid="theme-cycle-button"
-                onClick={() => void updatePreferences({
-                  ...props.preferences,
-                  theme: nextTheme(props.preferences.theme)
-                })}
+                onClick={() => props.root.userPreferenceController.setTheme(nextTheme(props.preferences.theme))}
                 aria-label={translate(props.preferences.language, "changeTheme")}
               >
                 <IonIcon icon={themeIcon(props.preferences.theme)} slot="icon-only" />
@@ -137,46 +142,28 @@ function AppShell(props: AppShellProps): JSX.Element {
         </IonHeader>
         <IonContent scrollY={false}>
           <div className="menu-shell">
-            <IonList lines="none" className="menu-list">
-              <MenuItem
-                currentPage={currentPage}
-                icon={brush}
-                id="classification"
-                label={translate(props.preferences.language, "recognition")}
-                onSelected={() => void navigateTo("/classification")}
-              />
-              <MenuItem
-                currentPage={currentPage}
-                icon={search}
-                id="search"
-                label={translate(props.preferences.language, "search")}
-                onSelected={() => void navigateTo("/search")}
-              />
-              <MenuItem
-                currentPage={currentPage}
-                icon={timeOutline}
-                id="history"
-                label={translate(props.preferences.language, "history")}
-                onSelected={() => void navigateTo("/history")}
-              />
-              <MenuItem
-                currentPage={currentPage}
-                icon={informationCircleOutline}
-                id="about"
-                label={translate(props.preferences.language, "about")}
-                onSelected={() => void navigateTo("/about")}
-              />
-            </IonList>
+            <NavigationView
+              availablePages={props.root.navigationController.availablePageIds.map(id => ({
+                id,
+                label: translate(props.preferences.language, getPageKey(id) as TranslationKey)
+              }))}
+              currentPage={currentPage}
+              isMenuOpen={true}
+              onCloseRequested={() => {
+                const menu = document.querySelector("ion-menu");
+                if (menu !== null) {
+                  void (menu as HTMLIonMenuElement).close();
+                }
+              }}
+              onNavigateRequested={page => props.root.navigationController.navigateTo(page)}
+            />
 
             <div className="menu-settings" data-testid="menu-settings">
               <IonSelect
                 interface="popover"
                 label={translate(props.preferences.language, "activeLanguage")}
                 value={props.preferences.language}
-                onIonChange={event => void updatePreferences({
-                  ...props.preferences,
-                  language: normalizeLocale(String(event.detail.value))
-                })}
+                onIonChange={event => props.root.userPreferenceController.setLanguage(normalizeLocale(String(event.detail.value)))}
               >
                 {SUPPORTED_LOCALES.map(locale => (
                   <IonSelectOption key={locale} value={locale}>
@@ -188,10 +175,7 @@ function AppShell(props: AppShellProps): JSX.Element {
                 interface="popover"
                 label={translate(props.preferences.language, "activeTheme")}
                 value={props.preferences.theme}
-                onIonChange={event => void updatePreferences({
-                  ...props.preferences,
-                  theme: toApplicationTheme(event.detail.value)
-                })}
+                onIonChange={event => props.root.userPreferenceController.setTheme(toApplicationTheme(event.detail.value))}
               >
                 {(["system", "light", "dark"] as const).map(theme => (
                   <IonSelectOption key={theme} value={theme}>
@@ -228,27 +212,19 @@ function AppShell(props: AppShellProps): JSX.Element {
   );
 }
 
-interface MenuItemProps {
-  readonly currentPage: NavigationPage;
-  readonly icon: string;
-  readonly id: NavigationPage;
-  readonly label: string;
-  readonly onSelected: () => void;
-}
-
-function MenuItem(props: MenuItemProps): JSX.Element {
-  return (
-    <IonItem
-      button
-      data-testid={`menu-item-${props.id}`}
-      detail={false}
-      onClick={props.onSelected}
-      className={props.currentPage === props.id ? "menu-item-active" : ""}
-    >
-      <IonIcon icon={props.icon} slot="start" />
-      <IonLabel>{props.label}</IonLabel>
-    </IonItem>
-  );
+function getPageKey(page: NavigationPage): string {
+  switch (page) {
+    case "classification":
+      return "recognition";
+    case "search":
+      return "search";
+    case "history":
+      return "history";
+    case "about":
+      return "about";
+    default:
+      return "";
+  }
 }
 
 function getCurrentPage(pathname: string): NavigationPage {

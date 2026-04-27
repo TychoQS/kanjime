@@ -3,13 +3,14 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { setupIonicReact } from "@ionic/react";
 import { afterEach } from "vitest";
+import "../../src/Theme/Variables.css";
 
 class ResizeObserverStub {
-  observe(): void {}
+  observe(): void { }
 
-  unobserve(): void {}
+  unobserve(): void { }
 
-  disconnect(): void {}
+  disconnect(): void { }
 }
 
 class ImageDataStub {

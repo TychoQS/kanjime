@@ -1,3 +1,5 @@
+import type { NavigationPage } from "../../../Shared/DomainTypes";
+
 /**
  * Contract for application-level navigation.
  *
@@ -27,4 +29,8 @@ export interface NavigationInterface {
     page: "classification";
     mode: "image";
   };
+  /**
+   * List of identifiers for all pages that can be navigated to via the shell menu.
+   */
+  readonly availablePageIds: ReadonlyArray<NavigationPage>;
 }

@@ -7,6 +7,11 @@ import { KanjiRepository, type KanjiSummary, type SourceAttribution } from "./Sh
 import { OcrWorkerClient } from "./Shared/OcrWorkerClient";
 import type { AboutInterface } from "./Features/About/Contracts/AboutInterface";
 import { CreateAboutController } from "./Features/About/CreateAboutController";
+import type { UserPreferenceInterface } from "./Features/Preferences/Contracts/UserPreferenceInterface";
+import { CreateUserPreferenceController } from "./Features/Preferences/CreateUserPreferenceController";
+import type { NavigationInterface } from "./Features/Shell/Contracts/NavigationInterface";
+import { CreateNavigationController } from "./Features/Shell/CreateNavigationController";
+import type { NavigationPage } from "./Shared/DomainTypes";
 
 export interface AboutDisplayItem {
   readonly label: string;
@@ -18,6 +23,9 @@ export interface ApplicationPreferences {
   readonly theme: ApplicationTheme;
 }
 
+let navigationDelegate: ((page: NavigationPage) => void) | null = null;
+let preferenceDelegate: ((preferences: ApplicationPreferences) => void) | null = null;
+
 export interface CompositionRoot {
   readonly kanjiRepository: KanjiRepository;
   readonly persistence: AppPersistence;
@@ -27,6 +35,10 @@ export interface CompositionRoot {
   loadHistoryGroups(): Promise<ReadonlyArray<HistoryGroup>>;
   loadKanjiDetails(character: string, language: string, recordVisit?: boolean): Promise<DetailedKanjiEntry>;
   readonly aboutController: AboutInterface;
+  readonly userPreferenceController: UserPreferenceInterface;
+  readonly navigationController: NavigationInterface;
+  registerNavigationDelegate(delegate: (page: NavigationPage) => void): void;
+  registerPreferenceDelegate(delegate: (preferences: ApplicationPreferences) => void): void;
   savePreferences(preferences: ApplicationPreferences): Promise<void>;
 }
 
@@ -93,6 +105,30 @@ export function createCompositionRoot(): CompositionRoot {
     loadApplicationVersion: async () => packageMetadata.version
   });
 
+  const userPreferenceController = CreateUserPreferenceController({
+    applyLanguage: async (language: string) => {
+      const preferences = await persistence.getPreferences();
+      const nextPreferences = { ...preferences, language: normalizeLocale(language) };
+      await persistence.savePreferences(nextPreferences);
+      preferenceDelegate?.(nextPreferences);
+    },
+    applyTheme: async (theme: ApplicationTheme) => {
+      const preferences = await persistence.getPreferences();
+      const nextPreferences = { ...preferences, theme };
+      await persistence.savePreferences(nextPreferences);
+      preferenceDelegate?.(nextPreferences);
+    }
+  });
+
+  const navigationController = CreateNavigationController({
+    clearPageState: (page: NavigationPage) => {
+      navigationDelegate?.(page);
+    },
+    publishInitialRoute: () => {
+      // Logic for publishing initial route if needed
+    }
+  });
+
   return {
     kanjiRepository,
     persistence,
@@ -104,9 +140,13 @@ export function createCompositionRoot(): CompositionRoot {
         ocrClient.loadModel()
       ]);
       const preferences = await persistence.getPreferences();
+      const locale = normalizeLocale(preferences.language);
+
+      userPreferenceController.setLanguage(locale);
+      userPreferenceController.setTheme(preferences.theme);
 
       return {
-        language: normalizeLocale(preferences.language),
+        language: locale,
         theme: preferences.theme
       };
     },
@@ -127,6 +167,14 @@ export function createCompositionRoot(): CompositionRoot {
       };
     },
     aboutController,
+    userPreferenceController,
+    navigationController,
+    registerNavigationDelegate(delegate: (page: NavigationPage) => void): void {
+      navigationDelegate = delegate;
+    },
+    registerPreferenceDelegate(delegate: (preferences: ApplicationPreferences) => void): void {
+      preferenceDelegate = delegate;
+    },
     savePreferences(preferences: ApplicationPreferences): Promise<void> {
       return persistence.savePreferences(preferences);
     }

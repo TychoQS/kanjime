@@ -11,6 +11,8 @@ import type { UserPreferenceInterface } from "./Features/Preferences/Contracts/U
 import { CreateUserPreferenceController } from "./Features/Preferences/CreateUserPreferenceController";
 import type { NavigationInterface } from "./Features/Shell/Contracts/NavigationInterface";
 import { CreateNavigationController } from "./Features/Shell/CreateNavigationController";
+import type { SearchInterface } from "./Features/Search/Contracts/SearchInterface";
+import { CreateSearchController } from "./Features/Search/CreateSearchController";
 import type { NavigationPage } from "./Shared/DomainTypes";
 
 export interface AboutDisplayItem {
@@ -37,6 +39,7 @@ export interface CompositionRoot {
   readonly aboutController: AboutInterface;
   readonly userPreferenceController: UserPreferenceInterface;
   readonly navigationController: NavigationInterface;
+  readonly searchController: SearchInterface;
   registerNavigationDelegate(delegate: (page: NavigationPage) => void): void;
   registerPreferenceDelegate(delegate: (preferences: ApplicationPreferences) => void): void;
   savePreferences(preferences: ApplicationPreferences): Promise<void>;
@@ -129,6 +132,15 @@ export function createCompositionRoot(): CompositionRoot {
     }
   });
 
+  const searchController = CreateSearchController({
+    queryTerm: (term: string) => kanjiRepository.search(term),
+    navigateToKanjiEntry: async (character: string) => {
+      await recordHistory(character, "search");
+      navigationDelegate?.("kanjiEntry");
+      // Note: Actual route pushing happens in AppShell via registerNavigationDelegate
+    }
+  });
+
   return {
     kanjiRepository,
     persistence,
@@ -169,6 +181,7 @@ export function createCompositionRoot(): CompositionRoot {
     aboutController,
     userPreferenceController,
     navigationController,
+    searchController,
     registerNavigationDelegate(delegate: (page: NavigationPage) => void): void {
       navigationDelegate = delegate;
     },

@@ -196,13 +196,13 @@ function AppShell(props: AppShellProps): JSX.Element {
           <ClassificationScreen root={props.root} language={props.preferences.language} />
         </Route>
         <Route exact path="/search">
-          <SearchScreen root={props.root} language={props.preferences.language} />
+          <SearchScreen searchController={props.root.searchController} language={props.preferences.language} />
         </Route>
         <Route exact path="/history">
           <HistoryScreen root={props.root} language={props.preferences.language} />
         </Route>
         <Route exact path="/about">
-          <AboutScreen root={props.root} language={props.preferences.language} />
+          <AboutScreen aboutController={props.root.aboutController} language={props.preferences.language} />
         </Route>
         <Route exact path="/kanji/:character">
           <KanjiDetailScreen root={props.root} language={props.preferences.language} />

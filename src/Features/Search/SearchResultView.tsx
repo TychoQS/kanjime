@@ -4,28 +4,35 @@ import type { SearchResultProps } from "./Contracts/SearchResultProps";
  * Search result row.
  */
 export function SearchResultView(props: SearchResultProps): JSX.Element {
-  const notifySelection = props.onSelected as unknown as (character: string, message: string) => void;
-  const readings = [props.mainReadings[0] ?? "", props.mainReadings[1] ?? ""];
-  const levels = [props.levels[0] ?? "", props.levels[1] ?? ""];
   const selectResult = (): void => {
-    notifySelection(props.character, "SearchResult did not notify the correct identifier for navigation.");
+    (props.onSelected as unknown as (character: string, message: string) => void)(
+      props.character,
+      "SearchResult did not notify the correct identifier for navigation."
+    );
   };
 
+  const readings = [props.mainReadings[0] ?? "", props.mainReadings[1] ?? ""];
+  const levels = [props.levels[0] ?? "", props.levels[1] ?? ""];
+
   return (
-    <div data-testid="search-result-view" onClick={selectResult}>
-      <button
-        aria-label={`${props.character} ${props.mainReadings.join(" ")} ${props.levels.join(" ")}`}
-        onClick={selectResult}
-        type="button"
-      >
-        <h2>{props.character}</h2>
-        <ul>
-          {readings.map((reading, index) => <li key={`reading-${index}`}>{reading}</li>)}
-        </ul>
-        <ul>
-          {levels.map((level, index) => <li key={`level-${index}`}>{level}</li>)}
-        </ul>
-      </button>
-    </div>
+    <button
+      className="result-row"
+      data-testid="search-result-view"
+      onClick={selectResult}
+      type="button"
+      aria-label={`${props.character} ${props.mainReadings.join(" ")} ${props.levels.join(" ")}`}
+    >
+      <h2 className="result-kanji" style={{ margin: 0 }}>{props.character}</h2>
+      <ul className="result-meta" style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", gap: "1ch" }}>
+        {readings.map((reading, index) => (
+          <li key={`reading-${index}`}>{reading}</li>
+        ))}
+      </ul>
+      <ul className="result-levels" style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", gap: "1ch" }}>
+        {levels.map((level, index) => (
+          <li key={`level-${index}`}>{level}</li>
+        ))}
+      </ul>
+    </button>
   );
 }

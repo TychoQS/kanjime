@@ -5,9 +5,10 @@ import type { AboutInformationItem } from "../../Shared/DomainTypes";
 import { translate } from "../../Shared/I18n";
 import { MobilePage } from "../Shell/MobilePage";
 import { AboutView } from "./View/AboutView";
+import type { AboutInterface } from "./Contracts/AboutInterface";
 
 interface AboutScreenProps {
-  readonly root: CompositionRoot;
+  readonly aboutController: AboutInterface;
   readonly language: string;
 }
 
@@ -22,7 +23,7 @@ export function AboutScreen(props: AboutScreenProps): JSX.Element {
 
   useEffect(() => {
     let isMounted = true;
-    void props.root.aboutController.getAboutInformation()
+    void props.aboutController.getAboutInformation()
       .then(nextItems => {
         if (isMounted) {
           setItems(nextItems);
@@ -37,7 +38,7 @@ export function AboutScreen(props: AboutScreenProps): JSX.Element {
     return () => {
       isMounted = false;
     };
-  }, [props.root.aboutController, props.language]);
+  }, [props.aboutController, props.language]);
 
   return (
     <MobilePage title="" testId="about-screen">

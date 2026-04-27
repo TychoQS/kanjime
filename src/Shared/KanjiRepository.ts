@@ -66,6 +66,49 @@ export class KanjiRepository {
 
   async search(term: string): Promise<ReadonlyArray<KanjiSummary>> {
     await this.initialize();
+    const trimmedTerm = term.trim();
+
+    if (trimmedTerm.length === 0) {
+      return [];
+    }
+
+    if (isKanji(trimmedTerm)) {
+      return this.searchByKanji(trimmedTerm);
+    }
+
+    return this.searchByReading(trimmedTerm);
+  }
+
+  private async searchByKanji(term: string): Promise<ReadonlyArray<KanjiSummary>> {
+    const database = this.requireDatabase();
+    const characters = new Set<string>();
+
+    const exactMatch = readRows(
+      database,
+      `SELECT character, stroke_count FROM kanji_entries WHERE character = ? LIMIT 1`,
+      [term]
+    );
+    for (const row of exactMatch) {
+      characters.add(readRequiredString(row, "character"));
+    }
+
+    const likeTerm = `%${term}%`;
+    const componentMatches = readRows(
+      database,
+      `SELECT character, stroke_count FROM kanji_entries WHERE components_json LIKE ? ORDER BY stroke_count LIMIT ${MAX_SEARCH_RESULTS}`,
+      [likeTerm]
+    );
+    for (const row of componentMatches) {
+      characters.add(readRequiredString(row, "character"));
+    }
+
+    return [...characters]
+      .slice(0, MAX_SEARCH_RESULTS)
+      .map(character => this.getCachedSummary(character))
+      .filter((summary): summary is KanjiSummary => summary !== null);
+  }
+
+  private async searchByReading(term: string): Promise<ReadonlyArray<KanjiSummary>> {
     const database = this.requireDatabase();
     const normalizedTerms = this.createSearchTerms(term);
 
@@ -76,21 +119,17 @@ export class KanjiRepository {
     const characters = new Set<string>();
 
     for (const searchTerm of normalizedTerms) {
-      const likeTerm = `%${searchTerm}%`;
       const rows = readRows(
         database,
         `
           SELECT DISTINCT e.character
           FROM kanji_entries e
           LEFT JOIN kanji_readings r ON r.character = e.character
-          LEFT JOIN kanji_meanings m ON m.character = e.character
-          WHERE e.character = ?
-             OR r.value LIKE ?
-             OR m.value LIKE ?
-             OR e.components_json LIKE ?
+          WHERE r.value = ?
+          ORDER BY e.stroke_count
           LIMIT ${MAX_SEARCH_RESULTS}
         `,
-        [searchTerm, likeTerm, likeTerm, likeTerm]
+        [searchTerm]
       );
 
       for (const row of rows) {
@@ -338,6 +377,12 @@ function readRequiredNumber(row: Record<string, SqlValue>, key: string): number 
   }
 
   return value;
+}
+
+
+function isKanji(term: string): boolean {
+  const KANJI_RANGE = /[\u4e00-\u9fff]/;
+  return KANJI_RANGE.test(term);
 }
 
 function toKanjiEntryRow(row: Record<string, SqlValue>): KanjiEntryRow {

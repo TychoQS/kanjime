@@ -3,16 +3,17 @@ import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 
 import type { CompositionRoot } from "../../CompositionRoot";
+import type { SearchInterface } from "./Contracts/SearchInterface";
 import { translate } from "../../Shared/I18n";
-import type { KanjiSummary } from "../../Shared/KanjiRepository";
 import { MobilePage } from "../Shell/MobilePage";
+import { SearchResultView } from "./SearchResultView";
 
 interface SearchScreenProps {
-  readonly root: CompositionRoot;
+  readonly searchController: SearchInterface;
   readonly language: string;
 }
 
-const SEARCH_DELAY_MS = 200;
+const SEARCH_DELAY_MS = 100;
 
 /**
  * Manual Kanji search by character, reading, or meaning.
@@ -23,7 +24,7 @@ const SEARCH_DELAY_MS = 200;
 export function SearchScreen(props: SearchScreenProps): JSX.Element {
   const history = useHistory();
   const [term, setTerm] = useState("");
-  const [results, setResults] = useState<ReadonlyArray<KanjiSummary>>([]);
+  const [results, setResults] = useState<ReadonlyArray<{ character: string, primaryReadings: ReadonlyArray<string>, levels: ReadonlyArray<string> }>>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export function SearchScreen(props: SearchScreenProps): JSX.Element {
 
     setIsSearching(true);
     const timeout = window.setTimeout(() => {
-      void props.root.kanjiRepository.search(effectiveTerm).then(nextResults => {
+      void props.searchController.search(effectiveTerm).then(nextResults => {
         setResults(nextResults);
         setIsSearching(false);
       }).catch(() => {
@@ -47,12 +48,8 @@ export function SearchScreen(props: SearchScreenProps): JSX.Element {
     }, SEARCH_DELAY_MS);
 
     return () => window.clearTimeout(timeout);
-  }, [props.root, term]);
+  }, [props.searchController, term]);
 
-  const openResult = async (character: string): Promise<void> => {
-    await props.root.recordHistory(character, "search");
-    history.push(`/kanji/${encodeURIComponent(character)}`);
-  };
 
   return (
     <MobilePage title={translate(props.language, "search")} testId="search-screen">
@@ -81,17 +78,17 @@ export function SearchScreen(props: SearchScreenProps): JSX.Element {
                   <p>{isSearching ? translate(props.language, "loadingApplication") : translate(props.language, "noResults")}</p>
                 </IonText>
               ) : results.map(result => (
-                <button
-                  className="result-row"
-                  data-testid={`search-result-${result.character}`}
+                <SearchResultView
                   key={result.character}
-                  onClick={() => void openResult(result.character)}
-                  type="button"
-                >
-                  <span className="result-kanji">{result.character}</span>
-                  <span className="result-meta">{result.primaryReadings.join(" ")}</span>
-                  <span className="result-levels">{result.levels.join(" ")}</span>
-                </button>
+                  character={result.character}
+                  mainReadings={result.primaryReadings}
+                  levels={result.levels}
+                  onSelected={character => {
+                    void props.searchController.openKanjiEntry(character).then(() => {
+                      history.push(`/kanji/${encodeURIComponent(character)}`);
+                    });
+                  }}
+                />
               ))}
             </div>
           </section>

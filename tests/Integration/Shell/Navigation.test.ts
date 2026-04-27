@@ -12,6 +12,9 @@ import {
 } from "../../Support/DependencyFactories";
 import { TEST_CROP, TEST_IMAGE, TEST_LANGUAGE, TEST_PREDICTIONS, TEST_STROKE, TEST_THEME } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
+import { clearRegisteredCanvasState } from "../../../src/Features/Classification/Canvas/ViewModel/CanvasViewModel";
+import { clearRegisteredImageState } from "../../../src/Features/Classification/Image/ViewModel/ImageViewModel";
+import { clearRegisteredInferenceDisplayState } from "../../../src/Features/Classification/Inference/ViewModel/DisplayInferencesViewModel";
 
 describe("NAVIGATION", () => {
   /**
@@ -31,7 +34,12 @@ describe("NAVIGATION", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
 
     const navigation = CreateNavigationController({
-      clearPageState: clearRecorder.handler,
+      clearPageState: (page) => {
+        clearRecorder.handler(page);
+        clearRegisteredCanvasState();
+        clearRegisteredImageState();
+        clearRegisteredInferenceDisplayState();
+      },
       publishInitialRoute: publishRecorder.handler
     });
     const preferences = CreateUserPreferenceController({
@@ -58,19 +66,38 @@ describe("NAVIGATION", () => {
     imageController.setActiveCrop(TEST_CROP);
     display.updateResultsFromDrawingInference(TEST_PREDICTIONS);
 
-    // Invariant: preferences are preserved; page state is not carried over
-    navigation.navigateTo("history");
-    navigation.navigateTo("classification");
 
-    // Postcondition: previous page state is cleared and preferences remain intact
-    expect(clearRecorder.calls).toEqual(["history", "classification"],
-      "NAVIGATION invariant failed: navigating between pages must clear the previous page state on each transition."
-    );
+    navigation.navigateTo("history");
+
+    // Invariant: preferences are preserved; page state is not carried over
     expect(preferences.getCurrentPreferences().language).toBe(TEST_LANGUAGE,
       "NAVIGATION invariant failed: the selected language preference was not preserved across navigation."
     );
     expect(preferences.getCurrentPreferences().theme).toBe(TEST_THEME,
       "NAVIGATION invariant failed: the selected theme preference was not preserved across navigation."
+    );
+
+    // Postcondition: previous page state is cleared and preferences remain intact
+    expect(canvas.getStrokeHistory()).toHaveLength(0,
+      "NAVIGATION invariant failed: stroke history must be cleared immediately when navigating away from classification."
+    );
+    expect(imageController.getImageState().image).toBeNull(
+      "NAVIGATION invariant failed: image must be cleared immediately when navigating away from classification."
+    );
+
+    navigation.navigateTo("classification");
+
+    // Invariant: preferences are preserved; page state is not carried over
+    expect(preferences.getCurrentPreferences().language).toBe(TEST_LANGUAGE,
+      "NAVIGATION invariant failed: the selected language preference was not preserved across navigation."
+    );
+    expect(preferences.getCurrentPreferences().theme).toBe(TEST_THEME,
+      "NAVIGATION invariant failed: the selected theme preference was not preserved across navigation."
+    );
+
+    // Postcondition: previous page state is cleared and preferences remain intact
+    expect(clearRecorder.calls).toEqual(["history", "classification"],
+      "NAVIGATION invariant failed: navigating between pages must clear the previous page state on each transition."
     );
     expect(canvas.getStrokeHistory()).toHaveLength(0,
       "NAVIGATION postcondition failed: stroke history from the previous page remained after navigation."

@@ -1,10 +1,10 @@
 import { IonIcon } from "@ionic/react";
-import { brush, close, informationCircleOutline, search, timeOutline } from "ionicons/icons";
+import { close, informationCircleOutline, scanOutline, search, timeOutline } from "ionicons/icons";
 
 import type { NavigationProps } from "./Contracts/NavigationProps";
 
 const PAGE_ICONS: Record<string, string> = {
-  classification: brush,
+  classification: scanOutline,
   search: search,
   history: timeOutline,
   about: informationCircleOutline
@@ -24,15 +24,6 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
   return (
     <div data-testid="navigation-view" className="menu-shell">
       <nav aria-label="Application navigation">
-        <button
-          aria-label="Close navigation"
-          onClick={props.onCloseRequested}
-          type="button"
-          className="ion-hide-sm-up"
-        >
-          <IonIcon icon={close} />
-          Close
-        </button>
         <ul role="menu" className="menu-list" style={{ listStyle: "none", padding: 0 }}>
           {props.availablePages.map(page => (
             <li key={page.id} className={props.currentPage === page.id ? "menu-item-active" : ""}>
@@ -62,6 +53,25 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
           ))}
         </ul>
       </nav>
+      <button
+        aria-label="Close navigation"
+        onClick={props.onCloseRequested}
+        type="button"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          background: "none",
+          border: "none",
+          padding: "12px 16px",
+          width: "100%",
+          color: "inherit",
+          font: "inherit",
+          cursor: "pointer"
+        }}
+      >
+        <IonIcon icon={close} style={{ marginRight: "16px" }} />
+        Cerrar
+      </button>
     </div>
   );
 }

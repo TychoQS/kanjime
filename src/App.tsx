@@ -128,8 +128,21 @@ function AppShell(props: AppShellProps): JSX.Element {
       <IonMenu contentId="main-content" side="start" type="overlay" data-testid="app-menu">
         <IonHeader>
           <IonToolbar>
-            <IonTitle>{translate(props.preferences.language, "navigation")}</IonTitle>
-            <IonButtons slot="end">
+            <IonButtons slot="start" style={{ marginLeft: "8px" }}>
+              <IonSelect
+                interface="action-sheet"
+                value={props.preferences.language}
+                onIonChange={event => props.root.userPreferenceController.setLanguage(normalizeLocale(String(event.detail.value)))}
+                style={{ maxWidth: "200px" }}
+              >
+                {SUPPORTED_LOCALES.map(locale => (
+                  <IonSelectOption key={locale} value={locale}>
+                    {LANGUAGE_NAMES[locale]}
+                  </IonSelectOption>
+                ))}
+              </IonSelect>
+            </IonButtons>
+            <IonButtons slot="end" style={{ marginRight: "8px" }}>
               <IonButton
                 data-testid="theme-cycle-button"
                 onClick={() => props.root.userPreferenceController.setTheme(nextTheme(props.preferences.theme))}
@@ -157,33 +170,6 @@ function AppShell(props: AppShellProps): JSX.Element {
               }}
               onNavigateRequested={page => props.root.navigationController.navigateTo(page)}
             />
-
-            <div className="menu-settings" data-testid="menu-settings">
-              <IonSelect
-                interface="popover"
-                label={translate(props.preferences.language, "activeLanguage")}
-                value={props.preferences.language}
-                onIonChange={event => props.root.userPreferenceController.setLanguage(normalizeLocale(String(event.detail.value)))}
-              >
-                {SUPPORTED_LOCALES.map(locale => (
-                  <IonSelectOption key={locale} value={locale}>
-                    {LANGUAGE_NAMES[locale]}
-                  </IonSelectOption>
-                ))}
-              </IonSelect>
-              <IonSelect
-                interface="popover"
-                label={translate(props.preferences.language, "activeTheme")}
-                value={props.preferences.theme}
-                onIonChange={event => props.root.userPreferenceController.setTheme(toApplicationTheme(event.detail.value))}
-              >
-                {(["system", "light", "dark"] as const).map(theme => (
-                  <IonSelectOption key={theme} value={theme}>
-                    {THEME_LABELS[theme]}
-                  </IonSelectOption>
-                ))}
-              </IonSelect>
-            </div>
           </div>
         </IonContent>
       </IonMenu>

@@ -41,7 +41,7 @@ export function AboutScreen(props: AboutScreenProps): JSX.Element {
   }, [props.aboutController, props.language]);
 
   return (
-    <MobilePage title="" testId="about-screen">
+    <MobilePage title={translate(props.language, "about")} testId="about-screen">
       <div className="screen-shell">
         <div className="detail-scroll">
           <AboutView items={items} language={props.language} />

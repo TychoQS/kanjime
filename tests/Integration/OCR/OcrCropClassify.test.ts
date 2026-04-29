@@ -116,5 +116,14 @@ describe("OCR-CROP-CLASSIFY", () => {
     ))).toBe(true,
       "OCR-CROP-CLASSIFY postcondition failed: the first crop predictions are not ordered by descending confidence."
     );
+
+    // Postcondition: Selecting a prediction display its and records it in history as imageClassification
+    const character = replacementVisibleResults[0].character;
+    await display.openKanjiEntry(character);
+    expect(historyRecorder.calls, "OCR-CROP-CLASSIFY postcondition failed: selecting a prediction did not record it in history.").toHaveLength(1);
+    expect(historyRecorder.calls[0], "OCR-CROP-CLASSIFY postcondition failed: wrong category for crop classification.").toEqual([
+      character,
+      "imageClassification"
+    ]);
   });
 });

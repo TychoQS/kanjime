@@ -96,5 +96,14 @@ describe("OCR-IMAGE-CLASSIFY", () => {
     ))).toBe(true,
       "OCR-IMAGE-CLASSIFY postcondition failed: predictions are not ordered by descending confidence before display."
     );
+
+    // Postcondition: Selecting a prediction display its and records it in history as imageClassification
+    const character = visibleResults[0].character;
+    await display.openKanjiEntry(character);
+    expect(historyRecorder.calls, "OCR-IMAGE-CLASSIFY postcondition failed: selecting a prediction did not record it in history.").toHaveLength(1);
+    expect(historyRecorder.calls[0], "OCR-IMAGE-CLASSIFY postcondition failed: wrong category for image classification.").toEqual([
+      character,
+      "imageClassification"
+    ]);
   });
 });

@@ -106,6 +106,15 @@ describe("OCR-PHOTO-CLASSIFY", () => {
     ))).toBe(true,
       "OCR-PHOTO-CLASSIFY postcondition failed: predictions are not ordered by descending confidence before display."
     );
+
+    // Postcondition: Selecting a prediction display its and records it in history as imageClassification
+    const character = visibleResults[0].character;
+    await display.openKanjiEntry(character);
+    expect(historyRecorder.calls, "OCR-PHOTO-CLASSIFY postcondition failed: selecting a prediction did not record it in history.").toHaveLength(1);
+    expect(historyRecorder.calls[0], "OCR-PHOTO-CLASSIFY postcondition failed: wrong category for photo classification.").toEqual([
+      character,
+      "imageClassification"
+    ]);
   });
 
   it(buildRequirementTitle("OCR-PHOTO-CLASSIFY", "Integration", "All", "surfaces a denied capture without hiding the fallback input contract"), async () => {

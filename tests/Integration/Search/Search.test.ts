@@ -57,8 +57,19 @@ describe("SEARCH", () => {
       }
     };
     const navigationRecorder = createVoidArgumentRecorder<string>();
+    const historyRecorder = createVoidArgumentRecorder<{
+      character: string;
+      category: "search" | "visitedEntry" | "imageClassification" | "drawingClassification";
+      createdAt: string;
+    }>();
+    const mockHistoryController = {
+      getEntriesByCategory: async () => [],
+      saveEntry: historyRecorder.handler,
+      openKanjiEntry: async () => undefined
+    };
     const search = CreateSearchController({
       queryTerm: queryRecorder.handler,
+      historyController: mockHistoryController,
       navigateToKanjiEntry: navigationRecorder.handler
     });
 
@@ -69,9 +80,18 @@ describe("SEARCH", () => {
       String(initialResults.length)
     );
 
+    // Postcondition: new search term is recorded in history
+    expect(historyRecorder.calls, "SEARCH postcondition failed: new search term was not recorded in history.").toHaveLength(1);
+    expect(historyRecorder.calls[0], "SEARCH postcondition failed: search term not recorded correctly.").toEqual({
+      character: TEST_SEARCH_TERM,
+      category: "search",
+      createdAt: expect.any(String)
+    });
+
     // Invariant: no new query is executed when the same term is repeated
     await search.search(TEST_SEARCH_TERM);
     expect(queryRecorder.calls, "SEARCH invariant failed: repeating the same term should not issue an additional query.").toEqual([TEST_SEARCH_TERM]);
+    expect(historyRecorder.calls, "SEARCH invariant failed: repeating the same term should not add duplicate to history.").toHaveLength(1);
 
     // Postcondition: a new effective term replaces the previous visible results
     const updatedResults = await search.search(TEST_SEARCH_READING);
@@ -80,5 +100,23 @@ describe("SEARCH", () => {
     expect(queryRecorder.calls, "SEARCH invariant failed: each effective term change must issue exactly one query, and stale duplicate queries must be avoided.").toEqual([TEST_SEARCH_TERM, TEST_SEARCH_READING]);
     expect(updatedResults, "SEARCH postcondition failed: changing the term did not replace the previous results set.").not.toEqual(initialResults);
     expect(screen.getByTestId("search-results-count")).toHaveTextContent(String(updatedResults.length));
+
+    // Postcondition: new search term is recorded in history
+    expect(historyRecorder.calls, "SEARCH postcondition failed: new search term was not recorded in history.").toHaveLength(2);
+    expect(historyRecorder.calls[1], "SEARCH postcondition failed: new search term not recorded correctly.").toEqual({
+      character: TEST_SEARCH_READING,
+      category: "search",
+      createdAt: expect.any(String)
+    });
+
+    // Postcondition: selecting a kanji entry records it in history as visitedEntry
+    const character = updatedResults[0].character;
+    await search.openKanjiEntry(character);
+    const historyEntry = historyRecorder.calls[historyRecorder.calls.length - 1];
+    expect(historyEntry, "SEARCH postcondition failed: opening entry did not record in history.").toEqual({
+      character,
+      category: "visitedEntry",
+      createdAt: expect.any(String)
+    });
   });
 });

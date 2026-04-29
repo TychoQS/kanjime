@@ -49,7 +49,7 @@ export function KanjiDetailScreen(props: KanjiDetailScreenProps): JSX.Element {
   useEffect(() => {
     setIsLoading(true);
     setErrorMessage(null);
-    void props.root.loadKanjiDetails(character, props.language, !location.state?.skipHistory)
+    void props.root.loadKanjiDetails(character, props.language)
       .then(nextDetails => {
         setDetails(nextDetails);
         setIsLoading(false);

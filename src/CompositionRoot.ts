@@ -171,16 +171,8 @@ export function createCompositionRoot(): CompositionRoot {
     loadHistoryGroups(): Promise<ReadonlyArray<HistoryGroup>> {
       return persistence.loadHistoryGroups();
     },
-    async loadKanjiDetails(character: string, language: string, recordVisit = true): Promise<DetailedKanjiEntry> {
+    async loadKanjiDetails(character: string, language: string): Promise<DetailedKanjiEntry> {
       const details = await kanjiRepository.getDetails(character);
-
-      if (recordVisit) {
-        await historyController.saveEntry({
-          character,
-          category: "visitedEntry",
-          createdAt: new Date().toISOString()
-        });
-      }
 
       return {
         ...details,

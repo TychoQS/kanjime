@@ -85,5 +85,14 @@ describe("OCR-DRAW-CLASSIFY", () => {
     ))).toBe(true,
       "OCR-DRAW-CLASSIFY postcondition failed: predictions are not ordered by descending confidence before being shown."
     );
+
+    // Postcondition: Selecting a prediction display its and records it in history as drawingClassification
+    const character = visibleResults[0].character;
+    await display.openKanjiEntry(character);
+    expect(historyRecorder.calls, "OCR-DRAW-CLASSIFY postcondition failed: selecting a prediction did not record it in history.").toHaveLength(1);
+    expect(historyRecorder.calls[0], "OCR-DRAW-CLASSIFY postcondition failed: wrong category for drawing classification.").toEqual([
+      character,
+      "drawingClassification"
+    ]);
   });
 });

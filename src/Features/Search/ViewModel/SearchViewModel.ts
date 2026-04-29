@@ -40,8 +40,17 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
       }
 
       return dependencies.queryTerm(effectiveTerm).then(results => {
+        const isNewTerm = effectiveTerm !== currentTerm;
         currentTerm = effectiveTerm;
         visibleResults = copySummaries(results);
+
+        if (isNewTerm && results.length > 0) {
+          dependencies.historyController.saveEntry({
+            character: effectiveTerm,
+            category: "search",
+            createdAt: new Date().toISOString()
+          });
+        }
 
         return copySummaries(visibleResults);
       });
@@ -71,7 +80,7 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
 
       await dependencies.historyController.saveEntry({
         character,
-        category: "search",
+        category: "visitedEntry",
         createdAt: new Date().toISOString()
       });
 

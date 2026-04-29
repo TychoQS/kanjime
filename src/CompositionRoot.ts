@@ -15,6 +15,8 @@ import type { SearchInterface } from "./Features/Search/Contracts/SearchInterfac
 import { CreateSearchController } from "./Features/Search/CreateSearchController";
 import type { HistoryInterface } from "./Features/History/Contracts/HistoryInterface";
 import { CreateHistoryController } from "./Features/History/CreateHistoryController";
+import { CreateDisplayKanjiController } from "./Features/Kanji/CreateDisplayKanjiController";
+import type { DisplayKanjiInterface } from "./Features/Kanji/Contracts/DisplayKanjiInterface";
 import type { NavigationPage } from "./Shared/DomainTypes";
 
 export interface AboutDisplayItem {
@@ -42,7 +44,8 @@ export interface CompositionRoot {
   readonly navigationController: NavigationInterface;
   readonly searchController: SearchInterface;
   readonly historyController: HistoryInterface;
-  registerNavigationDelegate(delegate: (page: NavigationPage) => void): void;
+  readonly displayKanjiController: DisplayKanjiInterface;
+  registerNavigationDelegate(delegate: (page: NavigationPage, character?: string) => void): void;
   registerPreferenceDelegate(delegate: (preferences: ApplicationPreferences) => void): void;
   savePreferences(preferences: ApplicationPreferences): Promise<void>;
 }
@@ -58,6 +61,14 @@ export function createCompositionRoot(): CompositionRoot {
   const kanjiRepository = new KanjiRepository();
   const persistence = new AppPersistence();
   const ocrClient = new OcrWorkerClient();
+  const loadKanjiDetailsByLanguage = async (character: string, language: string): Promise<DetailedKanjiEntry> => {
+    const details = await kanjiRepository.getDetails(character);
+
+    return {
+      ...details,
+      meanings: filterMeaningsByLanguage(details.meanings ?? [], language)
+    };
+  };
 
   const aboutController = CreateAboutController({
     loadAboutInformation: async () => {
@@ -135,7 +146,7 @@ export function createCompositionRoot(): CompositionRoot {
       });
     },
     navigateToKanjiEntry: async (character: string) => {
-      navigationDelegate?.("kanjiEntry");
+      navigationDelegate?.("kanjiEntry", character);
     }
   });
 
@@ -143,11 +154,25 @@ export function createCompositionRoot(): CompositionRoot {
     queryTerm: (term: string) => kanjiRepository.search(term),
     historyController,
     navigateToKanjiEntry: async (character: string) => {
-      navigationDelegate?.("kanjiEntry");
+      navigationDelegate?.("kanjiEntry", character);
     }
   });
 
-  return {
+  const displayKanjiController = CreateDisplayKanjiController({
+    loadKanjiDetails: async (character: string) => {
+      const { language } = userPreferenceController.getCurrentPreferences();
+      return loadKanjiDetailsByLanguage(character, language);
+    },
+    copyToClipboard: async (character: string) => {
+      const { Clipboard } = await import("@capacitor/clipboard");
+      await Clipboard.write({ string: character });
+    },
+    navigateBack: () => {
+      window.history.back();
+    }
+  });
+
+  const root = {
     kanjiRepository,
     persistence,
     ocrClient,
@@ -171,19 +196,15 @@ export function createCompositionRoot(): CompositionRoot {
     loadHistoryGroups(): Promise<ReadonlyArray<HistoryGroup>> {
       return persistence.loadHistoryGroups();
     },
-    async loadKanjiDetails(character: string, language: string): Promise<DetailedKanjiEntry> {
-      const details = await kanjiRepository.getDetails(character);
-
-      return {
-        ...details,
-        meanings: filterMeaningsByLanguage(details.meanings ?? [], language)
-      };
+    loadKanjiDetails(character: string, language: string): Promise<DetailedKanjiEntry> {
+      return loadKanjiDetailsByLanguage(character, language);
     },
     aboutController,
     userPreferenceController,
     navigationController,
     searchController,
     historyController,
+    displayKanjiController,
     registerNavigationDelegate(delegate: (page: NavigationPage) => void): void {
       navigationDelegate = delegate;
     },
@@ -194,6 +215,8 @@ export function createCompositionRoot(): CompositionRoot {
       return persistence.savePreferences(preferences);
     }
   };
+
+  return root;
 }
 
 function createHistorySummary(summary: KanjiSummary): string {

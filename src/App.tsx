@@ -105,7 +105,17 @@ function AppShell(props: AppShellProps): JSX.Element {
   const currentPage = getCurrentPage(location.pathname);
 
   useEffect(() => {
-    props.root.registerNavigationDelegate(page => {
+    props.root.registerNavigationDelegate((page, character) => {
+      const menu = document.querySelector("ion-menu");
+      if (menu !== null) {
+        void (menu as HTMLIonMenuElement).close();
+      }
+
+      if (page === "kanjiEntry" && character !== undefined) {
+        history.push(`/kanji/${encodeURIComponent(character)}`);
+        return;
+      }
+
       const paths: Record<NavigationPage, string> = {
         classification: "/classification",
         search: "/search",
@@ -113,11 +123,6 @@ function AppShell(props: AppShellProps): JSX.Element {
         about: "/about",
         kanjiEntry: "/classification"
       };
-
-      const menu = document.querySelector("ion-menu");
-      if (menu !== null) {
-        void (menu as HTMLIonMenuElement).close();
-      }
 
       history.push(paths[page]);
     });
@@ -191,7 +196,10 @@ function AppShell(props: AppShellProps): JSX.Element {
           <AboutScreen aboutController={props.root.aboutController} language={props.preferences.language} />
         </Route>
         <Route exact path="/kanji/:character">
-          <KanjiDetailScreen root={props.root} language={props.preferences.language} />
+          <KanjiDetailScreen
+            displayKanjiController={props.root.displayKanjiController}
+            language={props.preferences.language}
+          />
         </Route>
       </IonRouterOutlet>
     </>

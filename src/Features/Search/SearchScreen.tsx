@@ -84,9 +84,7 @@ export function SearchScreen(props: SearchScreenProps): JSX.Element {
                   mainReadings={result.primaryReadings}
                   levels={result.levels}
                   onSelected={character => {
-                    void props.searchController.openKanjiEntry(character).then(() => {
-                      history.push(`/kanji/${encodeURIComponent(character)}`);
-                    });
+                    void props.searchController.openKanjiEntry(character);
                   }}
                 />
               ))}

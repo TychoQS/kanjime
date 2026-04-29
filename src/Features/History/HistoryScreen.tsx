@@ -75,9 +75,7 @@ export function HistoryScreen(props: HistoryScreenProps): JSX.Element {
               <HistoryView
                 groups={activeGroups}
                 onEntrySelected={(character) => {
-                  void props.historyController.openKanjiEntry(character).then(() => {
-                    history.push(`/kanji/${encodeURIComponent(character)}`, { skipHistory: true });
-                  });
+                  void props.historyController.openKanjiEntry(character);
                 }}
               />
             )}

@@ -88,15 +88,15 @@ export const TEST_PREDICTIONS: ReadonlyArray<InferencePrediction> = [
  * Extended predictions for strict truncation and filtering tests.
  * Uses real kanjis with their actual stroke counts.
  */
-export const TEST_EXTENDED_PREDICTIONS: ReadonlyArray<InferencePrediction> = [
-  { character: "一", confidence: 0.99, strokeCount: 1 },
-  { character: "二", confidence: 0.98, strokeCount: 2 },
-  { character: "七", confidence: 0.97, strokeCount: 2 },
-  { character: "八", confidence: 0.96, strokeCount: 2 },
-  { character: "九", confidence: 0.95, strokeCount: 2 },
+export const TEST_EXTENDED_PREDICTIONS = [
+  { character: "海", confidence: 0.99, strokeCount: 9 },
+  { character: "空", confidence: 0.98, strokeCount: 8 },
   { character: "十", confidence: 0.94, strokeCount: 2 },
-  { character: "空", confidence: 0.93, strokeCount: 8 },
-  { character: "海", confidence: 0.92, strokeCount: 9 },
+  { character: "八", confidence: 0.96, strokeCount: 2 },
+  { character: "一", confidence: 0.79, strokeCount: 1 },
+  { character: "九", confidence: 0.75, strokeCount: 2 },
+  { character: "二", confidence: 0.28, strokeCount: 2 },
+  { character: "七", confidence: 0.37, strokeCount: 2 }
 ];
 
 /**

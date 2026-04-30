@@ -27,7 +27,7 @@ describe("NAVIGATION", () => {
     const publishRecorder = createVoidArgumentRecorder<{ page: "classification"; mode: "image" }>();
     const languageRecorder = createVoidArgumentRecorder<string>();
     const themeRecorder = createVoidArgumentRecorder<"light" | "dark" | "system">();
-    const drawingInferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const drawingInferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const imageSelectionRecorder = createVoidArgumentRecorder<typeof TEST_IMAGE>();
     const cropSelectionRecorder = createVoidArgumentRecorder<typeof TEST_CROP>();
     const navigationToKanjiRecorder = createVoidArgumentRecorder<string>();

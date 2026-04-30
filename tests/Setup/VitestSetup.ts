@@ -71,5 +71,11 @@ if (!window.matchMedia) {
 }
 
 if (!HTMLCanvasElement.prototype.getContext) {
-  HTMLCanvasElement.prototype.getContext = () => null;
+  HTMLCanvasElement.prototype.getContext = function() {
+    return null;
+  };
+}
+
+if (!globalThis.window) {
+  globalThis.window = globalThis as unknown as Window;
 }

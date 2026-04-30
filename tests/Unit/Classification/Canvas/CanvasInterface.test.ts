@@ -12,7 +12,7 @@ describe("CanvasInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R3", "Unit", "Precondition", "canvas has at least one stroke"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });
@@ -27,7 +27,7 @@ describe("CanvasInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R3", "Unit", "Postcondition", "clears the stroke history when canvas has data"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });
@@ -44,7 +44,7 @@ describe("CanvasInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R4", "Unit", "Precondition", "canvas is not empty before clearing"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });
@@ -62,7 +62,7 @@ describe("CanvasInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R4", "Unit", "Invariant", "clears canvas state without firing inference"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });
@@ -79,7 +79,7 @@ describe("CanvasInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R4", "Unit", "Postcondition", "stroke history is empty after clearing"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });
@@ -96,7 +96,7 @@ describe("CanvasInterface", () => {
      * Condition: Precondition
      */
   it(buildRequirementTitle("R5", "Unit", "Precondition", "at least one stroke is registered in the canvas"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });
@@ -112,7 +112,7 @@ describe("CanvasInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R5", "Unit", "Invariant", "history only contains valid stroke objects and maintains insertion order"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });
@@ -134,7 +134,7 @@ describe("CanvasInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R5", "Unit", "Postcondition", "stroke is correctly appended to the history"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });
@@ -202,7 +202,7 @@ describe("CanvasInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R7", "Unit", "Precondition", "registers the stroke in history"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });
@@ -218,7 +218,7 @@ describe("CanvasInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R7", "Unit", "Invariant", "does not execute inference without strokes"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });
@@ -232,7 +232,7 @@ describe("CanvasInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R7", "Unit", "Postcondition", "runs exactly one inference per completed stroke"), async () => {
-    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount }) => ({ character, strokeCount })));
+    const inferenceRecorder = createAsyncArgumentRecorder(TEST_PREDICTIONS.map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence })));
     const controller = CreateCanvasController({
       requestDrawingInference: inferenceRecorder.handler
     });

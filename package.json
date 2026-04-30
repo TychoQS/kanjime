@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "rm -rf .vite && vitest run",
     "test:unit": "vitest run tests/Unit",
     "test:integration": "vitest run tests/Integration",
     "test:e2e": "playwright test",

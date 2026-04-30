@@ -28,11 +28,32 @@ export const TEST_TIMESTAMP = "2026-04-20T10:00:00.000Z";
  */
 export const TEST_STROKE: Stroke = {
   points: [
-    { x: 12, y: 18 },
+    { x: 12, y: 54 },
     { x: 48, y: 54 }
   ],
   startedAt: TEST_TIMESTAMP,
   endedAt: "2026-04-20T10:00:01.000Z"
+};
+
+/**
+ * Additional strokes.
+ */
+export const TEST_SECOND_STROKE: Stroke = {
+  points: [
+    { x: 12, y: 54 },
+    { x: 48, y: 54 }
+  ],
+  startedAt: "2026-04-20T10:00:02.000Z",
+  endedAt: "2026-04-20T10:00:03.000Z"
+};
+
+export const TEST_THIRD_STROKE: Stroke = {
+  points: [
+    { x: 12, y: 54 },
+    { x: 48, y: 54 }
+  ],
+  startedAt: "2026-04-20T10:00:04.000Z",
+  endedAt: "2026-04-20T10:00:05.000Z"
 };
 
 /**

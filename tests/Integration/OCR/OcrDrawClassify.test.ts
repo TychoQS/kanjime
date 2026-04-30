@@ -10,7 +10,7 @@ import {
   createVoidArgumentRecorder,
   createVoidTupleRecorder
 } from "../../Support/DependencyFactories";
-import { TEST_IMAGE, TEST_PREDICTIONS, TEST_STROKE } from "../../Support/TestData";
+import { TEST_IMAGE, TEST_PREDICTIONS, TEST_SECOND_STROKE, TEST_STROKE, TEST_THIRD_STROKE } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 
 describe("OCR-DRAW-CLASSIFY", () => {
@@ -36,12 +36,12 @@ describe("OCR-DRAW-CLASSIFY", () => {
       classifySource: classifierRecorder.handler
     });
     const canvas = CreateCanvasController({
-      requestDrawingInference: async () => {
+      requestDrawingInference: async (stroke) => {
         return (await inference.classifyInput({
-          sourceId: "draw-source",
+          sourceId: `draw-source-${stroke.endedAt}`,
           inputUrl: "data:image/png;base64,AAAA",
           strokeCount: TEST_STROKE.points.length
-        })).map(({ character, strokeCount }) => ({ character, strokeCount }));
+        })).map(({ character, strokeCount, confidence }) => ({ character, strokeCount, confidence }));
       }
     });
     const display = CreateDisplayInferencesController({
@@ -59,12 +59,14 @@ describe("OCR-DRAW-CLASSIFY", () => {
     );
 
     // Invariant: inference is executed exactly once per completed stroke
-    const predictions = await canvas.registerStroke(TEST_STROKE);
-    expect(classifierRecorder.calls).toHaveLength(1,
+    await canvas.registerStroke(TEST_STROKE);
+    await canvas.registerStroke(TEST_SECOND_STROKE);
+    const predictions = await canvas.registerStroke(TEST_THIRD_STROKE);
+    expect(classifierRecorder.calls).toHaveLength(3,
       "OCR-DRAW-CLASSIFY invariant failed: completing one new stroke must trigger exactly one classification request."
     );
     expect(classifierRecorder.calls[0]).toEqual(
-      ["draw-source", "data:image/png;base64,AAAA"],
+      ["draw-source-2026-04-20T10:00:01.000Z", "data:image/png;base64,AAAA"],
       "OCR-DRAW-CLASSIFY invariant failed: the classifier did not receive the expected drawing sourceId/inputUrl contract for the completed stroke."
     );
 
@@ -77,7 +79,7 @@ describe("OCR-DRAW-CLASSIFY", () => {
     );
     display.updateResultsFromDrawingInference(TEST_PREDICTIONS);
     const visibleResults = display.getVisibleResults();
-    expect(visibleResults.length).toBeGreaterThan(0,
+    expect(visibleResults.length).toEqual(3,
       "OCR-DRAW-CLASSIFY postcondition failed: predictions were not propagated to the visible inference list."
     );
     expect(TEST_PREDICTIONS.every((prediction, index, allPredictions) => (

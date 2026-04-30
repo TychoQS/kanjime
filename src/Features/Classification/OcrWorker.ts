@@ -4,6 +4,7 @@ import ortWasmUrl from "onnxruntime-web/ort-wasm-simd-threaded.wasm?url";
 
 import type { CropRegion, InferencePrediction, Stroke } from "../../Shared/DomainTypes";
 import type { DrawingClassificationInput, ImageClassificationInput } from "../../Shared/OcrWorkerClient";
+import { MODEL_INPUT_SIZE } from "./Inference/InferenceRuntimeConfig";
 
 type OcrWorkerRequest =
   | {
@@ -19,6 +20,16 @@ type OcrWorkerRequest =
     readonly id: number;
     readonly type: "classifyImage";
     readonly input: ImageClassificationInput;
+  }
+  | {
+    readonly id: number;
+    readonly type: "preprocessDrawing";
+    readonly input: DrawingClassificationInput;
+  }
+  | {
+    readonly id: number;
+    readonly type: "preprocessImage";
+    readonly input: ImageClassificationInput;
   };
 
 type OcrWorkerResponse =
@@ -33,11 +44,15 @@ type OcrWorkerResponse =
   }
   | {
     readonly id: number;
+    readonly type: "preprocessedImage";
+    readonly imageData: ImageData;
+  }
+  | {
+    readonly id: number;
     readonly type: "error";
     readonly message: string;
   };
 
-const MODEL_SIZE = 128;
 const MODEL_URL = new URL("/assets/model/kanji.onnx", self.location.origin).toString();
 const CLASSES_URL = new URL("/assets/model/classes.json", self.location.origin).toString();
 const MAX_RESULTS = 12;
@@ -64,6 +79,24 @@ async function handleMessage(event: MessageEvent<OcrWorkerRequest>): Promise<voi
       postResponse({
         id: request.id,
         type: "loaded"
+      });
+      return;
+    }
+
+    if (request.type === "preprocessDrawing") {
+      postResponse({
+        id: request.id,
+        type: "preprocessedImage",
+        imageData: createDrawingImageData(request.input)
+      });
+      return;
+    }
+
+    if (request.type === "preprocessImage") {
+      postResponse({
+        id: request.id,
+        type: "preprocessedImage",
+        imageData: await createBinarizedImageData(request.input.sourceUri, request.input.crop)
       });
       return;
     }
@@ -120,7 +153,7 @@ async function loadClasses(): Promise<ReadonlyArray<string>> {
 }
 
 async function classifyDrawing(input: DrawingClassificationInput): Promise<ReadonlyArray<InferencePrediction>> {
-  const tensor = createTensorFromDrawing(input);
+  const tensor = createTensorFromImageData(createDrawingImageData(input));
   return runInference(tensor);
 }
 
@@ -140,7 +173,7 @@ async function runInferenceWithResources(
   session: ort.InferenceSession,
   classes: ReadonlyArray<string>
 ): Promise<ReadonlyArray<InferencePrediction>> {
-  const inputTensor = new ort.Tensor("float32", tensorData, [1, 3, MODEL_SIZE, MODEL_SIZE]);
+  const inputTensor = new ort.Tensor("float32", tensorData, [1, 3, MODEL_INPUT_SIZE, MODEL_INPUT_SIZE]);
   const outputs = await session.run({ input: inputTensor });
   const kanjiLogits = outputs.kanji_logits;
 
@@ -151,24 +184,24 @@ async function runInferenceWithResources(
   return selectTopPredictions(kanjiLogits.data, classes);
 }
 
-function createTensorFromDrawing(input: DrawingClassificationInput): Float32Array {
-  const canvas = new OffscreenCanvas(MODEL_SIZE, MODEL_SIZE);
+function createDrawingImageData(input: DrawingClassificationInput): ImageData {
+  const canvas = new OffscreenCanvas(MODEL_INPUT_SIZE, MODEL_INPUT_SIZE);
   const context = requireCanvasContext(canvas);
   context.fillStyle = "black";
-  context.fillRect(0, 0, MODEL_SIZE, MODEL_SIZE);
+  context.fillRect(0, 0, MODEL_INPUT_SIZE, MODEL_INPUT_SIZE);
   context.strokeStyle = "white";
   context.lineCap = "round";
   context.lineJoin = "round";
-  context.lineWidth = Math.max(10, MODEL_SIZE * 0.055);
+  context.lineWidth = Math.max(10, MODEL_INPUT_SIZE * 0.055);
 
-  const scaleX = MODEL_SIZE / input.width;
-  const scaleY = MODEL_SIZE / input.height;
+  const scaleX = MODEL_INPUT_SIZE / input.width;
+  const scaleY = MODEL_INPUT_SIZE / input.height;
 
   for (const stroke of input.strokes) {
     drawStroke(context, stroke, scaleX, scaleY);
   }
 
-  return createTensorFromImageData(context.getImageData(0, 0, MODEL_SIZE, MODEL_SIZE));
+  return context.getImageData(0, 0, MODEL_INPUT_SIZE, MODEL_INPUT_SIZE);
 }
 
 function drawStroke(
@@ -202,7 +235,7 @@ async function createBinarizedImageData(
   }
 
   const imageBitmap = await createImageBitmap(await response.blob());
-  const canvas = new OffscreenCanvas(MODEL_SIZE, MODEL_SIZE);
+  const canvas = new OffscreenCanvas(MODEL_INPUT_SIZE, MODEL_INPUT_SIZE);
   const context = requireCanvasContext(canvas);
   const sourceCrop = crop ?? {
     x: 0,
@@ -219,17 +252,17 @@ async function createBinarizedImageData(
     sourceCrop.height,
     0,
     0,
-    MODEL_SIZE,
-    MODEL_SIZE
+    MODEL_INPUT_SIZE,
+    MODEL_INPUT_SIZE
   );
   imageBitmap.close();
 
-  return binarizeImageData(context.getImageData(0, 0, MODEL_SIZE, MODEL_SIZE));
+  return binarizeImageData(context.getImageData(0, 0, MODEL_INPUT_SIZE, MODEL_INPUT_SIZE));
 }
 
 function binarizeImageData(imageData: ImageData): ImageData {
-  const output = new ImageData(MODEL_SIZE, MODEL_SIZE);
-  const grayValues = new Uint8ClampedArray(MODEL_SIZE * MODEL_SIZE);
+  const output = new ImageData(MODEL_INPUT_SIZE, MODEL_INPUT_SIZE);
+  const grayValues = new Uint8ClampedArray(MODEL_INPUT_SIZE * MODEL_INPUT_SIZE);
   const histogram = new Uint32Array(256);
 
   for (let pixelIndex = 0; pixelIndex < grayValues.length; pixelIndex += 1) {
@@ -309,7 +342,7 @@ function computeOtsuThreshold(histogram: Uint32Array, pixelCount: number): numbe
 }
 
 function createTensorFromImageData(imageData: ImageData): Float32Array {
-  const channelSize = MODEL_SIZE * MODEL_SIZE;
+  const channelSize = MODEL_INPUT_SIZE * MODEL_INPUT_SIZE;
   const tensor = new Float32Array(channelSize * 3);
 
   for (let pixelIndex = 0; pixelIndex < channelSize; pixelIndex += 1) {

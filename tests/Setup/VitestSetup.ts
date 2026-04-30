@@ -38,7 +38,7 @@ class ImageDataStub {
 /**
  * Shared Vitest setup for React, Ionic, and DOM polyfills.
  */
-setupIonicReact();
+setupIonicReact({ _testing: true });
 
 afterEach(() => {
   cleanup();

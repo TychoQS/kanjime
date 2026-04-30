@@ -12,6 +12,7 @@ import { CreateDisplayInferencesController } from "./Features/Classification/Inf
 import type { DisplayInferencesInterface } from "./Features/Classification/Inference/Contracts/DisplayInferencesInterface";
 import { CreateInferenceController } from "./Features/Classification/Inference/CreateInferenceController";
 import type { InferenceInterface } from "./Features/Classification/Inference/Contracts/InferenceInterface";
+import { DRAWING_CANVAS_SIZE, MODEL_INPUT_SIZE } from "./Features/Classification/Inference/InferenceRuntimeConfig";
 import { CreateClassificationController } from "./Features/Classification/Mode/CreateClassificationController";
 import type { ClassificationInterface } from "./Features/Classification/Mode/Contracts/ClassificationInterface";
 import { CreateToggleClassificationModeController } from "./Features/Classification/Mode/CreateToggleClassificationModeController";
@@ -185,37 +186,18 @@ export function createCompositionRoot(): CompositionRoot {
   });
 
   const inferenceController = CreateInferenceController({
-    classifySource: async (_sourceId, inputUrl) => {
-      if (inputUrl === "drawing://canvas") {
-        return ocrClient.classifyDrawing({
-          strokes: canvasController.getStrokeHistory(),
-          width: 360,
-          height: 360
-        });
-      }
-
-      const [sourceUri, cropFragment] = inputUrl.split("#crop=");
-
-      if (!cropFragment) {
-        return ocrClient.classifyImage({ sourceUri });
-      }
-
-      const [x, y, width, height] = cropFragment.split(",").map(value => Number(value));
-
-      return ocrClient.classifyImage({
-        sourceUri,
-        crop: { x, y, width, height }
-      });
-    },
     classifyDrawing: input => ocrClient.classifyDrawing(input),
     classifyImage: input => ocrClient.classifyImage(input),
+    preprocessDrawing: input => ocrClient.preprocessDrawing(input),
+    preprocessImage: input => ocrClient.preprocessImage(input),
     getCurrentStrokes: () => canvasController.getStrokeHistory().map(stroke => ({
       points: stroke.points.map(point => ({ ...point })),
       startedAt: stroke.startedAt,
       endedAt: stroke.endedAt
     })),
-    drawingWidth: 360,
-    drawingHeight: 360
+    drawingWidth: DRAWING_CANVAS_SIZE,
+    drawingHeight: DRAWING_CANVAS_SIZE,
+    modelInputSize: MODEL_INPUT_SIZE
   });
 
   canvasController = CreateCanvasController({

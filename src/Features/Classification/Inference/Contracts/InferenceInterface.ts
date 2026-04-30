@@ -14,7 +14,7 @@ export interface InferenceInterface {
    * Requirement IDs: R23.
    *
    * @pre The feature is in drawing mode and the canvas contains at least one stroke.
-   * @post The returned image data matches model input dimensions and encodes a black background with white stroke content.
+   * @post The returned image data matches the real model input dimensions and encodes a black background with white stroke content.
    */
   preprocessDrawingForModel(
     input: {
@@ -31,7 +31,7 @@ export interface InferenceInterface {
    * Requirement IDs: R24.
    *
    * @pre The feature is in image mode and a valid image or crop is available.
-   * @post The returned image data matches model input dimensions and is binarized before inference.
+   * @post The returned image data matches the real model input dimensions and is binarized before inference.
    */
   preprocessImageForModel(
     input: {
@@ -50,16 +50,16 @@ export interface InferenceInterface {
   /**
    * Executes a single classification for a new source.
    *
-   * Requirement IDs: R25.
+   * Requirement IDs: R23, R25.
    *
-   * @pre The feature is in OCR mode and a new valid input exists.
-   * @post Exactly one inference is executed for the provided drawing source without blocking the surrounding UI.
+   * @pre The feature is in drawing mode, the canvas contains strokes, and a new valid input exists.
+   * @post Exactly one inference is executed for the provided drawing source using the runtime preprocessing pipeline without blocking the surrounding UI.
    */
   classifyInput(
     input: {
       sourceId: string;
       inputUrl: string;
-      strokeCount?: number; // Only for drawing mode
+      strokeCount?: number;
     }
   ): Promise<ReadonlyArray<{ character: string; confidence: number; strokeCount: number }>>;
 
@@ -70,7 +70,7 @@ export interface InferenceInterface {
    *
    * @pre The feature is in OCR image mode, a valid image is loaded, and no crop is active.
    * @inv The classification does not use any crop.
-   * @post Exactly one inference is executed for the full image source without requiring a crop.
+   * @post Exactly one inference is executed for the full image source without requiring a crop, using the runtime preprocessing pipeline.
    */
   classifyFullImage(
     input: {
@@ -85,7 +85,7 @@ export interface InferenceInterface {
    * Requirement IDs: R22.
    *
    * @pre The feature is in OCR image mode and a valid crop exists for the loaded image.
-   * @post Exactly one inference is executed using only the provided crop as input and the crop replaces any previous crop source.
+   * @post Exactly one inference is executed using only the provided crop as input and the crop replaces any previous crop source, using the runtime preprocessing pipeline.
    */
   classifyCrop(
     input: {

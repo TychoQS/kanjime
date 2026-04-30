@@ -25,6 +25,16 @@ type OcrWorkerRequest =
       readonly id: number;
       readonly type: "classifyImage";
       readonly input: ImageClassificationInput;
+    }
+  | {
+      readonly id: number;
+      readonly type: "preprocessDrawing";
+      readonly input: DrawingClassificationInput;
+    }
+  | {
+      readonly id: number;
+      readonly type: "preprocessImage";
+      readonly input: ImageClassificationInput;
     };
 
 type OcrWorkerResponse =
@@ -39,14 +49,31 @@ type OcrWorkerResponse =
     }
   | {
       readonly id: number;
+      readonly type: "preprocessedImage";
+      readonly imageData: ImageData;
+    }
+  | {
+      readonly id: number;
       readonly type: "error";
       readonly message: string;
     };
 
-type PendingRequest = {
-  readonly resolve: (value: ReadonlyArray<InferencePrediction>) => void;
-  readonly reject: (reason: Error) => void;
-};
+type PendingRequest =
+  | {
+      readonly type: "load";
+      readonly resolve: () => void;
+      readonly reject: (reason: Error) => void;
+    }
+  | {
+      readonly type: "predictions";
+      readonly resolve: (value: ReadonlyArray<InferencePrediction>) => void;
+      readonly reject: (reason: Error) => void;
+    }
+  | {
+      readonly type: "preprocessedImage";
+      readonly resolve: (value: ImageData) => void;
+      readonly reject: (reason: Error) => void;
+    };
 
 /**
  * Browser worker client for non-blocking OCR inference.
@@ -80,6 +107,7 @@ export class OcrWorkerClient {
       const requestId = this.nextRequestId;
       this.nextRequestId += 1;
       this.pendingRequests.set(requestId, {
+        type: "load",
         resolve: () => resolve(),
         reject
       });
@@ -110,6 +138,24 @@ export class OcrWorkerClient {
     });
   }
 
+  async preprocessDrawing(input: DrawingClassificationInput): Promise<ImageData> {
+    await this.loadModel();
+    return this.sendPreprocessRequest({
+      id: this.nextId(),
+      type: "preprocessDrawing",
+      input
+    });
+  }
+
+  async preprocessImage(input: ImageClassificationInput): Promise<ImageData> {
+    await this.loadModel();
+    return this.sendPreprocessRequest({
+      id: this.nextId(),
+      type: "preprocessImage",
+      input
+    });
+  }
+
   dispose(): void {
     this.worker.terminate();
     this.pendingRequests.clear();
@@ -117,7 +163,22 @@ export class OcrWorkerClient {
 
   private sendPredictionRequest(request: OcrWorkerRequest): Promise<ReadonlyArray<InferencePrediction>> {
     return new Promise((resolve, reject) => {
-      this.pendingRequests.set(request.id, { resolve, reject });
+      this.pendingRequests.set(request.id, {
+        type: "predictions",
+        resolve,
+        reject
+      });
+      this.worker.postMessage(request);
+    });
+  }
+
+  private sendPreprocessRequest(request: OcrWorkerRequest): Promise<ImageData> {
+    return new Promise((resolve, reject) => {
+      this.pendingRequests.set(request.id, {
+        type: "preprocessedImage",
+        resolve,
+        reject
+      });
       this.worker.postMessage(request);
     });
   }
@@ -138,7 +199,27 @@ export class OcrWorkerClient {
     }
 
     if (response.type === "loaded") {
-      pendingRequest.resolve([]);
+      if (pendingRequest.type !== "load") {
+        pendingRequest.reject(new Error("Unexpected worker response for model load."));
+        return;
+      }
+
+      pendingRequest.resolve();
+      return;
+    }
+
+    if (response.type === "preprocessedImage") {
+      if (pendingRequest.type !== "preprocessedImage") {
+        pendingRequest.reject(new Error("Unexpected worker response for image preprocessing."));
+        return;
+      }
+
+      pendingRequest.resolve(response.imageData);
+      return;
+    }
+
+    if (pendingRequest.type !== "predictions") {
+      pendingRequest.reject(new Error("Unexpected worker response for inference predictions."));
       return;
     }
 

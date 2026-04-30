@@ -2,9 +2,10 @@ import type { PointerEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import type { Stroke, StrokePoint } from "../../../Shared/DomainTypes";
+import { DRAWING_CANVAS_SIZE } from "../Inference/InferenceRuntimeConfig";
 import type { CanvasInputProps } from "./Contracts/CanvasInputProps";
 
-const CANVAS_SIZE = 360;
+const CANVAS_SIZE = DRAWING_CANVAS_SIZE;
 
 /**
  * Component for drawing kanji characters on a canvas.

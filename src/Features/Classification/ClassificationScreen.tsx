@@ -10,25 +10,31 @@ import {
 import { camera, close, createOutline, imageOutline, trash } from "ionicons/icons";
 import type { PointerEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useHistory } from "react-router-dom";
 
-import type { CompositionRoot } from "../../CompositionRoot";
-import type { ClassificationMode, CropRegion, InferencePrediction, Stroke, StrokePoint } from "../../Shared/DomainTypes";
-import type { HistoryInterface } from "../History/Contracts/HistoryInterface";
+import type { ClassificationMode, CropRegion, Stroke, StrokePoint } from "../../Shared/DomainTypes";
 import { translate } from "../../Shared/I18n";
-import type { KanjiSummary } from "../../Shared/KanjiRepository";
 import { MobilePage } from "../Shell/MobilePage";
+import type { CanvasInterface } from "./Canvas/Contracts/CanvasInterface";
+import { CanvasInputView } from "./Canvas/CanvasInputView";
+import type { ImageInterface } from "./Image/Contracts/ImageInterface";
+import type { PhotoInterface } from "./Image/Contracts/PhotoInterface";
+import { ImageView } from "./Image/ImageView";
+import { CropOverlayView } from "./Image/CropOverlayView";
+import type { DisplayInferencesInterface } from "./Inference/Contracts/DisplayInferencesInterface";
+import type { InferenceInterface } from "./Inference/Contracts/InferenceInterface";
+import { InferenceListView } from "./Inference/InferenceListView";
+import type { ClassificationInterface } from "./Mode/Contracts/ClassificationInterface";
+import type { ToggleClassificationModeInterface } from "./Mode/Contracts/ToggleClassificationModeInterface";
 
 interface ClassificationScreenProps {
-  readonly root: CompositionRoot;
-  readonly historyController: HistoryInterface;
+  readonly canvasController: CanvasInterface;
+  readonly inferenceController: InferenceInterface;
+  readonly imageController: ImageInterface;
+  readonly photoController: PhotoInterface;
+  readonly displayInferencesController: DisplayInferencesInterface;
+  readonly classificationController: ClassificationInterface;
+  readonly toggleClassificationModeController: ToggleClassificationModeInterface;
   readonly language: string;
-}
-
-interface ImageInputState {
-  readonly uri: string;
-  readonly width: number;
-  readonly height: number;
 }
 
 interface CropDraft {
@@ -38,176 +44,153 @@ interface CropDraft {
   readonly currentY: number;
 }
 
-const CANVAS_SIZE = 360;
 const IMAGE_INFERENCE_DELAY_MS = 450;
 
 /**
  * Main OCR screen for image and drawing recognition.
- *
- * @pre The composition root has initialized the offline model and dictionary.
- * @post Valid image or drawing input automatically updates visible predictions.
  */
 export function ClassificationScreen(props: ClassificationScreenProps): JSX.Element {
-  const history = useHistory();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageFrameRef = useRef<HTMLDivElement>(null);
   const lastImageSourceIdRef = useRef<string>("");
-  const [mode, setMode] = useState<ClassificationMode>("image");
-  const [imageInput, setImageInput] = useState<ImageInputState | null>(null);
-  const [crop, setCrop] = useState<CropRegion | null>(null);
+  const [mode, setMode] = useState<ClassificationMode>(props.classificationController.getActiveMode());
+  const [imageState, setImageState] = useState(props.imageController.getImageState());
+  const [canvasStrokes, setCanvasStrokes] = useState<ReadonlyArray<Stroke>>(props.canvasController.getStrokeHistory());
   const [cropDraft, setCropDraft] = useState<CropDraft | null>(null);
-  const [strokes, setStrokes] = useState<ReadonlyArray<Stroke>>([]);
-  const [activeStroke, setActiveStroke] = useState<Stroke | null>(null);
-  const [results, setResults] = useState<ReadonlyArray<KanjiSummary>>([]);
+  const [results, setResults] = useState<ReadonlyArray<{
+    character: string;
+    primaryReadings: ReadonlyArray<string>;
+    levels: ReadonlyArray<string>;
+  }>>(safeGetVisibleResults(props.displayInferencesController));
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const activeCrop = useMemo(() => cropDraftToRegion(cropDraft) ?? crop, [crop, cropDraft]);
+  const activeCrop = useMemo(() => cropDraftToRegion(cropDraft) ?? imageState.crop, [cropDraft, imageState.crop]);
+
+  const refreshResults = useCallback(() => {
+    setResults(safeGetVisibleResults(props.displayInferencesController));
+  }, [props.displayInferencesController]);
+
+  const refreshImageState = useCallback(() => {
+    setImageState(props.imageController.getImageState());
+  }, [props.imageController]);
+
+  const refreshCanvasState = useCallback(() => {
+    setCanvasStrokes(props.canvasController.getStrokeHistory());
+  }, [props.canvasController]);
+
+  const classifyImage = useCallback(async (
+    sourceId: string,
+    sourceUri: string,
+    crop: CropRegion | null
+  ): Promise<void> => {
+    setIsProcessing(true);
+    setErrorMessage(null);
+
+    try {
+      const predictions = crop
+        ? await props.inferenceController.classifyCrop({ sourceId, sourceUri, crop })
+        : await props.inferenceController.classifyFullImage({ sourceId, sourceUri });
+      await Promise.resolve(props.displayInferencesController.updateResultsFromImageSource(sourceId, predictions));
+      lastImageSourceIdRef.current = sourceId;
+      refreshResults();
+    } catch {
+      setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [props.displayInferencesController, props.inferenceController, refreshResults]);
 
   useEffect(() => {
-    drawCanvas(canvasRef.current, strokes, activeStroke);
-  }, [activeStroke, strokes]);
-
-  useEffect(() => {
-    if (mode !== "image" || imageInput === null) {
+    if (mode !== "image" || imageState.image === null) {
       return;
     }
 
-    const sourceId = createImageSourceId(imageInput.uri, crop);
+    const sourceId = createImageSourceId(imageState.image.uri, imageState.crop);
 
     if (sourceId === lastImageSourceIdRef.current) {
       return;
     }
 
     const timeout = window.setTimeout(() => {
-      void classifyImage(imageInput, crop, sourceId);
+      void classifyImage(sourceId, imageState.image?.uri ?? "", imageState.crop);
     }, IMAGE_INFERENCE_DELAY_MS);
 
     return () => window.clearTimeout(timeout);
-  }, [crop, imageInput, mode]);
-
-  const classifyImage = useCallback(async (
-    input: ImageInputState,
-    selectedCrop: CropRegion | null,
-    sourceId: string
-  ): Promise<void> => {
-    setIsProcessing(true);
-    setErrorMessage(null);
-
-    try {
-      const predictions = await props.root.ocrClient.classifyImage({
-        sourceUri: input.uri,
-        ...(selectedCrop ? { crop: selectedCrop } : {})
-      });
-      lastImageSourceIdRef.current = sourceId;
-      setResults(await mapImagePredictions(props.root, predictions));
-    } catch {
-      setErrorMessage("An unexpected error has occurred and the character could not be identified.");
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [props.root]);
-
-  const classifyDrawing = useCallback(async (nextStrokes: ReadonlyArray<Stroke>): Promise<void> => {
-    if (nextStrokes.length === 0) {
-      return;
-    }
-
-    setIsProcessing(true);
-    setErrorMessage(null);
-
-    try {
-      const predictions = await props.root.ocrClient.classifyDrawing({
-        strokes: nextStrokes,
-        width: CANVAS_SIZE,
-        height: CANVAS_SIZE
-      });
-      setResults(await mapDrawingPredictions(props.root, predictions, nextStrokes.length));
-    } catch {
-      setErrorMessage("An unexpected error has occurred and the character could not be identified.");
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [props.root]);
+  }, [classifyImage, imageState.crop, imageState.image, mode]);
 
   const chooseImage = async (): Promise<void> => {
     setErrorMessage(null);
 
     try {
-      const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
-      const photo = await Camera.getPhoto({
-        allowEditing: false,
-        correctOrientation: true,
-        quality: 80,
-        resultType: CameraResultType.Uri,
-        source: CameraSource.Prompt,
-        width: 1024
-      });
-
-      if (!photo.webPath) {
-        throw new Error("The selected image could not be used.");
-      }
-
-      const dimensions = await loadImageDimensions(photo.webPath);
-      setImageInput({
-        uri: photo.webPath,
-        width: dimensions.width,
-        height: dimensions.height
-      });
-      setCrop(null);
-      setResults([]);
+      const image = await props.photoController.capturePhoto();
+      props.imageController.setImage(image);
       lastImageSourceIdRef.current = "";
+      refreshImageState();
+      props.displayInferencesController.clearResults();
+      refreshResults();
     } catch {
       setErrorMessage("The image could not be selected.");
     }
   };
 
   const clearImage = (): void => {
-    setImageInput(null);
-    setCrop(null);
+    props.imageController.clearImage();
+    props.displayInferencesController.clearResults();
     setCropDraft(null);
-    setResults([]);
     lastImageSourceIdRef.current = "";
+    refreshImageState();
+    refreshResults();
   };
 
   const switchMode = (nextMode: ClassificationMode): void => {
+    props.classificationController.activateMode(nextMode);
+    props.toggleClassificationModeController.switchMode(nextMode);
     setMode(nextMode);
-    setResults([]);
     setErrorMessage(null);
-    lastImageSourceIdRef.current = "";
-
-    if (nextMode === "image") {
-      setStrokes([]);
-      setActiveStroke(null);
-      return;
-    }
-
-    setImageInput(null);
-    setCrop(null);
     setCropDraft(null);
+    lastImageSourceIdRef.current = "";
+    props.displayInferencesController.clearResults();
+    refreshResults();
+    refreshImageState();
+    refreshCanvasState();
   };
 
-  const openResult = async (character: string): Promise<void> => {
-    await props.historyController.saveEntry({
-      character,
-      category: mode === "image" ? "imageClassification" : "drawingClassification",
-      createdAt: new Date().toISOString()
-    });
-    history.push(`/kanji/${encodeURIComponent(character)}`);
+  const onStrokeCommitted = async (sourceId: string): Promise<void> => {
+    setIsProcessing(true);
+    setErrorMessage(null);
+
+    try {
+      const predictions = await props.inferenceController.classifyInput({
+        sourceId,
+        inputUrl: "drawing://canvas",
+        strokeCount: props.canvasController.getStrokeHistory().length
+      });
+      await Promise.resolve(props.displayInferencesController.updateResultsFromDrawingInference(predictions));
+      refreshResults();
+    } catch {
+      setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const clearDrawing = (): void => {
-    setStrokes([]);
-    setActiveStroke(null);
-    setResults([]);
-    drawCanvas(canvasRef.current, [], null);
+    try {
+      props.canvasController.clearCanvas();
+    } catch {
+      // no-op: empty canvas clears are ignored in UI
+    }
+    props.displayInferencesController.clearResults();
+    refreshCanvasState();
+    refreshResults();
   };
 
-  const commitStroke = (stroke: Stroke): void => {
-    const nextStrokes = [...strokes, stroke];
-    setStrokes(nextStrokes);
-    setActiveStroke(null);
-    void classifyDrawing(nextStrokes);
+  const openResult = async (character: string): Promise<void> => {
+    try {
+      await props.displayInferencesController.openKanjiEntry(character);
+    } catch {
+      setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+    }
   };
 
   return (
@@ -236,25 +219,34 @@ export function ClassificationScreen(props: ClassificationScreenProps): JSX.Elem
                 ref={imageFrameRef}
                 className="image-crop-frame"
                 data-testid="image-crop-frame"
-                onPointerDown={event => startCrop(event, imageFrameRef.current, imageInput, setCropDraft)}
-                onPointerMove={event => updateCrop(event, imageFrameRef.current, imageInput, cropDraft, setCropDraft)}
-                onPointerUp={() => finishCrop(cropDraft, setCrop, setCropDraft)}
+                onPointerDown={event => startCrop(event, imageFrameRef.current, imageState.image, setCropDraft)}
+                onPointerMove={event => updateCrop(event, imageFrameRef.current, imageState.image, cropDraft, setCropDraft)}
+                onPointerUp={() => finishCrop(cropDraft, props.imageController, setCropDraft, refreshImageState)}
               >
-                {imageInput ? (
-                  <>
-                    <img
-                      alt={translate(props.language, "image")}
-                      className="image-preview"
-                      draggable={false}
-                      src={imageInput.uri}
-                    />
-                    {activeCrop ? <CropOverlay crop={activeCrop} image={imageInput} /> : null}
-                  </>
-                ) : (
+                <div className="classification-image-view-embedded">
+                  <ImageView
+                    image={imageState.image ? {
+                      uri: imageState.image.uri,
+                      width: imageState.image.width,
+                      height: imageState.image.height,
+                      altText: translate(props.language, "image")
+                    } : null}
+                    isProcessing={isProcessing}
+                    onClearImage={clearImage}
+                  />
+                </div>
+                <CropOverlayView
+                  imageWidth={imageState.image?.width ?? 1}
+                  imageHeight={imageState.image?.height ?? 1}
+                  activeCrop={activeCrop}
+                  isVisible={imageState.image !== null && activeCrop !== null}
+                  onCropChanged={() => undefined}
+                />
+                {imageState.image === null ? (
                   <IonText color="medium">
                     <p>{translate(props.language, "noImage")}</p>
                   </IonText>
-                )}
+                ) : null}
               </div>
               <IonText color="medium">
                 <p className="helper-text">{translate(props.language, "selectCrop")}</p>
@@ -263,7 +255,7 @@ export function ClassificationScreen(props: ClassificationScreenProps): JSX.Elem
                 <IonButton data-testid="choose-image-button" onClick={() => void chooseImage()}>
                   <IonIcon icon={camera} slot="icon-only" />
                 </IonButton>
-                {imageInput ? (
+                {imageState.image ? (
                   <IonButton
                     data-testid="clear-image-button"
                     fill="clear"
@@ -277,22 +269,26 @@ export function ClassificationScreen(props: ClassificationScreenProps): JSX.Elem
             </div>
           ) : (
             <div className="ocr-input-zone" data-testid="drawing-ocr-zone">
-              <canvas
-                ref={canvasRef}
-                aria-label={translate(props.language, "drawing")}
-                className="drawing-canvas"
-                data-testid="drawing-canvas"
-                height={CANVAS_SIZE}
-                width={CANVAS_SIZE}
-                onPointerDown={event => beginStroke(event, canvasRef.current, setActiveStroke)}
-                onPointerMove={event => continueStroke(event, canvasRef.current, activeStroke, setActiveStroke)}
-                onPointerUp={() => activeStroke ? commitStroke(activeStroke) : undefined}
-                onPointerCancel={() => setActiveStroke(null)}
-              />
+              <div className="classification-canvas-view-embedded">
+                <CanvasInputView
+                  backgroundColor={getCssColor("--ion-color-secondary")}
+                  strokeColor={getCssColor("--ion-color-primary")}
+                  isDrawingEnabled
+                  strokes={canvasStrokes}
+                  onStrokeCommitted={stroke => {
+                    const sourceId = `drawing-${stroke.endedAt}`;
+                    void props.canvasController.registerStroke(stroke).then(() => {
+                      refreshCanvasState();
+                      void onStrokeCommitted(sourceId);
+                    });
+                  }}
+                  onClearRequested={clearDrawing}
+                />
+              </div>
               <div className="center-actions">
                 <IonButton
                   data-testid="clear-drawing-button"
-                  disabled={strokes.length === 0 && activeStroke === null}
+                  disabled={canvasStrokes.length === 0}
                   fill="clear"
                   onClick={clearDrawing}
                   aria-label={translate(props.language, "clearDrawing")}
@@ -318,76 +314,25 @@ export function ClassificationScreen(props: ClassificationScreenProps): JSX.Elem
                 <IonText color="medium">
                   <p>{translate(props.language, "emptyResults")}</p>
                 </IonText>
-              ) : results.map(result => (
-                <button
-                  className="result-row"
-                  data-testid={`ocr-result-${result.character}`}
-                  key={result.character}
-                  onClick={() => void openResult(result.character)}
-                  type="button"
-                >
-                  <span className="result-kanji">{result.character}</span>
-                  <span className="result-meta">{result.primaryReadings.join(" ")}</span>
-                  <span className="result-levels">{result.levels.join(" ")}</span>
-                </button>
-              ))}
+              ) : (
+                <InferenceListView
+                  results={results.map(result => ({
+                    character: result.character,
+                    primaryReadings: result.primaryReadings,
+                    levels: result.levels,
+                    isSelected: false
+                  }))}
+                  onResultSelected={character => {
+                    void openResult(character);
+                  }}
+                />
+              )}
             </div>
           </section>
         </div>
       </div>
     </MobilePage>
   );
-}
-
-function CropOverlay(props: { readonly crop: CropRegion; readonly image: ImageInputState }): JSX.Element {
-  return (
-    <div
-      className="crop-overlay"
-      data-testid="active-crop-overlay"
-      style={{
-        height: `${(props.crop.height / props.image.height) * 100}%`,
-        left: `${(props.crop.x / props.image.width) * 100}%`,
-        top: `${(props.crop.y / props.image.height) * 100}%`,
-        width: `${(props.crop.width / props.image.width) * 100}%`
-      }}
-    />
-  );
-}
-
-async function mapImagePredictions(
-  root: CompositionRoot,
-  predictions: ReadonlyArray<InferencePrediction>
-): Promise<ReadonlyArray<KanjiSummary>> {
-  return (await root.kanjiRepository.getSummaries(predictions.map(prediction => prediction.character))).slice(0, 5);
-}
-
-async function mapDrawingPredictions(
-  root: CompositionRoot,
-  predictions: ReadonlyArray<InferencePrediction>,
-  strokeCount: number
-): Promise<ReadonlyArray<KanjiSummary>> {
-  const summaries = await root.kanjiRepository.getSummaries(predictions.map(prediction => prediction.character));
-  const summaryByCharacter = new Map(summaries.map(summary => [summary.character, summary]));
-
-  return predictions
-    .map(prediction => summaryByCharacter.get(prediction.character) ?? null)
-    .filter((summary): summary is KanjiSummary => (
-      summary !== null &&
-      Math.abs(summary.strokeCount - strokeCount) <= 1
-    ))
-    .slice(0, 5);
-}
-
-function loadImageDimensions(uri: string): Promise<{ readonly width: number; readonly height: number }> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve({
-      width: image.naturalWidth,
-      height: image.naturalHeight
-    });
-    image.onerror = () => reject(new Error("The image could not be loaded."));
-    image.src = uri;
-  });
 }
 
 function createImageSourceId(imageUri: string, crop: CropRegion | null): string {
@@ -401,7 +346,7 @@ function createImageSourceId(imageUri: string, crop: CropRegion | null): string 
 function startCrop(
   event: PointerEvent<HTMLDivElement>,
   frame: HTMLDivElement | null,
-  image: ImageInputState | null,
+  image: { readonly width: number; readonly height: number } | null,
   setCropDraft: (crop: CropDraft | null) => void
 ): void {
   if (!frame || !image) {
@@ -421,7 +366,7 @@ function startCrop(
 function updateCrop(
   event: PointerEvent<HTMLDivElement>,
   frame: HTMLDivElement | null,
-  image: ImageInputState | null,
+  image: { readonly width: number; readonly height: number } | null,
   cropDraft: CropDraft | null,
   setCropDraft: (crop: CropDraft | null) => void
 ): void {
@@ -439,11 +384,17 @@ function updateCrop(
 
 function finishCrop(
   cropDraft: CropDraft | null,
-  setCrop: (crop: CropRegion | null) => void,
-  setCropDraft: (crop: CropDraft | null) => void
+  imageController: ImageInterface,
+  setCropDraft: (crop: CropDraft | null) => void,
+  refreshImageState: () => void
 ): void {
   const nextCrop = cropDraftToRegion(cropDraft);
-  setCrop(nextCrop && nextCrop.width >= 8 && nextCrop.height >= 8 ? nextCrop : null);
+
+  if (nextCrop && nextCrop.width >= 8 && nextCrop.height >= 8) {
+    imageController.setActiveCrop(nextCrop);
+  }
+
+  refreshImageState();
   setCropDraft(null);
 }
 
@@ -466,7 +417,7 @@ function cropDraftToRegion(cropDraft: CropDraft | null): CropRegion | null {
 function toImagePoint(
   event: PointerEvent<HTMLElement>,
   frame: HTMLElement,
-  image: ImageInputState
+  image: { readonly width: number; readonly height: number }
 ): StrokePoint {
   const rect = frame.getBoundingClientRect();
   const x = clamp(((event.clientX - rect.left) / rect.width) * image.width, 0, image.width);
@@ -475,92 +426,22 @@ function toImagePoint(
   return { x, y };
 }
 
-function beginStroke(
-  event: PointerEvent<HTMLCanvasElement>,
-  canvas: HTMLCanvasElement | null,
-  setActiveStroke: (stroke: Stroke | null) => void
-): void {
-  if (!canvas) {
-    return;
-  }
-
-  canvas.setPointerCapture(event.pointerId);
-  const now = new Date().toISOString();
-  setActiveStroke({
-    points: [toCanvasPoint(event, canvas)],
-    startedAt: now,
-    endedAt: now
-  });
-}
-
-function continueStroke(
-  event: PointerEvent<HTMLCanvasElement>,
-  canvas: HTMLCanvasElement | null,
-  activeStroke: Stroke | null,
-  setActiveStroke: (stroke: Stroke | null) => void
-): void {
-  if (!canvas || activeStroke === null) {
-    return;
-  }
-
-  setActiveStroke({
-    ...activeStroke,
-    points: [...activeStroke.points, toCanvasPoint(event, canvas)],
-    endedAt: new Date().toISOString()
-  });
-}
-
-function toCanvasPoint(event: PointerEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement): StrokePoint {
-  const rect = canvas.getBoundingClientRect();
-
-  return {
-    x: clamp(((event.clientX - rect.left) / rect.width) * CANVAS_SIZE, 0, CANVAS_SIZE),
-    y: clamp(((event.clientY - rect.top) / rect.height) * CANVAS_SIZE, 0, CANVAS_SIZE)
-  };
-}
-
-function drawCanvas(
-  canvas: HTMLCanvasElement | null,
-  strokes: ReadonlyArray<Stroke>,
-  activeStroke: Stroke | null
-): void {
-  if (!canvas) {
-    return;
-  }
-
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    return;
-  }
-
-  context.fillStyle = getCssColor("--ion-color-secondary");
-  context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  context.lineCap = "round";
-  context.lineJoin = "round";
-  context.lineWidth = Math.max(10, CANVAS_SIZE * 0.055);
-  context.strokeStyle = getCssColor("--ion-color-primary");
-
-  for (const stroke of [...strokes, ...(activeStroke ? [activeStroke] : [])]) {
-    if (stroke.points.length === 0) {
-      continue;
-    }
-
-    context.beginPath();
-    context.moveTo(stroke.points[0].x, stroke.points[0].y);
-
-    for (const point of stroke.points.slice(1)) {
-      context.lineTo(point.x, point.y);
-    }
-
-    context.stroke();
-  }
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
 }
 
 function getCssColor(name: string): string {
   return window.getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
+function safeGetVisibleResults(displayInferencesController: DisplayInferencesInterface): ReadonlyArray<{
+  character: string;
+  primaryReadings: ReadonlyArray<string>;
+  levels: ReadonlyArray<string>;
+}> {
+  try {
+    return displayInferencesController.getVisibleResults();
+  } catch {
+    return [];
+  }
 }

@@ -61,7 +61,7 @@ def export_model() -> None:
         raise RuntimeError("The checkpoint does not match the configured model architecture.")
 
     model.eval()
-    dummy_input = torch.randn(1, 3, 224, 224)
+    dummy_input = torch.randn(1, 3, 128, 128)
 
     torch.onnx.export(
         model,

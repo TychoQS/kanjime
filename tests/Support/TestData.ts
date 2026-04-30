@@ -53,15 +53,15 @@ export const WCAG_AAA_CONTRAST_THRESHOLD = 7.0;
 /**
  * Inference model image size
  */
-export const MODEL_INPUT_SIZE = 224
+export const MODEL_INPUT_SIZE = 128
 
 /**
  * Canonical image sample used by image-related tests.
  */
 export const TEST_IMAGE: ImageDescriptor = {
   uri: "file:///kanji.png",
-  width: 224,
-  height: 224,
+  width: 128,
+  height: 128,
   mimeType: "image/png"
 };
 

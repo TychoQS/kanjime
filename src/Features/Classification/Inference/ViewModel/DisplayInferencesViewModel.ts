@@ -6,13 +6,14 @@ import type { CharacterSummary, HistoryCategory } from "../../../../Shared/Domai
 
 const MAX_VISIBLE_RESULTS = 5;
 
-const KNOWN_SUMMARIES = new Map<string, CharacterSummary>([
+const KNOWN_SUMMARIES = new Map<string, CharacterSummary & { strokeCount: number }>([
   [
     "一",
     {
       character: "一",
       primaryReadings: ["にち", "nichi"],
-      levels: ["JLPT N5", "Joyo 1"]
+      levels: ["JLPT N5", "Joyo 1"],
+      strokeCount: 1
     }
   ],
   [
@@ -20,7 +21,8 @@ const KNOWN_SUMMARIES = new Map<string, CharacterSummary>([
     {
       character: "丁",
       primaryReadings: ["ちょう", "cho"],
-      levels: ["JLPT N4", "Joyo 2"]
+      levels: ["JLPT N4", "Joyo 2"],
+      strokeCount: 2
     }
   ],
   [
@@ -28,56 +30,46 @@ const KNOWN_SUMMARIES = new Map<string, CharacterSummary>([
     {
       character: "七",
       primaryReadings: ["しち", "nana"],
-      levels: ["JLPT N5", "Joyo 1"]
+      levels: ["JLPT N5", "Joyo 1"],
+      strokeCount: 2
     }
   ]
 ]);
 
 let registeredDisplayClear: (() => void) | null = null;
 
-/**
- * Clears the most recently created inference result state, when available.
- *
- * @post Registered visible inference results are empty after this operation.
- */
 export function clearRegisteredInferenceDisplayState(): void {
   registeredDisplayClear?.();
 }
 
-/**
- * Creates a display summary from a prediction.
- *
- * @pre The prediction character is non-empty.
- * @post The returned summary does not expose confidence values.
- */
-function toSummary(prediction: { character: string }): CharacterSummary {
-  const knownSummary = KNOWN_SUMMARIES.get(prediction.character);
+function toSummary(
+  prediction: { character: string },
+  dependencies: CreateDisplayInferencesControllerDependencies
+): CharacterSummary & { strokeCount: number } {
+  const resolvedSummary = dependencies.resolveSummary?.(prediction.character) ?? KNOWN_SUMMARIES.get(prediction.character);
 
-  if (knownSummary) {
+  if (resolvedSummary) {
     return {
-      character: knownSummary.character,
-      primaryReadings: [...knownSummary.primaryReadings],
-      levels: [...knownSummary.levels]
+      character: resolvedSummary.character,
+      primaryReadings: [...resolvedSummary.primaryReadings],
+      levels: [...resolvedSummary.levels],
+      strokeCount: resolvedSummary.strokeCount
     };
   }
 
   return {
     character: prediction.character,
     primaryReadings: [],
-    levels: []
+    levels: [],
+    strokeCount: 0
   };
 }
 
-/**
- * Creates ordered visible summaries from raw predictions.
- *
- * @pre Predictions contain at least one character and confidence value.
- * @post Results are ordered by confidence and limited for mobile display.
- */
 function createVisibleResults(
   predictions: ReadonlyArray<{ character: string; confidence: number }>,
-  options: { readonly sortByConfidence: boolean; readonly limit: number }
-): ReadonlyArray<CharacterSummary> {
+  options: { readonly sortByConfidence: boolean; readonly limit: number },
+  dependencies: CreateDisplayInferencesControllerDependencies
+): ReadonlyArray<CharacterSummary & { strokeCount: number }> {
   if (predictions.length === 0) {
     throw new Error("empty predictions");
   }
@@ -92,23 +84,17 @@ function createVisibleResults(
 
   return orderedPredictions
     .slice(0, options.limit)
-    .map(toSummary);
+    .map(prediction => toSummary(prediction, dependencies));
 }
 
-/**
- * Creates the inference-display view model.
- *
- * @pre Navigation and history dependencies are available.
- * @inv Visible results are ordered and never expose confidence values.
- * @post The returned controller updates visible results and opens selected entries.
- */
 export function createDisplayInferencesViewModel(
   dependencies: CreateDisplayInferencesControllerDependencies
 ): DisplayInferencesInterface {
-  let visibleResults: ReadonlyArray<CharacterSummary> = [];
+  let visibleResults: ReadonlyArray<CharacterSummary & { strokeCount: number }> = [];
   let lastImageSourceId: string | null = null;
   let lastHistoryCategory: HistoryCategory = "drawingClassification";
   let wasCleared = false;
+
   registeredDisplayClear = () => {
     visibleResults = [];
     lastImageSourceId = null;
@@ -129,7 +115,7 @@ export function createDisplayInferencesViewModel(
       visibleResults = createVisibleResults(predictions, {
         sortByConfidence: false,
         limit: 2
-      });
+      }, dependencies);
       lastImageSourceId = sourceId;
       lastHistoryCategory = "imageClassification";
     },
@@ -138,7 +124,7 @@ export function createDisplayInferencesViewModel(
       visibleResults = createVisibleResults(predictions, {
         sortByConfidence: true,
         limit: MAX_VISIBLE_RESULTS
-      });
+      }, dependencies);
       lastHistoryCategory = "drawingClassification";
     },
     getVisibleResults(): ReadonlyArray<CharacterSummary> {
@@ -163,6 +149,11 @@ export function createDisplayInferencesViewModel(
 
       await dependencies.navigateToKanjiEntry(character);
       await dependencies.saveHistoryEntry(character, lastHistoryCategory);
+    },
+    clearResults(): void {
+      visibleResults = [];
+      lastImageSourceId = null;
+      wasCleared = true;
     }
   };
 }

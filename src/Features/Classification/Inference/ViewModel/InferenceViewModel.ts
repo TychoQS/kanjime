@@ -2,16 +2,10 @@ import type { InferenceInterface } from "../Contracts/InferenceInterface";
 import type {
   CreateInferenceControllerDependencies
 } from "../CreateInferenceController";
-import type { CropRegion, InferencePrediction } from "../../../../Shared/DomainTypes";
 
+type PredictionWithStrokeCount = ReadonlyArray<{ character: string; confidence: number; strokeCount: number }>;
 type PredictionWithoutStrokeCount = ReadonlyArray<{ character: string; confidence: number }>;
 
-/**
- * Creates a model-sized image buffer initialized with a single binary color.
- *
- * @pre width and height are positive integers.
- * @post The returned image has exactly width by height pixels.
- */
 function createBinaryImageData(width: number, height: number, value: number): ImageData {
   const data = new Uint8ClampedArray(width * height * 4);
 
@@ -25,35 +19,37 @@ function createBinaryImageData(width: number, height: number, value: number): Im
   return new ImageData(data, width, height);
 }
 
-/**
- * Validates positive model input dimensions.
- *
- * @pre width and height are supplied by the loaded model configuration.
- * @post The operation completes only when both dimensions can produce an image buffer.
- */
 function assertValidModelDimensions(width: number, height: number): void {
   if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
     throw new Error("The image could not be prepared for identification.");
   }
 }
 
-/**
- * Creates the inference view model.
- *
- * @pre The classifier dependency executes the loaded OCR model for a source.
- * @inv A source identifier is classified at most once in the current flow.
- * @post The returned controller performs preprocessing and classification through dependencies.
- */
+function sortPredictions(
+  predictions: PredictionWithStrokeCount
+): PredictionWithStrokeCount {
+  const mutablePredictions = predictions as { character: string; confidence: number; strokeCount: number }[];
+  mutablePredictions.sort((left, right) => right.confidence - left.confidence);
+  return mutablePredictions;
+}
+
+function toVisiblePredictions(predictions: PredictionWithStrokeCount): PredictionWithoutStrokeCount {
+  return predictions.map(prediction => ({
+    character: prediction.character,
+    confidence: prediction.confidence
+  }));
+}
+
 export function createInferenceViewModel(
   dependencies: CreateInferenceControllerDependencies
 ): InferenceInterface {
-  const processedPredictions = new Map<string, ReadonlyArray<InferencePrediction>>();
+  const processedPredictions = new Map<string, PredictionWithStrokeCount>();
   let activeSourceId: string | null = null;
 
   async function classifySource(
     sourceId: string,
     inputUrl: string
-  ): Promise<ReadonlyArray<InferencePrediction>> {
+  ): Promise<PredictionWithStrokeCount> {
     if (sourceId.trim().length === 0 || inputUrl.trim().length === 0) {
       if (sourceId.trim().length === 0) {
         throw new Error("InferenceInterface rejected an empty sourceId.");
@@ -69,14 +65,19 @@ export function createInferenceViewModel(
       return existingPredictions;
     }
 
-    const predictions = await dependencies.classifySource(sourceId, inputUrl);
-    const mutablePredictions = predictions as InferencePrediction[];
-    mutablePredictions.sort((left, right) => right.confidence - left.confidence);
-    const snapshot = mutablePredictions.map(prediction => ({ ...prediction }));
-    processedPredictions.set(sourceId, snapshot);
+    const predictions = sortPredictions(await dependencies.classifySource(sourceId, inputUrl));
+    processedPredictions.set(sourceId, predictions);
     activeSourceId = sourceId;
 
-    return snapshot;
+    return predictions;
+  }
+
+  function buildImageInputUrl(sourceUri: string, crop?: { x: number; y: number; width: number; height: number }): string {
+    if (!crop) {
+      return sourceUri;
+    }
+
+    return `${sourceUri}#crop=${crop.x},${crop.y},${crop.width},${crop.height}`;
   }
 
   return {
@@ -103,38 +104,22 @@ export function createInferenceViewModel(
 
       return createBinaryImageData(input.modelInputWidth, input.modelInputHeight, input.crop ? 255 : 0);
     },
-    async classifyInput(input): Promise<ReadonlyArray<InferencePrediction>> {
+    async classifyInput(input) {
       return classifySource(input.sourceId, input.inputUrl);
     },
     async classifyFullImage(input): Promise<PredictionWithoutStrokeCount> {
       if (input.sourceUri.trim().length === 0) {
-        const predictions = await dependencies.classifySource(input.sourceId, input.sourceUri);
-        return predictions.map(prediction => ({
-          character: prediction.character,
-          confidence: prediction.confidence
-        }));
+        return toVisiblePredictions(sortPredictions(await dependencies.classifySource(input.sourceId, input.sourceUri)));
       }
 
-      const predictions = await classifySource(input.sourceId, input.sourceUri);
-
-      return predictions.map(prediction => ({
-        character: prediction.character,
-        confidence: prediction.confidence
-      }));
+      return toVisiblePredictions(await classifySource(input.sourceId, buildImageInputUrl(input.sourceUri)));
     },
     async classifyCrop(input): Promise<PredictionWithoutStrokeCount> {
-      const crop: CropRegion = input.crop;
-
-      if (crop.width <= 0 || crop.height <= 0) {
+      if (input.crop.width <= 0 || input.crop.height <= 0) {
         throw new Error("Select a valid area before identifying a character.");
       }
 
-      const predictions = await classifySource(input.sourceId, input.sourceUri);
-
-      return predictions.map(prediction => ({
-        character: prediction.character,
-        confidence: prediction.confidence
-      }));
+      return toVisiblePredictions(await classifySource(input.sourceId, input.sourceUri));
     },
     hasProcessedSource(sourceId: string): boolean {
       return activeSourceId === sourceId;

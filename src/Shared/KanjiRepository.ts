@@ -148,6 +148,10 @@ export class KanjiRepository {
     return this.getCachedSummary(character);
   }
 
+  getCachedSummarySnapshot(character: string): KanjiSummary | null {
+    return this.getCachedSummary(character);
+  }
+
   async getSummaries(characters: ReadonlyArray<string>): Promise<ReadonlyArray<KanjiSummary>> {
     await this.initialize();
     return characters

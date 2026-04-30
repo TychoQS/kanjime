@@ -7,37 +7,37 @@ import type { DrawingClassificationInput, ImageClassificationInput } from "../..
 
 type OcrWorkerRequest =
   | {
-      readonly id: number;
-      readonly type: "load";
-    }
+    readonly id: number;
+    readonly type: "load";
+  }
   | {
-      readonly id: number;
-      readonly type: "classifyDrawing";
-      readonly input: DrawingClassificationInput;
-    }
+    readonly id: number;
+    readonly type: "classifyDrawing";
+    readonly input: DrawingClassificationInput;
+  }
   | {
-      readonly id: number;
-      readonly type: "classifyImage";
-      readonly input: ImageClassificationInput;
-    };
+    readonly id: number;
+    readonly type: "classifyImage";
+    readonly input: ImageClassificationInput;
+  };
 
 type OcrWorkerResponse =
   | {
-      readonly id: number;
-      readonly type: "loaded";
-    }
+    readonly id: number;
+    readonly type: "loaded";
+  }
   | {
-      readonly id: number;
-      readonly type: "predictions";
-      readonly predictions: ReadonlyArray<InferencePrediction>;
-    }
+    readonly id: number;
+    readonly type: "predictions";
+    readonly predictions: ReadonlyArray<InferencePrediction>;
+  }
   | {
-      readonly id: number;
-      readonly type: "error";
-      readonly message: string;
-    };
+    readonly id: number;
+    readonly type: "error";
+    readonly message: string;
+  };
 
-const MODEL_SIZE = 224;
+const MODEL_SIZE = 128;
 const MODEL_URL = new URL("/assets/model/kanji.onnx", self.location.origin).toString();
 const CLASSES_URL = new URL("/assets/model/classes.json", self.location.origin).toString();
 const MAX_RESULTS = 12;
@@ -132,6 +132,14 @@ async function classifyImage(input: ImageClassificationInput): Promise<ReadonlyA
 
 async function runInference(tensorData: Float32Array): Promise<ReadonlyArray<InferencePrediction>> {
   const [session, classes] = await Promise.all([loadSession(), loadClasses()]);
+  return runInferenceWithResources(tensorData, session, classes);
+}
+
+async function runInferenceWithResources(
+  tensorData: Float32Array,
+  session: ort.InferenceSession,
+  classes: ReadonlyArray<string>
+): Promise<ReadonlyArray<InferencePrediction>> {
   const inputTensor = new ort.Tensor("float32", tensorData, [1, 3, MODEL_SIZE, MODEL_SIZE]);
   const outputs = await session.run({ input: inputTensor });
   const kanjiLogits = outputs.kanji_logits;
@@ -183,7 +191,10 @@ function drawStroke(
   context.stroke();
 }
 
-async function createBinarizedImageData(sourceUri: string, crop: CropRegion | undefined): Promise<ImageData> {
+async function createBinarizedImageData(
+  sourceUri: string,
+  crop: CropRegion | undefined
+): Promise<ImageData> {
   const response = await fetch(sourceUri);
 
   if (!response.ok) {
@@ -219,7 +230,7 @@ async function createBinarizedImageData(sourceUri: string, crop: CropRegion | un
 function binarizeImageData(imageData: ImageData): ImageData {
   const output = new ImageData(MODEL_SIZE, MODEL_SIZE);
   const grayValues = new Uint8ClampedArray(MODEL_SIZE * MODEL_SIZE);
-  let totalGray = 0;
+  const histogram = new Uint32Array(256);
 
   for (let pixelIndex = 0; pixelIndex < grayValues.length; pixelIndex += 1) {
     const sourceIndex = pixelIndex * 4;
@@ -229,23 +240,23 @@ function binarizeImageData(imageData: ImageData): ImageData {
       imageData.data[sourceIndex + 2] * 0.114
     );
     grayValues[pixelIndex] = gray;
-    totalGray += gray;
+    histogram[gray] += 1;
   }
 
-  const globalThreshold = totalGray / grayValues.length;
+  const threshold = computeOtsuThreshold(histogram, grayValues.length);
   let darkPixelCount = 0;
 
   for (const gray of grayValues) {
-    if (gray < globalThreshold) {
+    if (gray < threshold) {
       darkPixelCount += 1;
     }
   }
 
-  const darkText = darkPixelCount <= grayValues.length / 2;
+  const textIsDark = darkPixelCount <= grayValues.length / 2;
 
   for (let pixelIndex = 0; pixelIndex < grayValues.length; pixelIndex += 1) {
     const gray = grayValues[pixelIndex];
-    const isText = darkText ? gray < globalThreshold : gray > globalThreshold;
+    const isText = textIsDark ? gray < threshold : gray >= threshold;
     const value = isText ? 255 : 0;
     const outputIndex = pixelIndex * 4;
     output.data[outputIndex] = value;
@@ -255,6 +266,46 @@ function binarizeImageData(imageData: ImageData): ImageData {
   }
 
   return output;
+}
+
+function computeOtsuThreshold(histogram: Uint32Array, pixelCount: number): number {
+  let totalIntensity = 0;
+
+  for (let intensity = 0; intensity < histogram.length; intensity += 1) {
+    totalIntensity += intensity * histogram[intensity];
+  }
+
+  let backgroundWeight = 0;
+  let backgroundIntensity = 0;
+  let bestThreshold = 0;
+  let bestVariance = Number.NEGATIVE_INFINITY;
+
+  for (let intensity = 0; intensity < histogram.length; intensity += 1) {
+    backgroundWeight += histogram[intensity];
+
+    if (backgroundWeight === 0) {
+      continue;
+    }
+
+    const foregroundWeight = pixelCount - backgroundWeight;
+
+    if (foregroundWeight === 0) {
+      break;
+    }
+
+    backgroundIntensity += intensity * histogram[intensity];
+    const backgroundMean = backgroundIntensity / backgroundWeight;
+    const foregroundMean = (totalIntensity - backgroundIntensity) / foregroundWeight;
+    const meanDifference = backgroundMean - foregroundMean;
+    const betweenClassVariance = backgroundWeight * foregroundWeight * meanDifference * meanDifference;
+
+    if (betweenClassVariance > bestVariance) {
+      bestVariance = betweenClassVariance;
+      bestThreshold = intensity;
+    }
+  }
+
+  return bestThreshold;
 }
 
 function createTensorFromImageData(imageData: ImageData): Float32Array {

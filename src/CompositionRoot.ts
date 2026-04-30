@@ -1,23 +1,45 @@
 import packageMetadata from "../package.json";
 
-import { AppPersistence } from "./Shared/AppPersistence";
-import type { AboutInformationItem, ApplicationTheme, DetailedKanjiEntry, HistoryCategory, HistoryGroup } from "./Shared/DomainTypes";
-import { getMeaningLanguagePriority, normalizeLocale, translate, type SupportedLocale } from "./Shared/I18n";
-import { KanjiRepository, type KanjiSummary, type SourceAttribution } from "./Shared/KanjiRepository";
-import { OcrWorkerClient } from "./Shared/OcrWorkerClient";
-import type { AboutInterface } from "./Features/About/Contracts/AboutInterface";
 import { CreateAboutController } from "./Features/About/CreateAboutController";
-import type { UserPreferenceInterface } from "./Features/Preferences/Contracts/UserPreferenceInterface";
-import { CreateUserPreferenceController } from "./Features/Preferences/CreateUserPreferenceController";
-import type { NavigationInterface } from "./Features/Shell/Contracts/NavigationInterface";
-import { CreateNavigationController } from "./Features/Shell/CreateNavigationController";
-import type { SearchInterface } from "./Features/Search/Contracts/SearchInterface";
-import { CreateSearchController } from "./Features/Search/CreateSearchController";
-import type { HistoryInterface } from "./Features/History/Contracts/HistoryInterface";
+import type { AboutInterface } from "./Features/About/Contracts/AboutInterface";
+import { CreateCanvasController } from "./Features/Classification/Canvas/CreateCanvasController";
+import type { CanvasInterface } from "./Features/Classification/Canvas/Contracts/CanvasInterface";
+import { CreateImageController } from "./Features/Classification/Image/CreateImageController";
+import type { ImageInterface } from "./Features/Classification/Image/Contracts/ImageInterface";
+import { CreatePhotoController } from "./Features/Classification/Image/CreatePhotoController";
+import type { PhotoInterface } from "./Features/Classification/Image/Contracts/PhotoInterface";
+import { CreateDisplayInferencesController } from "./Features/Classification/Inference/CreateDisplayInferencesController";
+import type { DisplayInferencesInterface } from "./Features/Classification/Inference/Contracts/DisplayInferencesInterface";
+import { CreateInferenceController } from "./Features/Classification/Inference/CreateInferenceController";
+import type { InferenceInterface } from "./Features/Classification/Inference/Contracts/InferenceInterface";
+import { CreateClassificationController } from "./Features/Classification/Mode/CreateClassificationController";
+import type { ClassificationInterface } from "./Features/Classification/Mode/Contracts/ClassificationInterface";
+import { CreateToggleClassificationModeController } from "./Features/Classification/Mode/CreateToggleClassificationModeController";
+import type { ToggleClassificationModeInterface } from "./Features/Classification/Mode/Contracts/ToggleClassificationModeInterface";
 import { CreateHistoryController } from "./Features/History/CreateHistoryController";
+import type { HistoryInterface } from "./Features/History/Contracts/HistoryInterface";
 import { CreateDisplayKanjiController } from "./Features/Kanji/CreateDisplayKanjiController";
 import type { DisplayKanjiInterface } from "./Features/Kanji/Contracts/DisplayKanjiInterface";
-import type { NavigationPage } from "./Shared/DomainTypes";
+import { CreateUserPreferenceController } from "./Features/Preferences/CreateUserPreferenceController";
+import type { UserPreferenceInterface } from "./Features/Preferences/Contracts/UserPreferenceInterface";
+import { CreateSearchController } from "./Features/Search/CreateSearchController";
+import type { SearchInterface } from "./Features/Search/Contracts/SearchInterface";
+import { CreateNavigationController } from "./Features/Shell/CreateNavigationController";
+import type { NavigationInterface } from "./Features/Shell/Contracts/NavigationInterface";
+import { AppPersistence } from "./Shared/AppPersistence";
+import type {
+  AboutInformationItem,
+  ApplicationTheme,
+  ClassificationMode,
+  DetailedKanjiEntry,
+  HistoryCategory,
+  HistoryGroup,
+  NavigationPage,
+  Stroke
+} from "./Shared/DomainTypes";
+import { getMeaningLanguagePriority, normalizeLocale, type SupportedLocale } from "./Shared/I18n";
+import { KanjiRepository, type KanjiSummary, type SourceAttribution } from "./Shared/KanjiRepository";
+import { OcrWorkerClient } from "./Shared/OcrWorkerClient";
 
 export interface AboutDisplayItem {
   readonly label: string;
@@ -29,13 +51,20 @@ export interface ApplicationPreferences {
   readonly theme: ApplicationTheme;
 }
 
-let navigationDelegate: ((page: NavigationPage) => void) | null = null;
+let navigationDelegate: ((page: NavigationPage, character?: string) => void) | null = null;
 let preferenceDelegate: ((preferences: ApplicationPreferences) => void) | null = null;
 
 export interface CompositionRoot {
   readonly kanjiRepository: KanjiRepository;
   readonly persistence: AppPersistence;
   readonly ocrClient: OcrWorkerClient;
+  readonly canvasController: CanvasInterface;
+  readonly inferenceController: InferenceInterface;
+  readonly imageController: ImageInterface;
+  readonly photoController: PhotoInterface;
+  readonly displayInferencesController: DisplayInferencesInterface;
+  readonly classificationController: ClassificationInterface;
+  readonly toggleClassificationModeController: ToggleClassificationModeInterface;
   initialize(): Promise<ApplicationPreferences>;
   loadHistoryGroups(): Promise<ReadonlyArray<HistoryGroup>>;
   loadKanjiDetails(character: string, language: string, recordVisit?: boolean): Promise<DetailedKanjiEntry>;
@@ -52,15 +81,13 @@ export interface CompositionRoot {
 
 /**
  * Builds the application dependency graph.
- *
- * @pre Browser APIs and bundled offline assets are available.
- * @inv Shared contracts are consumed without changing their public signatures.
- * @post The returned root exposes repositories, persistence, OCR, and app services.
  */
 export function createCompositionRoot(): CompositionRoot {
   const kanjiRepository = new KanjiRepository();
   const persistence = new AppPersistence();
   const ocrClient = new OcrWorkerClient();
+  let canvasController: CanvasInterface;
+
   const loadKanjiDetailsByLanguage = async (character: string, language: string): Promise<DetailedKanjiEntry> => {
     const details = await kanjiRepository.getDetails(character);
 
@@ -76,36 +103,16 @@ export function createCompositionRoot(): CompositionRoot {
       const metadata = kanjiRepository.getMetadata();
 
       return [
-        {
-          label: "version",
-          value: packageMetadata.version
-        },
-        {
-          label: "license",
-          value: "licenseDetail"
-        },
-        {
-          label: "terms",
-          value: "termsDetail"
-        },
-        {
-          label: "authorship",
-          value: "authorshipName"
-        },
+        { label: "version", value: packageMetadata.version },
+        { label: "license", value: "licenseDetail" },
+        { label: "terms", value: "termsDetail" },
+        { label: "authorship", value: "authorshipName" },
         {
           label: "model",
-          value: metadata
-            ? `__MODEL_DETAIL__:${metadata.classCount}`
-            : "modelDetailEmpty"
+          value: metadata ? `__MODEL_DETAIL__:${metadata.classCount}` : "modelDetailEmpty"
         },
-        {
-          label: "textConversion",
-          value: "textConversionValue"
-        },
-        {
-          label: "interface",
-          value: "interfaceValue"
-        },
+        { label: "textConversion", value: "textConversionValue" },
+        { label: "interface", value: "interfaceValue" },
         ...formatAttributions(attributions)
       ];
     },
@@ -132,13 +139,13 @@ export function createCompositionRoot(): CompositionRoot {
       navigationDelegate?.(page);
     },
     publishInitialRoute: () => {
-      // Logic for publishing initial route if needed
+      // no-op
     }
   });
 
   const historyController = CreateHistoryController({
     loadGroups: () => persistence.loadHistoryGroups(),
-    persistEntry: async (entry) => {
+    persistEntry: async entry => {
       const summary = await kanjiRepository.getSummary(entry.character);
       await persistence.saveHistoryEntry({
         ...entry,
@@ -172,10 +179,150 @@ export function createCompositionRoot(): CompositionRoot {
     }
   });
 
-  const root = {
+  const imageController = CreateImageController({
+    onImageSelected: () => undefined,
+    onCropSelected: () => undefined
+  });
+
+  const inferenceController = CreateInferenceController({
+    classifySource: async (_sourceId, inputUrl) => {
+      if (inputUrl === "drawing://canvas") {
+        return ocrClient.classifyDrawing({
+          strokes: canvasController.getStrokeHistory(),
+          width: 360,
+          height: 360
+        });
+      }
+
+      const [sourceUri, cropFragment] = inputUrl.split("#crop=");
+
+      if (!cropFragment) {
+        return ocrClient.classifyImage({ sourceUri });
+      }
+
+      const [x, y, width, height] = cropFragment.split(",").map(value => Number(value));
+
+      return ocrClient.classifyImage({
+        sourceUri,
+        crop: { x, y, width, height }
+      });
+    },
+    classifyDrawing: input => ocrClient.classifyDrawing(input),
+    classifyImage: input => ocrClient.classifyImage(input),
+    getCurrentStrokes: () => canvasController.getStrokeHistory().map(stroke => ({
+      points: stroke.points.map(point => ({ ...point })),
+      startedAt: stroke.startedAt,
+      endedAt: stroke.endedAt
+    })),
+    drawingWidth: 360,
+    drawingHeight: 360
+  });
+
+  canvasController = CreateCanvasController({
+    requestDrawingInference: async (stroke: Stroke) => {
+      const predictions = await inferenceController.classifyInput({
+        sourceId: `drawing-${stroke.endedAt}`,
+        inputUrl: "drawing://canvas",
+        strokeCount: canvasController.getStrokeHistory().length
+      });
+
+      return predictions;
+    }
+  });
+
+  const displayInferencesController = CreateDisplayInferencesController({
+    navigateToKanjiEntry: async character => {
+      navigationDelegate?.("kanjiEntry", character);
+    },
+    saveHistoryEntry: async (character: string, category: HistoryCategory) => {
+      await historyController.saveEntry({
+        character,
+        category,
+        createdAt: new Date().toISOString()
+      });
+    },
+    resolveSummary: character => kanjiRepository.getCachedSummarySnapshot(character)
+  });
+
+  const classificationController = CreateClassificationController({
+    onModeChanged: async (_mode: ClassificationMode) => undefined
+  });
+
+  const toggleClassificationModeController = CreateToggleClassificationModeController({
+    clearCurrentModeState: async (mode: ClassificationMode) => {
+      if (mode === "image") {
+        imageController.clearImage();
+      } else {
+        try {
+          canvasController.clearCanvas();
+        } catch {
+          // no-op
+        }
+      }
+      displayInferencesController.clearResults();
+    }
+  });
+
+  return {
     kanjiRepository,
     persistence,
     ocrClient,
+    canvasController,
+    inferenceController,
+    imageController,
+    photoController: CreatePhotoController({
+      captureFromCamera: async () => {
+        const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
+        const photo = await Camera.getPhoto({
+          allowEditing: false,
+          correctOrientation: true,
+          quality: 80,
+          resultType: CameraResultType.Uri,
+          source: CameraSource.Prompt,
+          width: 1024
+        });
+
+        if (!photo.webPath) {
+          throw new Error("The selected image could not be used.");
+        }
+
+        const dimensions = await loadImageDimensions(photo.webPath);
+
+        return {
+          uri: photo.webPath,
+          width: dimensions.width,
+          height: dimensions.height,
+          mimeType: photo.format ? `image/${photo.format}` : "image/jpeg"
+        };
+      },
+      pickFromLibrary: async () => {
+        const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
+        const photo = await Camera.getPhoto({
+          allowEditing: false,
+          correctOrientation: true,
+          quality: 80,
+          resultType: CameraResultType.Uri,
+          source: CameraSource.Photos,
+          width: 1024
+        });
+
+        if (!photo.webPath) {
+          throw new Error("The selected image could not be used.");
+        }
+
+        const dimensions = await loadImageDimensions(photo.webPath);
+
+        return {
+          uri: photo.webPath,
+          width: dimensions.width,
+          height: dimensions.height,
+          mimeType: photo.format ? `image/${photo.format}` : "image/jpeg"
+        };
+      }
+    }),
+    displayInferencesController,
+    classificationController,
+    toggleClassificationModeController,
     async initialize(): Promise<ApplicationPreferences> {
       await Promise.all([
         kanjiRepository.initialize(),
@@ -205,7 +352,7 @@ export function createCompositionRoot(): CompositionRoot {
     searchController,
     historyController,
     displayKanjiController,
-    registerNavigationDelegate(delegate: (page: NavigationPage) => void): void {
+    registerNavigationDelegate(delegate: (page: NavigationPage, character?: string) => void): void {
       navigationDelegate = delegate;
     },
     registerPreferenceDelegate(delegate: (preferences: ApplicationPreferences) => void): void {
@@ -215,8 +362,6 @@ export function createCompositionRoot(): CompositionRoot {
       return persistence.savePreferences(preferences);
     }
   };
-
-  return root;
 }
 
 function createHistorySummary(summary: KanjiSummary): string {
@@ -254,4 +399,16 @@ function formatAttributions(attributions: ReadonlyArray<SourceAttribution>): Rea
     label: source.id,
     value: `${source.attribution}. ${source.license}.`
   }));
+}
+
+function loadImageDimensions(uri: string): Promise<{ readonly width: number; readonly height: number }> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve({
+      width: image.naturalWidth,
+      height: image.naturalHeight
+    });
+    image.onerror = () => reject(new Error("The image could not be loaded."));
+    image.src = uri;
+  });
 }

@@ -148,6 +148,16 @@ button {
   position: absolute;
 }
 
+.classification-image-view-embedded > button,
+.classification-canvas-view-embedded > button {
+  display: none;
+}
+
+.classification-image-view-embedded,
+.classification-canvas-view-embedded {
+  display: contents;
+}
+
 .drawing-canvas {
   align-self: center;
   aspect-ratio: 1 / 1;

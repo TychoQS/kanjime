@@ -184,7 +184,16 @@ function AppShell(props: AppShellProps): JSX.Element {
           <Redirect to="/classification" />
         </Route>
         <Route exact path="/classification">
-          <ClassificationScreen root={props.root} historyController={props.root.historyController} language={props.preferences.language} />
+          <ClassificationScreen
+            canvasController={props.root.canvasController}
+            inferenceController={props.root.inferenceController}
+            imageController={props.root.imageController}
+            photoController={props.root.photoController}
+            displayInferencesController={props.root.displayInferencesController}
+            classificationController={props.root.classificationController}
+            toggleClassificationModeController={props.root.toggleClassificationModeController}
+            language={props.preferences.language}
+          />
         </Route>
         <Route exact path="/search">
           <SearchScreen searchController={props.root.searchController} language={props.preferences.language} />

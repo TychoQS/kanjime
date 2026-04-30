@@ -41,8 +41,7 @@ function localizeChildren(children: React.ReactNode, language: string): React.Re
  */
 export function GlobalView(props: GlobalProps): JSX.Element {
   const rootRef = useRef<HTMLDivElement>(null);
-  const backgroundColor = "var(--ion-background-color)";
-  const color = "var(--ion-text-color)";
+  const { backgroundColor, color } = resolveThemeColors(props.theme);
   const surfaceStyle = {
     "--background": backgroundColor,
     "--color": color,
@@ -76,4 +75,18 @@ export function GlobalView(props: GlobalProps): JSX.Element {
       {props.translationsReady ? localizeChildren(props.children, props.language) : <p>Loading language</p>}
     </div>
   );
+}
+
+function resolveThemeColors(theme: GlobalProps["theme"]): { readonly backgroundColor: string; readonly color: string } {
+  if (theme === "dark") {
+    return {
+      backgroundColor: "#0b1220",
+      color: "#f8fbff"
+    };
+  }
+
+  return {
+    backgroundColor: "#f6f8fb",
+    color: "#101828"
+  };
 }

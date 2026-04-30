@@ -20,7 +20,7 @@ export interface CanvasInterface {
       startedAt: string;
       endedAt: string;
     }
-  ): Promise<ReadonlyArray<{ character: string; strokeCount: number }>>;
+  ): Promise<ReadonlyArray<{ character: string; strokeCount: number; confidence: number }>>;
 
   /**
    * Clears the canvas, stroke history, and drawing suggestions.

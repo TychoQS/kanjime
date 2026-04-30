@@ -155,20 +155,24 @@ export function ClassificationScreen(props: ClassificationScreenProps): JSX.Elem
     refreshCanvasState();
   };
 
-  const onStrokeCommitted = async (sourceId: string): Promise<void> => {
+  const onStrokeCommitted = async (
+    sourceId: string,
+    predictions?: ReadonlyArray<{ character: string; strokeCount: number; confidence: number }>
+  ): Promise<void> => {
     setIsProcessing(true);
     setErrorMessage(null);
 
     try {
-      const predictions = await props.inferenceController.classifyInput({
-        sourceId,
-        inputUrl: "drawing://canvas",
-        strokeCount: props.canvasController.getStrokeHistory().length
-      });
-      await Promise.resolve(props.displayInferencesController.updateResultsFromDrawingInference(predictions));
-      refreshResults();
-    } catch {
-      setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+      if (predictions && predictions.length > 0) {
+        await Promise.resolve(props.displayInferencesController.updateResultsFromDrawingInference(predictions));
+        refreshResults();
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -277,9 +281,9 @@ export function ClassificationScreen(props: ClassificationScreenProps): JSX.Elem
                   strokes={canvasStrokes}
                   onStrokeCommitted={stroke => {
                     const sourceId = `drawing-${stroke.endedAt}`;
-                    void props.canvasController.registerStroke(stroke).then(() => {
+                    void props.canvasController.registerStroke(stroke).then(predictions => {
                       refreshCanvasState();
-                      void onStrokeCommitted(sourceId);
+                      void onStrokeCommitted(sourceId, predictions);
                     });
                   }}
                   onClearRequested={clearDrawing}

@@ -8,7 +8,7 @@ import { createCanvasViewModel } from "./ViewModel/CanvasViewModel";
 export interface CreateCanvasControllerDependencies {
   readonly requestDrawingInference: (
     stroke: Stroke
-  ) => Promise<ReadonlyArray<{ character: string; strokeCount: number }>>;
+  ) => Promise<ReadonlyArray<{ character: string; confidence: number; strokeCount: number }>>;
 }
 
 /**

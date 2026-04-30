@@ -366,8 +366,24 @@ export function createInferenceViewModel(
       return existingPredictions;
     }
 
-    const nextPredictions = sortPredictions(await request());
+    const rawPredictions = await request();
+    let nextPredictions = sortPredictions(rawPredictions);
     assertPredictionShape(nextPredictions);
+
+    if (dependencies.resolveStrokeCount) {
+      const enrichedPredictions = await Promise.all(
+        nextPredictions.map(async (prediction) => {
+          const strokeCount = await dependencies.resolveStrokeCount!(prediction.character);
+          return {
+            character: prediction.character,
+            confidence: prediction.confidence,
+            strokeCount
+          };
+        })
+      );
+      nextPredictions = enrichedPredictions;
+    }
+
     processedPredictions.set(sourceId, nextPredictions);
     activeSourceId = sourceId;
     return nextPredictions;

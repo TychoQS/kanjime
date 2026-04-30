@@ -197,7 +197,11 @@ export function createCompositionRoot(): CompositionRoot {
     })),
     drawingWidth: DRAWING_CANVAS_SIZE,
     drawingHeight: DRAWING_CANVAS_SIZE,
-    modelInputSize: MODEL_INPUT_SIZE
+    modelInputSize: MODEL_INPUT_SIZE,
+    resolveStrokeCount: async character => {
+      const summary = await kanjiRepository.getSummary(character);
+      return summary?.strokeCount ?? 0;
+    }
   });
 
   canvasController = CreateCanvasController({

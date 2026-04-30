@@ -39,7 +39,7 @@ export function createCanvasViewModel(dependencies: CreateCanvasControllerDepend
   };
 
   return {
-    async registerStroke(stroke: Stroke): Promise<ReadonlyArray<{ character: string; strokeCount: number }>> {
+    async registerStroke(stroke: Stroke): Promise<ReadonlyArray<{ character: string; strokeCount: number; confidence: number }>> {
       assertValidStroke(stroke);
       const strokeSnapshot: Stroke = {
         points: stroke.points.map(point => ({ ...point })),

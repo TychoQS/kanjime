@@ -32,6 +32,7 @@ export interface CreateInferenceControllerDependencies {
   readonly drawingWidth?: number;
   readonly drawingHeight?: number;
   readonly modelInputSize?: number;
+  readonly resolveStrokeCount?: (character: string) => Promise<number>;
 }
 
 /**

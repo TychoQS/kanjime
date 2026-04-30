@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { CreateInferenceController } from "../../../../src/Features/Classification/Inference/CreateInferenceController";
 import { createAsyncTupleRecorder } from "../../../Support/DependencyFactories";
-import { TEST_CROP, TEST_IMAGE, TEST_PREDICTIONS, TEST_STROKE, TEST_CANVAS_DATA_URL, MODEL_INPUT_SIZE } from "../../../Support/TestData";
+import { TEST_CROP, TEST_IMAGE, TEST_PREDICTIONS, TEST_STROKE, TEST_CANVAS_DATA_URL, MODEL_INPUT_SIZE, TEST_MODEL_PREDICTIONS, TEST_RESOLVED_STROKE_COUNTS, TEST_ENRICHED_PREDICTIONS } from "../../../Support/TestData";
 import { buildRequirementTitle } from "../../../Support/RequirementTest";
 
 describe("InferenceInterface", () => {
@@ -328,6 +328,84 @@ describe("InferenceInterface", () => {
     );
     expect(controller.hasProcessedSource("full-image-1")).toBe(true,
       "InferenceInterface did not track the processed full image source."
+    );
+  });
+
+  /**
+   * Requirement: R40
+   * Type: Unit
+   * Condition: Precondition
+   */
+  it(buildRequirementTitle("R40", "Unit", "Precondition", "returns predictions after drawing inference"), async () => {
+    const classifierRecorder = createAsyncTupleRecorder<[string, string], ReadonlyArray<{ character: string; confidence: number; strokeCount: number }>>(TEST_MODEL_PREDICTIONS);
+    const resolveStrokeCount = (character: string): number => TEST_RESOLVED_STROKE_COUNTS[character] ?? 0;
+
+    const controller = CreateInferenceController({
+      classifySource: classifierRecorder.handler,
+      resolveStrokeCount
+    });
+
+    const predictions = await controller.classifyInput({
+      sourceId: "drawing-1",
+      inputUrl: "drawing://canvas",
+      strokeCount: 1
+    });
+
+    expect(predictions.length).toBeGreaterThan(0,
+      "InferenceInterface did not return predictions after inference."
+    );
+  });
+
+  /**
+   * Requirement: R40
+   * Type: Unit
+   * Condition: Invariant
+   */
+  it(buildRequirementTitle("R40", "Unit", "Invariant", "predicted characters are not modified by enrichment"), async () => {
+    const classifierRecorder = createAsyncTupleRecorder<[string, string], ReadonlyArray<{ character: string; confidence: number; strokeCount: number }>>(TEST_MODEL_PREDICTIONS);
+    const resolveStrokeCount = (character: string): number => TEST_RESOLVED_STROKE_COUNTS[character] ?? 0;
+
+    const controller = CreateInferenceController({
+      classifySource: classifierRecorder.handler,
+      resolveStrokeCount
+    });
+
+    const predictions = await controller.classifyInput({
+      sourceId: "drawing-2",
+      inputUrl: "drawing://canvas",
+      strokeCount: 2
+    });
+
+    const inputCharacters = TEST_MODEL_PREDICTIONS.map(p => p.character);
+    const outputCharacters = predictions.map(p => p.character);
+
+    expect(outputCharacters).toEqual(inputCharacters,
+      "InferenceInterface modified the predicted characters during enrichment."
+    );
+  });
+
+  /**
+   * Requirement: R40
+   * Type: Unit
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R40", "Unit", "Postcondition", "predictions contain correct strokeCount from kanji data"), async () => {
+    const classifierRecorder = createAsyncTupleRecorder<[string, string], ReadonlyArray<{ character: string; confidence: number; strokeCount: number }>>(TEST_MODEL_PREDICTIONS);
+    const resolveStrokeCount = (character: string): number => TEST_RESOLVED_STROKE_COUNTS[character] ?? 0;
+
+    const controller = CreateInferenceController({
+      classifySource: classifierRecorder.handler,
+      resolveStrokeCount
+    });
+
+    const predictions = await controller.classifyInput({
+      sourceId: "drawing-3",
+      inputUrl: "drawing://canvas",
+      strokeCount: 3
+    });
+
+    expect(predictions).toEqual(TEST_ENRICHED_PREDICTIONS,
+      "InferenceInterface did not enrich predictions with correct strokeCount from kanji data."
     );
   });
 });

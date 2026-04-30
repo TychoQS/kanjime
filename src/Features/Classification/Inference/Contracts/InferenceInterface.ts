@@ -14,6 +14,7 @@ export interface InferenceInterface {
    * Requirement IDs: R23.
    *
    * @pre The feature is in drawing mode and the canvas contains at least one stroke.
+   * @inv The characters infered remain unchanged after inference
    * @post The returned image data matches the real model input dimensions and encodes a black background with white stroke content.
    */
   preprocessDrawingForModel(
@@ -47,13 +48,14 @@ export interface InferenceInterface {
     }
   ): Promise<ImageData>;
 
-  /**
+/**
    * Executes a single classification for a new source.
    *
-   * Requirement IDs: R23, R25.
+   * Requirement IDs: R23, R25, R40.
    *
    * @pre The feature is in drawing mode, the canvas contains strokes, and a new valid input exists.
-   * @post Exactly one inference is executed for the provided drawing source using the runtime preprocessing pipeline without blocking the surrounding UI.
+   * @inv Predicted characters are not modified.
+   * @post Predictions contain correct strokeCount from kanji data; exactly one inference is executed for the provided drawing source using the runtime preprocessing pipeline without blocking the surrounding UI.
    */
   classifyInput(
     input: {

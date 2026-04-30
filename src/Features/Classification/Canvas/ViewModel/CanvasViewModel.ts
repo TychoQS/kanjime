@@ -51,6 +51,7 @@ export function createCanvasViewModel(dependencies: CreateCanvasControllerDepend
 
       const predictions = await dependencies.requestDrawingInference(strokeSnapshot);
       return predictions
+        .filter(prediction => Math.abs(prediction.strokeCount - strokes.length) <= 1)
         .slice(0, 5)
         .map(prediction => ({ ...prediction }));
     },

@@ -107,6 +107,40 @@ export const TEST_OTHER_PREDICTIONS: ReadonlyArray<InferencePrediction> = [
 ];
 
 /**
+ * Predictions returned by the model with strokeCount: 0 (not resolved from database).
+ * Used for R40 testing - verifying the system enriches predictions with real strokeCount.
+ */
+export const TEST_MODEL_PREDICTIONS: ReadonlyArray<InferencePrediction> = [
+  { character: "一", confidence: 0.99, strokeCount: 0 },
+  { character: "二", confidence: 0.98, strokeCount: 0 },
+  { character: "三", confidence: 0.97, strokeCount: 0 },
+  { character: "四", confidence: 0.96, strokeCount: 0 },
+  { character: "五", confidence: 0.95, strokeCount: 0 }
+];
+
+/**
+ * Resolved stroke counts from database for TEST_MODEL_PREDICTIONS characters.
+ */
+export const TEST_RESOLVED_STROKE_COUNTS: Record<string, number> = {
+  "一": 1,
+  "二": 2,
+  "三": 3,
+  "四": 4,
+  "五": 5
+};
+
+/**
+ * Expected predictions with correct stroke count from database.
+ */
+export const TEST_ENRICHED_PREDICTIONS: ReadonlyArray<InferencePrediction> = [
+  { character: "一", confidence: 0.99, strokeCount: 1 },
+  { character: "二", confidence: 0.98, strokeCount: 2 },
+  { character: "三", confidence: 0.97, strokeCount: 3 },
+  { character: "四", confidence: 0.96, strokeCount: 4 },
+  { character: "五", confidence: 0.95, strokeCount: 5 }
+];
+
+/**
  * Visible summaries used by search and list rendering tests.
  */
 export const TEST_SUMMARIES: ReadonlyArray<CharacterSummary> = [

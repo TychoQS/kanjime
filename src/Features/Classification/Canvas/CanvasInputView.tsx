@@ -1,7 +1,6 @@
-import type { PointerEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
-import type { Stroke, StrokePoint } from "../../../Shared/DomainTypes";
+import type { Stroke } from "../../../Shared/DomainTypes";
 import { DRAWING_CANVAS_SIZE } from "../Inference/InferenceRuntimeConfig";
 import type { CanvasInputProps } from "./Contracts/CanvasInputProps";
 
@@ -12,11 +11,10 @@ const CANVAS_SIZE = DRAWING_CANVAS_SIZE;
  */
 export const CanvasInputView: React.FC<CanvasInputProps> = props => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [activeStroke, setActiveStroke] = useState<Stroke | null>(null);
 
   useEffect(() => {
-    drawCanvas(canvasRef.current, props.strokes, activeStroke, props.backgroundColor, props.strokeColor);
-  }, [activeStroke, props.backgroundColor, props.strokeColor, props.strokes]);
+    drawCanvas(canvasRef.current, props.strokes, props.activeStroke, props.backgroundColor, props.strokeColor);
+  }, [props.activeStroke, props.backgroundColor, props.strokeColor, props.strokes]);
 
   if (!props.isDrawingEnabled) {
     return null;
@@ -50,63 +48,14 @@ export const CanvasInputView: React.FC<CanvasInputProps> = props => {
           width: "100%"
         }}
         width={CANVAS_SIZE}
-        onPointerDown={event => beginStroke(event, canvasRef.current, setActiveStroke)}
-        onPointerMove={event => continueStroke(event, canvasRef.current, activeStroke, setActiveStroke)}
-        onPointerUp={() => {
-          if (activeStroke) {
-            props.onStrokeCommitted(activeStroke);
-            setActiveStroke(null);
-          }
-        }}
-        onPointerCancel={() => setActiveStroke(null)}
+        onPointerDown={props.onPointerDown}
+        onPointerMove={props.onPointerMove}
+        onPointerUp={props.onPointerUp}
+        onPointerCancel={props.onPointerCancel}
       />
     </div>
   );
 };
-
-function beginStroke(
-  event: PointerEvent<HTMLCanvasElement>,
-  canvas: HTMLCanvasElement | null,
-  setActiveStroke: (stroke: Stroke | null) => void
-): void {
-  if (!canvas) {
-    return;
-  }
-
-  canvas.setPointerCapture(event.pointerId);
-  const now = new Date().toISOString();
-  setActiveStroke({
-    points: [toCanvasPoint(event, canvas)],
-    startedAt: now,
-    endedAt: now
-  });
-}
-
-function continueStroke(
-  event: PointerEvent<HTMLCanvasElement>,
-  canvas: HTMLCanvasElement | null,
-  activeStroke: Stroke | null,
-  setActiveStroke: (stroke: Stroke | null) => void
-): void {
-  if (!canvas || activeStroke === null) {
-    return;
-  }
-
-  setActiveStroke({
-    ...activeStroke,
-    points: [...activeStroke.points, toCanvasPoint(event, canvas)],
-    endedAt: new Date().toISOString()
-  });
-}
-
-function toCanvasPoint(event: PointerEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement): StrokePoint {
-  const rect = canvas.getBoundingClientRect();
-
-  return {
-    x: clamp(((event.clientX - rect.left) / rect.width) * CANVAS_SIZE, 0, CANVAS_SIZE),
-    y: clamp(((event.clientY - rect.top) / rect.height) * CANVAS_SIZE, 0, CANVAS_SIZE)
-  };
-}
 
 function drawCanvas(
   canvas: HTMLCanvasElement | null,
@@ -146,8 +95,4 @@ function drawCanvas(
 
     context.stroke();
   }
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
 }

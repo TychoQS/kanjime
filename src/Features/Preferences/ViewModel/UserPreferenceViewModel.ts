@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+
+import type { ApplicationPreferences, CompositionRoot } from "../../../CompositionRoot";
 import type { UserPreferenceInterface } from "../Contracts/UserPreferenceInterface";
 import type { CreateUserPreferenceControllerDependencies } from "../CreateUserPreferenceController";
 import type { ApplicationTheme } from "../../../Shared/DomainTypes";
@@ -17,6 +20,18 @@ const SUPPORTED_LANGUAGES = new Set([
   "ar-EG",
   "sw-KE"
 ]);
+
+const DEFAULT_PREFERENCES: ApplicationPreferences = {
+  language: "en-US",
+  theme: "system"
+};
+
+export interface UserPreferenceAppViewModel {
+  readonly preferences: ApplicationPreferences;
+  readonly isReady: boolean;
+  setLanguage(language: SupportedLocale): void;
+  setTheme(theme: ApplicationTheme): void;
+}
 
 /**
  * Checks whether a theme value is supported.
@@ -63,6 +78,50 @@ export function createUserPreferenceViewModel(
         language: language as SupportedLocale,
         theme
       };
+    }
+  };
+}
+
+/**
+ * Creates the application bootstrap and preference hook view model.
+ *
+ * @pre The composition root can initialize persistence and notify preference changes.
+ * @inv Preference changes never bypass the existing preference controller.
+ * @post The returned state exposes the current preferences together with the startup readiness flag.
+ */
+export function useUserPreferenceAppViewModel(root: CompositionRoot): UserPreferenceAppViewModel {
+  const [preferences, setPreferences] = useState<ApplicationPreferences>(DEFAULT_PREFERENCES);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    root.registerPreferenceDelegate(nextPreferences => {
+      if (isMounted) {
+        setPreferences(nextPreferences);
+      }
+    });
+
+    void root.initialize().then(nextPreferences => {
+      if (isMounted) {
+        setPreferences(nextPreferences);
+        setIsReady(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [root]);
+
+  return {
+    preferences,
+    isReady,
+    setLanguage(language: SupportedLocale): void {
+      root.userPreferenceController.setLanguage(language);
+    },
+    setTheme(theme: ApplicationTheme): void {
+      root.userPreferenceController.setTheme(theme);
     }
   };
 }

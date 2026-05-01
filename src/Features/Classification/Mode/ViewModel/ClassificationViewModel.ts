@@ -1,6 +1,67 @@
+import type { PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import type { CanvasInterface } from "../../Canvas/Contracts/CanvasInterface";
+import type { CanvasInteractionViewModel } from "../../Canvas/ViewModel/CanvasViewModel";
+import type { ImageInterface } from "../../Image/Contracts/ImageInterface";
+import type { PhotoInterface } from "../../Image/Contracts/PhotoInterface";
+import type { DisplayInferencesInterface } from "../../Inference/Contracts/DisplayInferencesInterface";
+import type { InferenceInterface } from "../../Inference/Contracts/InferenceInterface";
 import type { ClassificationInterface } from "../Contracts/ClassificationInterface";
 import type { CreateClassificationControllerDependencies } from "../CreateClassificationController";
+import type { ToggleClassificationModeInterface } from "../Contracts/ToggleClassificationModeInterface";
 import type { ClassificationMode } from "../../../../Shared/DomainTypes";
+import type { CharacterSummary, CropRegion, ImageState, StrokePoint } from "../../../../Shared/DomainTypes";
+
+interface CropDraft {
+  readonly startX: number;
+  readonly startY: number;
+  readonly currentX: number;
+  readonly currentY: number;
+}
+
+const IMAGE_INFERENCE_DELAY_MS = 450;
+
+export interface ClassificationScreenViewModel {
+  readonly mode: ClassificationMode;
+  readonly imageState: ImageState;
+  readonly canvasStrokes: ReturnType<CanvasInterface["getStrokeHistory"]>;
+  readonly cropDraft: CropDraft | null;
+  readonly activeCrop: CropRegion | null;
+  readonly results: ReadonlyArray<CharacterSummary>;
+  readonly isProcessing: boolean;
+  readonly errorMessage: string | null;
+  readonly activeStroke: CanvasInteractionViewModel["activeStroke"];
+  chooseImage(): Promise<void>;
+  clearImage(): void;
+  switchMode(mode: ClassificationMode): void;
+  clearDrawing(): void;
+  openResult(character: string): Promise<void>;
+  startCrop(
+    event: ReactPointerEvent<HTMLDivElement>,
+    frame: HTMLDivElement | null
+  ): void;
+  updateCrop(
+    event: ReactPointerEvent<HTMLDivElement>,
+    frame: HTMLDivElement | null
+  ): void;
+  finishCrop(): void;
+  beginStroke(event: ReactPointerEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement | null): void;
+  continueStroke(event: ReactPointerEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement | null): void;
+  completeStroke(): void;
+  cancelStroke(): void;
+}
+
+export interface ClassificationScreenViewModelDependencies {
+  readonly canvasController: CanvasInterface;
+  readonly inferenceController: InferenceInterface;
+  readonly imageController: ImageInterface;
+  readonly photoController: PhotoInterface;
+  readonly displayInferencesController: DisplayInferencesInterface;
+  readonly classificationController: ClassificationInterface;
+  readonly toggleClassificationModeController: ToggleClassificationModeInterface;
+  readonly canvasInteraction: CanvasInteractionViewModel;
+}
 
 /**
  * Checks whether a value is a supported OCR mode.
@@ -39,3 +100,295 @@ export function createClassificationViewModel(
   };
 }
 
+/**
+ * Creates the OCR screen hook view model.
+ *
+ * @pre The classification dependencies are initialized and ready to classify images or drawings.
+ * @inv All mutable OCR screen state is centralized in this hook and exposed immutably to the view.
+ * @post The returned state preserves the current OCR workflow behavior for image and drawing modes.
+ */
+export function useClassificationScreenViewModel(
+  dependencies: ClassificationScreenViewModelDependencies,
+  isEnabled: boolean
+): ClassificationScreenViewModel {
+  const lastImageSourceIdRef = useRef("");
+  const [mode, setMode] = useState<ClassificationMode>(dependencies.classificationController.getActiveMode());
+  const [imageState, setImageState] = useState<ImageState>(dependencies.imageController.getImageState());
+  const [canvasStrokes, setCanvasStrokes] = useState(dependencies.canvasController.getStrokeHistory());
+  const [cropDraft, setCropDraft] = useState<CropDraft | null>(null);
+  const [results, setResults] = useState<ReadonlyArray<CharacterSummary>>(
+    safeGetVisibleResults(dependencies.displayInferencesController)
+  );
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const activeCrop = useMemo(() => cropDraftToRegion(cropDraft) ?? imageState.crop, [cropDraft, imageState.crop]);
+
+  const refreshResults = useCallback(() => {
+    setResults(safeGetVisibleResults(dependencies.displayInferencesController));
+  }, [dependencies.displayInferencesController]);
+
+  const refreshImageState = useCallback(() => {
+    setImageState(dependencies.imageController.getImageState());
+  }, [dependencies.imageController]);
+
+  const refreshCanvasState = useCallback(() => {
+    setCanvasStrokes(dependencies.canvasController.getStrokeHistory());
+  }, [dependencies.canvasController]);
+
+  const classifyImage = useCallback(async (
+    sourceId: string,
+    sourceUri: string,
+    crop: CropRegion | null
+  ): Promise<void> => {
+    setIsProcessing(true);
+    setErrorMessage(null);
+
+    try {
+      const predictions = crop
+        ? await dependencies.inferenceController.classifyCrop({ sourceId, sourceUri, crop })
+        : await dependencies.inferenceController.classifyFullImage({ sourceId, sourceUri });
+
+      await Promise.resolve(dependencies.displayInferencesController.updateResultsFromImageSource(sourceId, predictions));
+      lastImageSourceIdRef.current = sourceId;
+      refreshResults();
+    } catch {
+      setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [dependencies.displayInferencesController, dependencies.inferenceController, refreshResults]);
+
+  useEffect(() => {
+    if (!isEnabled || mode !== "image" || imageState.image === null) {
+      return;
+    }
+
+    const sourceId = createImageSourceId(imageState.image.uri, imageState.crop);
+
+    if (sourceId === lastImageSourceIdRef.current) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      void classifyImage(sourceId, imageState.image?.uri ?? "", imageState.crop);
+    }, IMAGE_INFERENCE_DELAY_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [classifyImage, imageState.crop, imageState.image, isEnabled, mode]);
+
+  return {
+    mode,
+    imageState,
+    canvasStrokes,
+    cropDraft,
+    activeCrop,
+    results,
+    isProcessing,
+    errorMessage,
+    activeStroke: dependencies.canvasInteraction.activeStroke,
+    async chooseImage(): Promise<void> {
+      setErrorMessage(null);
+
+      try {
+        const image = await dependencies.photoController.capturePhoto();
+        dependencies.imageController.setImage(image);
+        lastImageSourceIdRef.current = "";
+        refreshImageState();
+        dependencies.displayInferencesController.clearResults();
+        refreshResults();
+      } catch {
+        setErrorMessage("The image could not be selected.");
+      }
+    },
+    clearImage(): void {
+      dependencies.imageController.clearImage();
+      dependencies.displayInferencesController.clearResults();
+      setCropDraft(null);
+      lastImageSourceIdRef.current = "";
+      refreshImageState();
+      refreshResults();
+    },
+    switchMode(nextMode: ClassificationMode): void {
+      dependencies.classificationController.activateMode(nextMode);
+      dependencies.toggleClassificationModeController.switchMode(nextMode);
+      setMode(nextMode);
+      setErrorMessage(null);
+      setCropDraft(null);
+      lastImageSourceIdRef.current = "";
+      dependencies.displayInferencesController.clearResults();
+      refreshResults();
+      refreshImageState();
+      refreshCanvasState();
+      dependencies.canvasInteraction.cancelStroke();
+    },
+    clearDrawing(): void {
+      try {
+        dependencies.canvasController.clearCanvas();
+      } catch {
+        // no-op: empty canvas clears are ignored in UI
+      }
+
+      dependencies.displayInferencesController.clearResults();
+      refreshCanvasState();
+      refreshResults();
+      dependencies.canvasInteraction.cancelStroke();
+    },
+    async openResult(character: string): Promise<void> {
+      try {
+        await dependencies.displayInferencesController.openKanjiEntry(character);
+      } catch {
+        setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+      }
+    },
+    startCrop(event: ReactPointerEvent<HTMLDivElement>, frame: HTMLDivElement | null): void {
+      if (!frame || imageState.image === null) {
+        return;
+      }
+
+      frame.setPointerCapture(event.pointerId);
+      const point = toImagePoint(event, frame, imageState.image);
+      setCropDraft({
+        startX: point.x,
+        startY: point.y,
+        currentX: point.x,
+        currentY: point.y
+      });
+    },
+    updateCrop(event: ReactPointerEvent<HTMLDivElement>, frame: HTMLDivElement | null): void {
+      if (!frame || imageState.image === null || cropDraft === null) {
+        return;
+      }
+
+      const point = toImagePoint(event, frame, imageState.image);
+      setCropDraft({
+        ...cropDraft,
+        currentX: point.x,
+        currentY: point.y
+      });
+    },
+    finishCrop(): void {
+      const nextCrop = cropDraftToRegion(cropDraft);
+
+      if (nextCrop && nextCrop.width >= 8 && nextCrop.height >= 8) {
+        dependencies.imageController.setActiveCrop(nextCrop);
+      }
+
+      refreshImageState();
+      setCropDraft(null);
+    },
+    beginStroke: dependencies.canvasInteraction.beginStroke,
+    continueStroke: dependencies.canvasInteraction.continueStroke,
+    completeStroke(): void {
+      const stroke = dependencies.canvasInteraction.commitStroke();
+
+      if (stroke === null) {
+        return;
+      }
+
+      const predictionsPromise = dependencies.canvasController.registerStroke(stroke);
+
+      // Reflect the committed stroke immediately to avoid a visible empty-frame repaint.
+      refreshCanvasState();
+      setIsProcessing(true);
+      setErrorMessage(null);
+
+      void predictionsPromise
+        .then(predictions => {
+          return Promise.resolve(
+            predictions.length > 0
+              ? dependencies.displayInferencesController.updateResultsFromDrawingInference(predictions)
+              : undefined
+          ).then(() => {
+            if (predictions.length > 0) {
+              refreshResults();
+            }
+          });
+        })
+        .catch((error: unknown) => {
+          if (error instanceof Error) {
+            setErrorMessage(error.message);
+          } else {
+            setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+          }
+        })
+        .finally(() => {
+          setIsProcessing(false);
+        });
+    },
+    cancelStroke: dependencies.canvasInteraction.cancelStroke
+  };
+}
+
+function createImageSourceId(imageUri: string, crop: CropRegion | null): string {
+  if (!crop) {
+    return `${imageUri}:full`;
+  }
+
+  return `${imageUri}:${Math.round(crop.x)}:${Math.round(crop.y)}:${Math.round(crop.width)}:${Math.round(crop.height)}`;
+}
+
+function cropDraftToRegion(cropDraft: CropDraft | null): CropRegion | null {
+  if (cropDraft === null) {
+    return null;
+  }
+
+  const x = Math.min(cropDraft.startX, cropDraft.currentX);
+  const y = Math.min(cropDraft.startY, cropDraft.currentY);
+
+  return {
+    x,
+    y,
+    width: Math.abs(cropDraft.currentX - cropDraft.startX),
+    height: Math.abs(cropDraft.currentY - cropDraft.startY)
+  };
+}
+
+function toImagePoint(
+  event: ReactPointerEvent<HTMLElement>,
+  frame: HTMLElement,
+  image: { readonly width: number; readonly height: number }
+): StrokePoint {
+  const img = frame.querySelector("img");
+
+  if (img === null) {
+    return { x: 0, y: 0 };
+  }
+
+  const boxRect = img.getBoundingClientRect();
+  const boxAspect = boxRect.width / boxRect.height;
+  const imgAspect = image.width / image.height;
+  let contentWidth: number;
+  let contentHeight: number;
+  let contentLeft: number;
+  let contentTop: number;
+
+  if (imgAspect > boxAspect) {
+    contentWidth = boxRect.width;
+    contentHeight = boxRect.width / imgAspect;
+    contentLeft = boxRect.left;
+    contentTop = boxRect.top + (boxRect.height - contentHeight) / 2;
+  } else {
+    contentHeight = boxRect.height;
+    contentWidth = boxRect.height * imgAspect;
+    contentTop = boxRect.top;
+    contentLeft = boxRect.left + (boxRect.width - contentWidth) / 2;
+  }
+
+  return {
+    x: clamp(((event.clientX - contentLeft) / contentWidth) * image.width, 0, image.width),
+    y: clamp(((event.clientY - contentTop) / contentHeight) * image.height, 0, image.height)
+  };
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function safeGetVisibleResults(displayInferencesController: DisplayInferencesInterface): ReadonlyArray<CharacterSummary> {
+  try {
+    return displayInferencesController.getVisibleResults();
+  } catch {
+    return [];
+  }
+}

@@ -1,6 +1,12 @@
+import { useEffect, useState } from "react";
+
 import type { AboutInterface } from "../Contracts/AboutInterface";
 import type { CreateAboutControllerDependencies } from "../CreateAboutController";
 import type { AboutInformationItem } from "../../../Shared/DomainTypes";
+
+export interface AboutScreenViewModel {
+  readonly items: ReadonlyArray<AboutInformationItem>;
+}
 
 /**
  * Creates the About view model.
@@ -32,3 +38,45 @@ export function createAboutViewModel(dependencies: CreateAboutControllerDependen
   };
 }
 
+/**
+ * Creates the About screen hook view model.
+ *
+ * @pre The about controller is initialized before the screen becomes interactive.
+ * @inv The hook exposes immutable About items for rendering.
+ * @post The returned state mirrors the latest successfully loaded About information.
+ */
+export function useAboutScreenViewModel(
+  aboutController: AboutInterface,
+  language: string,
+  isEnabled: boolean
+): AboutScreenViewModel {
+  const [items, setItems] = useState<ReadonlyArray<AboutInformationItem>>([]);
+
+  useEffect(() => {
+    if (!isEnabled) {
+      return;
+    }
+
+    let isMounted = true;
+
+    void aboutController.getAboutInformation()
+      .then(nextItems => {
+        if (isMounted) {
+          setItems(nextItems);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setItems([]);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [aboutController, isEnabled, language]);
+
+  return {
+    items
+  };
+}

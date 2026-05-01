@@ -1,3 +1,5 @@
+import type { PointerEventHandler } from "react";
+
 /**
  * Props contract for the drawing canvas component.
  *
@@ -11,17 +13,18 @@ export interface CanvasInputProps {
   readonly backgroundColor: string;
   readonly strokeColor: string;
   readonly isDrawingEnabled: boolean;
+  readonly activeStroke: {
+    points: ReadonlyArray<{ x: number; y: number }>;
+    startedAt: string;
+    endedAt: string;
+  } | null;
   readonly strokes: ReadonlyArray<{
     points: ReadonlyArray<{ x: number; y: number }>;
     startedAt: string;
     endedAt: string;
   }>;
-  readonly onStrokeCommitted: (
-    stroke: {
-      points: ReadonlyArray<{ x: number; y: number }>;
-      startedAt: string;
-      endedAt: string;
-    }
-  ) => void;
-  readonly onClearRequested: () => void;
+  readonly onPointerDown: PointerEventHandler<HTMLCanvasElement>;
+  readonly onPointerMove: PointerEventHandler<HTMLCanvasElement>;
+  readonly onPointerUp: PointerEventHandler<HTMLCanvasElement>;
+  readonly onPointerCancel: PointerEventHandler<HTMLCanvasElement>;
 }

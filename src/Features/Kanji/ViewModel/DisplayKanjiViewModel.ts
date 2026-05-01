@@ -1,8 +1,18 @@
+import { useEffect, useState } from "react";
+
 import type { DisplayKanjiInterface } from "../Contracts/DisplayKanjiInterface";
 import type { CreateDisplayKanjiControllerDependencies } from "../CreateDisplayKanjiController";
 import type { DetailedKanjiEntry } from "../../../Shared/DomainTypes";
 
 let hasReportedMissingBackContext = false;
+
+export interface KanjiDetailScreenViewModel {
+  readonly details: DetailedKanjiEntry | null;
+  readonly isLoading: boolean;
+  readonly errorMessage: string | null;
+  copyKanjiCharacter(): Promise<void>;
+  returnToPreviousScreen(): void;
+}
 
 /**
  * Removes absent optional fields from loaded kanji details.
@@ -72,6 +82,73 @@ export function createDisplayKanjiViewModel(
       }
 
       void dependencies.navigateBack();
+    }
+  };
+}
+
+/**
+ * Creates the Kanji detail screen hook view model.
+ *
+ * @pre The route character, when present, identifies the requested kanji entry.
+ * @inv Loaded details, loading state, and feedback messages remain owned by the view model.
+ * @post The returned state reflects the currently requested kanji detail workflow.
+ */
+export function useKanjiDetailScreenViewModel(
+  displayKanjiController: DisplayKanjiInterface,
+  character: string | null,
+  language: string,
+  refreshKey: string,
+  isEnabled: boolean
+): KanjiDetailScreenViewModel {
+  const [details, setDetails] = useState<DetailedKanjiEntry | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isEnabled || character === null) {
+      setDetails(null);
+      setIsLoading(false);
+      setErrorMessage(null);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    void displayKanjiController.getKanjiDetails(character)
+      .then(nextDetails => {
+        setDetails(nextDetails);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setDetails(null);
+        setErrorMessage("The character details could not be loaded.");
+        setIsLoading(false);
+      });
+  }, [character, displayKanjiController, isEnabled, language, refreshKey]);
+
+  return {
+    details,
+    isLoading,
+    errorMessage,
+    async copyKanjiCharacter(): Promise<void> {
+      if (character === null) {
+        setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+        return;
+      }
+
+      try {
+        await displayKanjiController.copyKanjiCharacter(character);
+      } catch {
+        setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+      }
+    },
+    returnToPreviousScreen(): void {
+      try {
+        displayKanjiController.returnToPreviousScreen();
+      } catch {
+        window.history.back();
+      }
     }
   };
 }

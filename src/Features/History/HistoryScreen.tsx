@@ -1,24 +1,10 @@
 import { IonLabel, IonSegment, IonSegmentButton, IonText } from "@ionic/react";
-import { useEffect, useMemo, useState } from "react";
-import { useHistory } from "react-router-dom";
 
-import type { HistoryInterface } from "./Contracts/HistoryInterface";
-import type { HistoryCategory, HistoryGroup } from "../../Shared/DomainTypes";
 import { getHistoryCategoryLabel, translate } from "../../Shared/I18n";
+import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
 import { MobilePage } from "../Shell/MobilePage";
 import { HistoryView } from "./HistoryView";
-
-interface HistoryScreenProps {
-  readonly historyController: HistoryInterface;
-  readonly language: string;
-}
-
-const HISTORY_CATEGORIES: ReadonlyArray<HistoryCategory> = [
-  "search",
-  "visitedEntry",
-  "imageClassification",
-  "drawingClassification"
-];
+import { HISTORY_CATEGORIES } from "./ViewModel/HistoryViewModel";
 
 /**
  * Categorized persistent history screen.
@@ -26,32 +12,18 @@ const HISTORY_CATEGORIES: ReadonlyArray<HistoryCategory> = [
  * @pre Persistence has been initialized by the composition root.
  * @post Entries render by category from newest to oldest.
  */
-export function HistoryScreen(props: HistoryScreenProps): JSX.Element {
-  const history = useHistory();
-  const [groups, setGroups] = useState<ReadonlyArray<HistoryGroup>>([]);
-  const [category, setCategory] = useState<HistoryCategory>("search");
-
-  useEffect(() => {
-    void props.historyController.getEntriesByCategory()
-      .then(nextGroups => setGroups(nextGroups as ReadonlyArray<HistoryGroup>))
-      .catch(() => setGroups([]));
-  }, [props.historyController]);
-
-  const activeGroups = useMemo(() => {
-    return groups.filter(group => group.category === category);
-  }, [category, groups]);
-
-  const isEmpty = activeGroups.length === 0 || activeGroups[0].entries.length === 0;
+export function HistoryScreen(): JSX.Element {
+  const { history, preferences } = useAppViewModelContext();
 
   return (
-    <MobilePage title={translate(props.language, "history")} testId="history-screen">
+    <MobilePage title={translate(preferences.preferences.language, "history")} testId="history-screen">
       <div className="screen-shell">
         <div className="screen-flow">
           <IonSegment
             className="mode-segment"
             data-testid="history-category-segment"
-            value={category}
-            onIonChange={event => setCategory(toHistoryCategory(String(event.detail.value ?? "")))}
+            value={history.category}
+            onIonChange={event => history.setCategory(String(event.detail.value ?? ""))}
           >
             {HISTORY_CATEGORIES.map(historyCategory => (
               <IonSegmentButton
@@ -59,23 +31,23 @@ export function HistoryScreen(props: HistoryScreenProps): JSX.Element {
                 key={historyCategory}
                 value={historyCategory}
               >
-                <IonLabel>{getHistoryCategoryLabel(props.language, historyCategory)}</IonLabel>
+                <IonLabel>{getHistoryCategoryLabel(preferences.preferences.language, historyCategory)}</IonLabel>
               </IonSegmentButton>
             ))}
           </IonSegment>
 
           <section className="results-panel grow-panel" data-testid="history-list-panel">
-            {isEmpty ? (
+            {history.isEmpty ? (
               <div className="result-list scroll-list" data-testid="history-view">
                 <IonText color="medium">
-                  <p>{translate(props.language, "emptyHistory")}</p>
+                  <p>{translate(preferences.preferences.language, "emptyHistory")}</p>
                 </IonText>
               </div>
             ) : (
               <HistoryView
-                groups={activeGroups}
+                groups={history.activeGroups}
                 onEntrySelected={(character) => {
-                  void props.historyController.openKanjiEntry(character);
+                  void history.openKanjiEntry(character);
                 }}
               />
             )}
@@ -84,8 +56,4 @@ export function HistoryScreen(props: HistoryScreenProps): JSX.Element {
       </div>
     </MobilePage>
   );
-}
-
-function toHistoryCategory(value: string): HistoryCategory {
-  return HISTORY_CATEGORIES.includes(value as HistoryCategory) ? value as HistoryCategory : "search";
 }

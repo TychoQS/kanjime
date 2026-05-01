@@ -11,26 +11,9 @@ import {
   IonToolbar
 } from "@ionic/react";
 import { arrowBack, copyOutline } from "ionicons/icons";
-import { useEffect, useState } from "react";
-import { useHistory, useLocation, useParams } from "react-router-dom";
-
-import type { DisplayKanjiInterface } from "./Contracts/DisplayKanjiInterface";
-import type { DetailedKanjiEntry } from "../../Shared/DomainTypes";
 import { translate } from "../../Shared/I18n";
+import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
 import { KanjiEntryRenderProvider, KanjiEntryView } from "./KanjiEntryView";
-
-interface KanjiDetailScreenProps {
-  readonly displayKanjiController: DisplayKanjiInterface;
-  readonly language: string;
-}
-
-interface KanjiRouteParams {
-  readonly character: string;
-}
-
-interface DetailRouteState {
-  readonly skipHistory?: boolean;
-}
 
 /**
  * Full kanji detail screen with grouped dictionary information.
@@ -38,46 +21,9 @@ interface DetailRouteState {
  * @pre A valid character route parameter is present.
  * @post Available fields for the selected kanji are rendered in one continuous flow.
  */
-export function KanjiDetailScreen(props: KanjiDetailScreenProps): JSX.Element {
-  const history = useHistory();
-  const location = useLocation<DetailRouteState | undefined>();
-  const params = useParams<KanjiRouteParams>();
-  const character = decodeURIComponent(params.character);
-  const [details, setDetails] = useState<DetailedKanjiEntry | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    void props.displayKanjiController.getKanjiDetails(character)
-      .then(nextDetails => {
-        setDetails(nextDetails);
-        setIsLoading(false);
-      })
-      .catch(() => {
-        setDetails(null);
-        setErrorMessage("The character details could not be loaded.");
-        setIsLoading(false);
-      });
-  }, [character, location.state?.skipHistory, props.displayKanjiController, props.language]);
-
-  const onBackRequested = (): void => {
-    try {
-      props.displayKanjiController.returnToPreviousScreen();
-    } catch {
-      history.goBack();
-    }
-  };
-
-  const onCopyRequested = async (): Promise<void> => {
-    try {
-      await props.displayKanjiController.copyKanjiCharacter(character);
-    } catch {
-      setErrorMessage("An unexpected error has occurred and the character could not be identified.");
-    }
-  };
-
+export function KanjiDetailScreen(): JSX.Element {
+  const { kanji, preferences } = useAppViewModelContext();
+  const details = kanji.details;
   return (
     <IonPage>
       <IonHeader translucent={false}>
@@ -85,19 +31,19 @@ export function KanjiDetailScreen(props: KanjiDetailScreenProps): JSX.Element {
           <IonButtons slot="start">
             <IonButton
               data-testid="kanji-back-button"
-              onClick={onBackRequested}
+              onClick={() => kanji.returnToPreviousScreen()}
               aria-label="Back"
             >
               <IonIcon icon={arrowBack} slot="icon-only" />
             </IonButton>
           </IonButtons>
-          <IonTitle>{translate(props.language, "kanjiDetails")}</IonTitle>
+          <IonTitle>{translate(preferences.preferences.language, "kanjiDetails")}</IonTitle>
           <IonButtons slot="end">
             <IonButton
               data-testid="kanji-copy-button"
               disabled={!details}
-              onClick={() => void onCopyRequested()}
-              aria-label={translate(props.language, "copyKanji")}
+              onClick={() => void kanji.copyKanjiCharacter()}
+              aria-label={translate(preferences.preferences.language, "copyKanji")}
             >
               <IonIcon icon={copyOutline} slot="icon-only" />
             </IonButton>
@@ -108,20 +54,20 @@ export function KanjiDetailScreen(props: KanjiDetailScreenProps): JSX.Element {
       <IonContent data-testid="kanji-detail-screen" scrollY={false}>
         <div className="screen-shell">
           <div className="detail-scroll">
-            {isLoading ? (
+            {kanji.isLoading ? (
               <div className="center-state">
                 <IonSpinner name="crescent" />
               </div>
             ) : null}
 
-            {errorMessage ? (
+            {kanji.errorMessage ? (
               <IonText color="danger">
-                <p>{errorMessage}</p>
+                <p>{kanji.errorMessage}</p>
               </IonText>
             ) : null}
 
             {details ? (
-              <KanjiEntryRenderProvider details={details} language={props.language}>
+              <KanjiEntryRenderProvider details={details} language={preferences.preferences.language}>
                 <KanjiEntryView
                   character={details.character}
                   meanings={details.meanings ?? []}
@@ -129,8 +75,8 @@ export function KanjiDetailScreen(props: KanjiDetailScreenProps): JSX.Element {
                   levels={[details.jlptLevel, details.joyoLevel].filter((level): level is string => Boolean(level))}
                   canCopy={true}
                   canGoBack={true}
-                  onCopyRequested={() => void onCopyRequested()}
-                  onBackRequested={onBackRequested}
+                  onCopyRequested={() => void kanji.copyKanjiCharacter()}
+                  onBackRequested={() => kanji.returnToPreviousScreen()}
                 />
               </KanjiEntryRenderProvider>
             ) : null}

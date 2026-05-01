@@ -1,13 +1,24 @@
+import { useEffect, useMemo, useState } from "react";
+
 import type { HistoryInterface } from "../Contracts/HistoryInterface";
 import type { CreateHistoryControllerDependencies } from "../CreateHistoryController";
 import type { HistoryCategory, HistoryGroup } from "../../../Shared/DomainTypes";
 
-const SUPPORTED_CATEGORIES: ReadonlyArray<HistoryCategory> = [
+export const HISTORY_CATEGORIES: ReadonlyArray<HistoryCategory> = [
   "search",
   "visitedEntry",
   "imageClassification",
   "drawingClassification"
 ];
+
+export interface HistoryScreenViewModel {
+  readonly groups: ReadonlyArray<HistoryGroup>;
+  readonly category: HistoryCategory;
+  readonly activeGroups: ReadonlyArray<HistoryGroup>;
+  readonly isEmpty: boolean;
+  setCategory(category: string): void;
+  openKanjiEntry(character: string): Promise<void>;
+}
 
 /**
  * Checks whether a value is a supported history category.
@@ -16,7 +27,7 @@ const SUPPORTED_CATEGORIES: ReadonlyArray<HistoryCategory> = [
  * @post The returned value is true only for the supported category set.
  */
 function isHistoryCategory(category: string): category is HistoryCategory {
-  return SUPPORTED_CATEGORIES.includes(category as HistoryCategory);
+  return HISTORY_CATEGORIES.includes(category as HistoryCategory);
 }
 
 /**
@@ -30,7 +41,7 @@ function normalizeGroups(groups: ReadonlyArray<HistoryGroup>): ReadonlyArray<His
     return [];
   }
 
-  return SUPPORTED_CATEGORIES.map(category => {
+  return HISTORY_CATEGORIES.map(category => {
     const group = groups.find(candidate => candidate.category === category);
 
     return {
@@ -117,6 +128,47 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
       }
 
       await dependencies.navigateToKanjiEntry(character);
+    }
+  };
+}
+
+/**
+ * Creates the History screen hook view model.
+ *
+ * @pre The history controller is initialized and can load stored groups.
+ * @inv The selected category always belongs to the supported history category set.
+ * @post The returned state exposes loaded groups and the derived visible category slice.
+ */
+export function useHistoryScreenViewModel(
+  historyController: HistoryInterface,
+  isEnabled: boolean
+): HistoryScreenViewModel {
+  const [groups, setGroups] = useState<ReadonlyArray<HistoryGroup>>([]);
+  const [category, setCategory] = useState<HistoryCategory>("search");
+
+  useEffect(() => {
+    if (!isEnabled) {
+      return;
+    }
+
+    void historyController.getEntriesByCategory()
+      .then(nextGroups => setGroups(nextGroups as ReadonlyArray<HistoryGroup>))
+      .catch(() => setGroups([]));
+  }, [historyController, isEnabled]);
+
+  const activeGroups = useMemo(() => groups.filter(group => group.category === category), [category, groups]);
+  const isEmpty = activeGroups.length === 0 || activeGroups[0].entries.length === 0;
+
+  return {
+    groups,
+    category,
+    activeGroups,
+    isEmpty,
+    setCategory(value: string): void {
+      setCategory(HISTORY_CATEGORIES.includes(value as HistoryCategory) ? value as HistoryCategory : "search");
+    },
+    openKanjiEntry(character: string): Promise<void> {
+      return historyController.openKanjiEntry(character);
     }
   };
 }

@@ -1,6 +1,19 @@
+import { useEffect, useState } from "react";
+
 import type { SearchInterface } from "../Contracts/SearchInterface";
 import type { CreateSearchControllerDependencies } from "../CreateSearchController";
 import type { CharacterSummary } from "../../../Shared/DomainTypes";
+
+const SEARCH_DELAY_MS = 100;
+
+export interface SearchScreenViewModel {
+  readonly term: string;
+  readonly results: ReadonlyArray<CharacterSummary>;
+  readonly isSearching: boolean;
+  setTerm(term: string): void;
+  clear(): void;
+  openKanjiEntry(character: string): Promise<void>;
+}
 
 /**
  * Creates a defensive copy of result summaries.
@@ -87,6 +100,72 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
       await dependencies.navigateToKanjiEntry(character);
 
       return character as unknown as void;
+    }
+  };
+}
+
+/**
+ * Creates the Search screen hook view model.
+ *
+ * @pre The search controller is connected to the offline repository and navigation.
+ * @inv The hook keeps input state and visible results synchronized through the controller.
+ * @post The returned state reflects the debounced search term, result list, and busy indicator.
+ */
+export function useSearchScreenViewModel(
+  searchController: SearchInterface,
+  isEnabled: boolean
+): SearchScreenViewModel {
+  const [term, setTerm] = useState("");
+  const [results, setResults] = useState<ReadonlyArray<CharacterSummary>>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (!isEnabled) {
+      return;
+    }
+
+    const effectiveTerm = term.trim();
+
+    if (effectiveTerm.length === 0) {
+      setResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timeout = window.setTimeout(() => {
+      void searchController.search(effectiveTerm)
+        .then(nextResults => {
+          setResults(nextResults);
+          setIsSearching(false);
+        })
+        .catch(() => {
+          setResults([]);
+          setIsSearching(false);
+        });
+    }, SEARCH_DELAY_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [isEnabled, searchController, term]);
+
+  return {
+    term,
+    results,
+    isSearching,
+    setTerm,
+    clear(): void {
+      try {
+        searchController.clearSearch();
+      } catch {
+        // no-op: the screen can already be empty
+      }
+
+      setTerm("");
+      setResults([]);
+      setIsSearching(false);
+    },
+    openKanjiEntry(character: string): Promise<void> {
+      return searchController.openKanjiEntry(character);
     }
   };
 }

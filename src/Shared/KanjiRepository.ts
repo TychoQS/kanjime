@@ -120,7 +120,6 @@ export class KanjiRepository {
   private async searchByReading(term: string): Promise<ReadonlyArray<KanjiSummary>> {
     const database = this.requireDatabase();
     const normalizedTerms = this.createSearchTerms(term);
-    console.log("normalizedTerms", normalizedTerms);
     if (normalizedTerms.length === 0) {
       return [];
     }

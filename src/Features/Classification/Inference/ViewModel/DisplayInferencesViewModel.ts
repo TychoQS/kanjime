@@ -6,36 +6,6 @@ import type { CharacterSummary, HistoryCategory } from "../../../../Shared/Domai
 
 const MAX_VISIBLE_RESULTS = 5;
 
-const KNOWN_SUMMARIES = new Map<string, CharacterSummary & { strokeCount: number }>([
-  [
-    "一",
-    {
-      character: "一",
-      primaryReadings: ["にち", "nichi"],
-      levels: ["JLPT N5", "Joyo 1"],
-      strokeCount: 1
-    }
-  ],
-  [
-    "丁",
-    {
-      character: "丁",
-      primaryReadings: ["ちょう", "cho"],
-      levels: ["JLPT N4", "Joyo 2"],
-      strokeCount: 2
-    }
-  ],
-  [
-    "七",
-    {
-      character: "七",
-      primaryReadings: ["しち", "nana"],
-      levels: ["JLPT N5", "Joyo 1"],
-      strokeCount: 2
-    }
-  ]
-]);
-
 let registeredDisplayClear: (() => void) | null = null;
 
 export function clearRegisteredInferenceDisplayState(): void {
@@ -46,7 +16,7 @@ function toSummary(
   prediction: { character: string },
   dependencies: CreateDisplayInferencesControllerDependencies
 ): CharacterSummary & { strokeCount: number } {
-  const resolvedSummary = dependencies.resolveSummary?.(prediction.character) ?? KNOWN_SUMMARIES.get(prediction.character);
+  const resolvedSummary = dependencies.resolveSummary?.(prediction.character);
 
   if (resolvedSummary) {
     return {
@@ -113,8 +83,8 @@ export function createDisplayInferencesViewModel(
 
       wasCleared = false;
       visibleResults = createVisibleResults(predictions, {
-        sortByConfidence: false,
-        limit: 2
+        sortByConfidence: true,
+        limit: MAX_VISIBLE_RESULTS
       }, dependencies);
       lastImageSourceId = sourceId;
       lastHistoryCategory = "imageClassification";

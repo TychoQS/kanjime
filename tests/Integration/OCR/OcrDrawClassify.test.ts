@@ -10,7 +10,7 @@ import {
   createVoidArgumentRecorder,
   createVoidTupleRecorder
 } from "../../Support/DependencyFactories";
-import { TEST_IMAGE, TEST_PREDICTIONS, TEST_SECOND_STROKE, TEST_STROKE, TEST_THIRD_STROKE } from "../../Support/TestData";
+import { TEST_IMAGE, TEST_PREDICTIONS, TEST_SECOND_STROKE, TEST_STROKE, TEST_THIRD_STROKE, TEST_MOCK_RESOLVE_SUMMARY } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 
 describe("OCR-DRAW-CLASSIFY", () => {
@@ -46,7 +46,8 @@ describe("OCR-DRAW-CLASSIFY", () => {
     });
     const display = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     // Precondition: model is loaded and drawing mode is active

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { CreateDisplayInferencesController } from "../../../../src/Features/Classification/Inference/CreateDisplayInferencesController";
 import { createVoidArgumentRecorder, createVoidTupleRecorder } from "../../../Support/DependencyFactories";
-import { TEST_PRIMARY_CHARACTER, TEST_SECONDARY_CHARACTER, TEST_TERTIARY_CHARACTER, TEST_PREDICTIONS, TEST_OTHER_PREDICTIONS, TEST_SUMMARIES, TEST_EXTENDED_PREDICTIONS } from "../../../Support/TestData";
+import { TEST_PRIMARY_CHARACTER, TEST_SECONDARY_CHARACTER, TEST_TERTIARY_CHARACTER, TEST_PREDICTIONS, TEST_OTHER_PREDICTIONS, TEST_SUMMARIES, TEST_EXTENDED_PREDICTIONS, TEST_MOCK_RESOLVE_SUMMARY } from "../../../Support/TestData";
 import { buildRequirementTitle } from "../../../Support/RequirementTest";
 
 describe("DisplayInferencesInterface", () => {
@@ -16,7 +16,8 @@ describe("DisplayInferencesInterface", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     expect(() => controller.updateResultsFromImageSource("", TEST_PREDICTIONS)).toThrow("invalid image source");
@@ -33,7 +34,8 @@ describe("DisplayInferencesInterface", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     controller.updateResultsFromImageSource("image-1", TEST_PREDICTIONS);
@@ -52,7 +54,8 @@ describe("DisplayInferencesInterface", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     controller.updateResultsFromImageSource("image-2", TEST_PREDICTIONS);
@@ -70,7 +73,8 @@ describe("DisplayInferencesInterface", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     expect(() => controller.updateResultsFromDrawingInference([])).toThrow();
@@ -86,7 +90,8 @@ describe("DisplayInferencesInterface", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     controller.updateResultsFromDrawingInference([...TEST_EXTENDED_PREDICTIONS]);
@@ -104,7 +109,8 @@ describe("DisplayInferencesInterface", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     controller.updateResultsFromDrawingInference(TEST_PREDICTIONS);
@@ -121,7 +127,8 @@ describe("DisplayInferencesInterface", () => {
   it(buildRequirementTitle("R10", "Unit", "Precondition", "fails if model is not loaded or no inference performed"), () => {
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: async () => { },
-      saveHistoryEntry: async () => { }
+      saveHistoryEntry: async () => { },
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     expect(() => controller.getVisibleResults()).toThrow();
@@ -137,7 +144,8 @@ describe("DisplayInferencesInterface", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
     controller.updateResultsFromDrawingInference(TEST_PREDICTIONS);
     const results = controller.getVisibleResults();
@@ -162,7 +170,8 @@ describe("DisplayInferencesInterface", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     controller.updateResultsFromDrawingInference(TEST_PREDICTIONS);
@@ -182,7 +191,8 @@ describe("DisplayInferencesInterface", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     return expect(
@@ -210,7 +220,8 @@ describe("DisplayInferencesInterface", () => {
     const historyRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const controller = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     controller.updateResultsFromDrawingInference(TEST_PREDICTIONS);
@@ -233,13 +244,15 @@ describe("DisplayInferencesInterface", () => {
     const imageHistoryRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const imageController = CreateDisplayInferencesController({
       navigateToKanjiEntry: imageNavigationRecorder.handler,
-      saveHistoryEntry: imageHistoryRecorder.handler
+      saveHistoryEntry: imageHistoryRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
     const drawingNavigationRecorder = createVoidArgumentRecorder<string>();
     const drawingHistoryRecorder = createVoidTupleRecorder<[string, "search" | "visitedEntry" | "imageClassification" | "drawingClassification"]>();
     const drawingController = CreateDisplayInferencesController({
       navigateToKanjiEntry: drawingNavigationRecorder.handler,
-      saveHistoryEntry: drawingHistoryRecorder.handler
+      saveHistoryEntry: drawingHistoryRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     imageController.updateResultsFromImageSource("image-1", TEST_PREDICTIONS);

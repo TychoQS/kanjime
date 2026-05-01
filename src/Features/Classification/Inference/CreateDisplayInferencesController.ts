@@ -8,7 +8,7 @@ import { createDisplayInferencesViewModel } from "./ViewModel/DisplayInferencesV
 export interface CreateDisplayInferencesControllerDependencies {
   readonly navigateToKanjiEntry: (character: string) => Promise<void>;
   readonly saveHistoryEntry: (character: string, category: HistoryCategory) => Promise<void>;
-  readonly resolveSummary?: (character: string) => (CharacterSummary & { strokeCount: number }) | null;
+  readonly resolveSummary: (character: string) => (CharacterSummary & { strokeCount: number }) | null;
 }
 
 /**

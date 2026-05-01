@@ -10,7 +10,7 @@ import {
   createVoidArgumentRecorder,
   createVoidTupleRecorder
 } from "../../Support/DependencyFactories";
-import { TEST_CROP, TEST_IMAGE, TEST_OTHER_PREDICTIONS, TEST_PREDICTIONS } from "../../Support/TestData";
+import { TEST_CROP, TEST_IMAGE, TEST_OTHER_PREDICTIONS, TEST_PREDICTIONS, TEST_MOCK_RESOLVE_SUMMARY } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 
 describe("OCR-CROP-CLASSIFY", () => {
@@ -43,7 +43,8 @@ describe("OCR-CROP-CLASSIFY", () => {
     });
     const display = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     // Precondition: model is loaded, image is set, and a valid crop is defined

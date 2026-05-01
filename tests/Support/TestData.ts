@@ -166,16 +166,52 @@ export const TEST_ENRICHED_PREDICTIONS: ReadonlyArray<InferencePrediction> = [
  */
 export const TEST_SUMMARIES: ReadonlyArray<CharacterSummary> = [
   {
-    character: TEST_PRIMARY_CHARACTER,
-    primaryReadings: ["にち", "nichi"],
-    levels: ["JLPT N5", "Joyo 1"]
-  },
-  {
     character: TEST_SECONDARY_CHARACTER,
     primaryReadings: ["ちょう", "cho"],
     levels: ["JLPT N4", "Joyo 2"]
+  },
+  {
+    character: TEST_TERTIARY_CHARACTER,
+    primaryReadings: ["しち", "nana"],
+    levels: ["JLPT N5", "Joyo 1"]
+  },
+  {
+    character: TEST_PRIMARY_CHARACTER,
+    primaryReadings: ["にち", "nichi"],
+    levels: ["JLPT N5", "Joyo 1"]
   }
 ];
+
+export const TEST_MOCK_SUMMARIES: Record<string, CharacterSummary & { strokeCount: number }> = {
+  [TEST_PRIMARY_CHARACTER]: {
+    character: TEST_PRIMARY_CHARACTER,
+    primaryReadings: ["にち", "nichi"],
+    levels: ["JLPT N5", "Joyo 1"],
+    strokeCount: 1
+  },
+  [TEST_SECONDARY_CHARACTER]: {
+    character: TEST_SECONDARY_CHARACTER,
+    primaryReadings: ["ちょう", "cho"],
+    levels: ["JLPT N4", "Joyo 2"],
+    strokeCount: 2
+  },
+  [TEST_TERTIARY_CHARACTER]: {
+    character: TEST_TERTIARY_CHARACTER,
+    primaryReadings: ["しち", "nana"],
+    levels: ["JLPT N5", "Joyo 1"],
+    strokeCount: 2
+  },
+  "海": { character: "海", primaryReadings: ["かい", "うみ"], levels: ["JLPT N5", "Joyo 1"], strokeCount: 9 },
+  "空": { character: "空", primaryReadings: ["くう", "そら"], levels: ["JLPT N5", "Joyo 1"], strokeCount: 8 },
+  "十": { character: "十", primaryReadings: ["じゅう", "とお"], levels: ["JLPT N5", "Joyo 1"], strokeCount: 2 },
+  "八": { character: "八", primaryReadings: ["はち", "や"], levels: ["JLPT N5", "Joyo 1"], strokeCount: 2 },
+  "九": { character: "九", primaryReadings: ["きゅう", "ここの"], levels: ["JLPT N5", "Joyo 1"], strokeCount: 2 },
+  "二": { character: "二", primaryReadings: ["に", "ふた"], levels: ["JLPT N5", "Joyo 1"], strokeCount: 2 }
+};
+
+export const TEST_MOCK_RESOLVE_SUMMARY = (character: string): (CharacterSummary & { strokeCount: number }) | null => {
+  return TEST_MOCK_SUMMARIES[character] ?? null;
+};
 
 /**
  * Detailed kanji entry used by kanji-detail tests.

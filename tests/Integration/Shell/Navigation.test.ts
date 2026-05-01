@@ -10,7 +10,7 @@ import {
   createVoidArgumentRecorder,
   createVoidTupleRecorder
 } from "../../Support/DependencyFactories";
-import { TEST_CROP, TEST_IMAGE, TEST_LANGUAGE, TEST_PREDICTIONS, TEST_STROKE, TEST_THEME } from "../../Support/TestData";
+import { TEST_CROP, TEST_IMAGE, TEST_LANGUAGE, TEST_PREDICTIONS, TEST_STROKE, TEST_THEME, TEST_MOCK_RESOLVE_SUMMARY } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 import { clearRegisteredCanvasState } from "../../../src/Features/Classification/Canvas/ViewModel/CanvasViewModel";
 import { clearRegisteredImageState } from "../../../src/Features/Classification/Image/ViewModel/ImageViewModel";
@@ -55,7 +55,8 @@ describe("NAVIGATION", () => {
     });
     const display = CreateDisplayInferencesController({
       navigateToKanjiEntry: navigationToKanjiRecorder.handler,
-      saveHistoryEntry: historyRecorder.handler
+      saveHistoryEntry: historyRecorder.handler,
+      resolveSummary: TEST_MOCK_RESOLVE_SUMMARY
     });
 
     // Precondition: user has configured preferences and the page has active state

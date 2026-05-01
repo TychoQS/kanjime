@@ -317,7 +317,7 @@ export function ClassificationScreen(props: ClassificationScreenProps): JSX.Elem
                 <p>{errorMessage}</p>
               </IonText>
             ) : null}
-            <div className="result-list">
+            <div className="result-list scroll-list">
               {results.length === 0 && !isProcessing ? (
                 <IonText color="medium">
                   <p>{translate(props.language, "emptyResults")}</p>

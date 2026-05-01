@@ -81,15 +81,20 @@ export class KanjiRepository {
 
   private async searchByKanji(term: string): Promise<ReadonlyArray<KanjiSummary>> {
     const database = this.requireDatabase();
-    const characters = new Set<string>();
+    const characters: string[] = [];
+    const seen = new Set<string>();
 
     const exactMatch = readRows(
       database,
-      `SELECT character, stroke_count FROM kanji_entries WHERE character = ? LIMIT 1`,
+      `SELECT character, stroke_count FROM kanji_entries WHERE character = ? ORDER BY stroke_count LIMIT 1`,
       [term]
     );
     for (const row of exactMatch) {
-      characters.add(readRequiredString(row, "character"));
+      const char = readRequiredString(row, "character");
+      if (!seen.has(char)) {
+        seen.add(char);
+        characters.push(char);
+      }
     }
 
     const likeTerm = `%${term}%`;
@@ -99,10 +104,14 @@ export class KanjiRepository {
       [likeTerm]
     );
     for (const row of componentMatches) {
-      characters.add(readRequiredString(row, "character"));
+      const char = readRequiredString(row, "character");
+      if (!seen.has(char)) {
+        seen.add(char);
+        characters.push(char);
+      }
     }
 
-    return [...characters]
+    return characters
       .slice(0, MAX_SEARCH_RESULTS)
       .map(character => this.getCachedSummary(character))
       .filter((summary): summary is KanjiSummary => summary !== null);
@@ -111,18 +120,18 @@ export class KanjiRepository {
   private async searchByReading(term: string): Promise<ReadonlyArray<KanjiSummary>> {
     const database = this.requireDatabase();
     const normalizedTerms = this.createSearchTerms(term);
-
+    console.log("normalizedTerms", normalizedTerms);
     if (normalizedTerms.length === 0) {
       return [];
     }
 
-    const characters = new Set<string>();
+    const allResults: Array<{ character: string; strokeCount: number }> = [];
 
     for (const searchTerm of normalizedTerms) {
       const rows = readRows(
         database,
         `
-          SELECT DISTINCT e.character
+          SELECT DISTINCT e.character, e.stroke_count
           FROM kanji_entries e
           LEFT JOIN kanji_readings r ON r.character = e.character
           WHERE r.value = ?
@@ -133,13 +142,20 @@ export class KanjiRepository {
       );
 
       for (const row of rows) {
-        characters.add(readRequiredString(row, "character"));
+        const character = readRequiredString(row, "character");
+        const strokeCount = readRequiredNumber(row, "stroke_count");
+        if (!allResults.some(r => r.character === character)) {
+          allResults.push({ character, strokeCount });
+        }
       }
     }
 
-    return [...characters]
-      .slice(0, MAX_SEARCH_RESULTS)
-      .map(character => this.getCachedSummary(character))
+    const sorted = allResults
+      .sort((a, b) => a.strokeCount - b.strokeCount)
+      .slice(0, MAX_SEARCH_RESULTS);
+
+    return sorted
+      .map(({ character }) => this.getCachedSummary(character))
       .filter((summary): summary is KanjiSummary => summary !== null);
   }
 

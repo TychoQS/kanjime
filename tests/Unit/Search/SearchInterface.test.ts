@@ -9,7 +9,8 @@ const mockHistoryRecorder = createVoidArgumentRecorder<{ character: string; cate
 const mockHistoryController = {
   getEntriesByCategory: async () => [],
   saveEntry: mockHistoryRecorder.handler,
-  openKanjiEntry: async () => { }
+  openKanjiEntry: async () => { },
+  subscribe: () => () => { }
 };
 
 describe("SearchInterface", () => {

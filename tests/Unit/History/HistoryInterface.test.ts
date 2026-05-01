@@ -392,4 +392,114 @@ describe("HistoryInterface", () => {
       "HistoryInterface did not return history entries grouped by category."
     );
   });
+
+  /**
+   * Requirement: R41
+   * Type: Unit
+   * Condition: Precondition
+   */
+  it(buildRequirementTitle("R41", "Unit", "Precondition", "the user performs an action that generates a new record (search, visit, or classification from image or drawing)"), async () => {
+    const controller = CreateHistoryController({
+      loadGroups: createAsyncValueRecorder(TEST_HISTORY_GROUPS).handler,
+      persistEntry: createVoidArgumentRecorder().handler,
+      navigateToKanjiEntry: createVoidArgumentRecorder().handler
+    });
+
+    let notificationCount = 0;
+    controller.subscribe(() => {
+      notificationCount++;
+    });
+
+    await controller.getEntriesByCategory();
+    expect(notificationCount).toBe(0, "HistoryInterface incorrectly updated the view on a read operation.");
+
+    await controller.openKanjiEntry(TEST_PRIMARY_CHARACTER);
+    expect(notificationCount).toBe(0, "HistoryInterface incorrectly updated the view on a read operation.");
+
+    const categories = ["search", "visitedEntry", "imageClassification", "drawingClassification"] as const;
+
+    for (const category of categories) {
+      await controller.saveEntry({
+        character: `新-${category}`,
+        category,
+        createdAt: TEST_TIMESTAMP
+      });
+    }
+
+    expect(notificationCount).toBe(4, "HistoryInterface did not update the view when actions generated new records across all categories.");
+  });
+
+  /**
+   * Requirement: R41
+   * Type: Unit
+   * Condition: Invariant
+   */
+  it(buildRequirementTitle("R41", "Unit", "Invariant", "the history information is persistent and does not form part of the volatile state"), async () => {
+    const persistRecorder = createVoidArgumentRecorder<{ character: string; category: any; createdAt: string }>();
+    const controller = CreateHistoryController({
+      loadGroups: createAsyncValueRecorder(TEST_HISTORY_GROUPS).handler,
+      persistEntry: persistRecorder.handler,
+      navigateToKanjiEntry: createVoidArgumentRecorder().handler
+    });
+
+    let persistedDuringNotification = 0;
+
+    controller.subscribe(() => {
+      persistedDuringNotification = persistRecorder.calls.length;
+    });
+
+    const categories = ["search", "visitedEntry", "imageClassification", "drawingClassification"] as const;
+
+    for (let i = 0; i < categories.length; i++) {
+      const category = categories[i];
+      await controller.saveEntry({
+        character: `新-${category}`,
+        category,
+        createdAt: TEST_TIMESTAMP
+      });
+
+      expect(persistedDuringNotification).toBe(
+        i + 1,
+        `HistoryInterface notified listeners of an update for category ${category} before or without persisting the data, treating it as volatile state.`
+      );
+    }
+  });
+
+  /**
+   * Requirement: R41
+   * Type: Unit
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R41", "Unit", "Postcondition", "the history shows the new updated data immediately without having to restart the application"), async () => {
+    const controller = CreateHistoryController({
+      loadGroups: createAsyncValueRecorder(TEST_HISTORY_GROUPS).handler,
+      persistEntry: createVoidArgumentRecorder().handler,
+      navigateToKanjiEntry: createVoidArgumentRecorder().handler
+    });
+
+    let notificationCount = 0;
+    controller.subscribe(() => {
+      notificationCount++;
+    });
+
+    const categories = ["search", "visitedEntry", "imageClassification", "drawingClassification"] as const;
+
+    for (const category of categories) {
+      await controller.saveEntry({
+        character: `新-${category}`,
+        category,
+        createdAt: TEST_TIMESTAMP
+      });
+    }
+
+    expect(notificationCount).toBe(4, "The history did not trigger immediate updates for all categories.");
+
+    const finalGroups = await controller.getEntriesByCategory();
+
+    for (const category of categories) {
+      const group = finalGroups.find(g => g.category === category);
+      const containsNewEntry = group?.entries.some(e => e.character === `新-${category}`);
+      expect(containsNewEntry).toBe(true, `The history did not contain the updated data for category ${category} immediately after the action.`);
+    }
+  });
 });

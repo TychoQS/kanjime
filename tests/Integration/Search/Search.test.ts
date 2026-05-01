@@ -65,7 +65,8 @@ describe("SEARCH", () => {
     const mockHistoryController = {
       getEntriesByCategory: async () => [],
       saveEntry: historyRecorder.handler,
-      openKanjiEntry: async () => undefined
+      openKanjiEntry: async () => undefined,
+      subscribe: () => () => { }
     };
     const search = CreateSearchController({
       queryTerm: queryRecorder.handler,

@@ -77,5 +77,5 @@ if (!HTMLCanvasElement.prototype.getContext) {
 }
 
 if (!globalThis.window) {
-  globalThis.window = globalThis as unknown as Window;
+  (globalThis as unknown as { window: Window }).window = globalThis as unknown as Window;
 }

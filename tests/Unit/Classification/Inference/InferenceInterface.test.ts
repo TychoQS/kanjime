@@ -338,7 +338,7 @@ describe("InferenceInterface", () => {
    */
   it(buildRequirementTitle("R40", "Unit", "Precondition", "returns predictions after drawing inference"), async () => {
     const classifierRecorder = createAsyncTupleRecorder<[string, string], ReadonlyArray<{ character: string; confidence: number; strokeCount: number }>>(TEST_MODEL_PREDICTIONS);
-    const resolveStrokeCount = (character: string): number => TEST_RESOLVED_STROKE_COUNTS[character] ?? 0;
+    const resolveStrokeCount = (character: string): Promise<number> => Promise.resolve(TEST_RESOLVED_STROKE_COUNTS[character] ?? 0);
 
     const controller = CreateInferenceController({
       classifySource: classifierRecorder.handler,
@@ -363,7 +363,7 @@ describe("InferenceInterface", () => {
    */
   it(buildRequirementTitle("R40", "Unit", "Invariant", "predicted characters are not modified by enrichment"), async () => {
     const classifierRecorder = createAsyncTupleRecorder<[string, string], ReadonlyArray<{ character: string; confidence: number; strokeCount: number }>>(TEST_MODEL_PREDICTIONS);
-    const resolveStrokeCount = (character: string): number => TEST_RESOLVED_STROKE_COUNTS[character] ?? 0;
+    const resolveStrokeCount = (character: string): Promise<number> => Promise.resolve(TEST_RESOLVED_STROKE_COUNTS[character] ?? 0);
 
     const controller = CreateInferenceController({
       classifySource: classifierRecorder.handler,
@@ -391,7 +391,7 @@ describe("InferenceInterface", () => {
    */
   it(buildRequirementTitle("R40", "Unit", "Postcondition", "predictions contain correct strokeCount from kanji data"), async () => {
     const classifierRecorder = createAsyncTupleRecorder<[string, string], ReadonlyArray<{ character: string; confidence: number; strokeCount: number }>>(TEST_MODEL_PREDICTIONS);
-    const resolveStrokeCount = (character: string): number => TEST_RESOLVED_STROKE_COUNTS[character] ?? 0;
+    const resolveStrokeCount = (character: string): Promise<number> => Promise.resolve(TEST_RESOLVED_STROKE_COUNTS[character] ?? 0);
 
     const controller = CreateInferenceController({
       classifySource: classifierRecorder.handler,

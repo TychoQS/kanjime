@@ -49,4 +49,14 @@ export interface HistoryInterface {
    * @post The selected kanji entry is displayed without mutating the stored history.
    */
   openKanjiEntry(character: string): Promise<void>;
+
+  /**
+   * Subscribes to history changes.
+   *
+   * Requirement ID: R41.
+   *
+   * @pre An action that generates a new record (search, kanji visit, or classification from image or drawing) is performed.
+   * @post The history shows the new updated data immediately without having to restart the application.
+   */
+  subscribe(listener: () => void): () => void;
 }

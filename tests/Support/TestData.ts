@@ -308,6 +308,11 @@ export const TEST_CANVAS_PROPS = {
   strokeColor: TEST_CANVAS_STROKE_COLOR,
   isDrawingEnabled: true,
   strokes: [TEST_STROKE],
+  activeStroke: null,
+  onPointerDown: () => undefined,
+  onPointerMove: () => undefined,
+  onPointerUp: () => undefined,
+  onPointerCancel: () => undefined,
   onStrokeCommitted: () => undefined,
   onClearRequested: () => undefined
 };

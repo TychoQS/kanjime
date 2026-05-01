@@ -240,9 +240,13 @@ export function ClassificationScreen(props: ClassificationScreenProps): JSX.Elem
                   />
                 </div>
                 <CropOverlayView
-                  imageWidth={imageState.image?.width ?? 1}
-                  imageHeight={imageState.image?.height ?? 1}
-                  activeCrop={activeCrop}
+                  imageWidth={imageFrameRef.current?.getBoundingClientRect().width ?? 1}
+                  imageHeight={imageFrameRef.current?.getBoundingClientRect().height ?? 1}
+                  activeCrop={
+                    activeCrop && imageState.image && imageFrameRef.current
+                      ? toFrameCrop(activeCrop, imageState.image, imageFrameRef.current)
+                      : null
+                  }
                   isVisible={imageState.image !== null && activeCrop !== null}
                   onCropChanged={() => undefined}
                 />
@@ -423,11 +427,56 @@ function toImagePoint(
   frame: HTMLElement,
   image: { readonly width: number; readonly height: number }
 ): StrokePoint {
-  const rect = frame.getBoundingClientRect();
-  const x = clamp(((event.clientX - rect.left) / rect.width) * image.width, 0, image.width);
-  const y = clamp(((event.clientY - rect.top) / rect.height) * image.height, 0, image.height);
-
+  const img = frame.querySelector("img");
+  const boxRect = img!.getBoundingClientRect();
+  const boxAspect = boxRect.width / boxRect.height;
+  const imgAspect = image.width / image.height;
+  let contentWidth: number;
+  let contentHeight: number;
+  let contentLeft: number;
+  let contentTop: number;
+  if (imgAspect > boxAspect) {
+    contentWidth = boxRect.width;
+    contentHeight = boxRect.width / imgAspect;
+    contentLeft = boxRect.left;
+    contentTop = boxRect.top + (boxRect.height - contentHeight) / 2;
+  } else {
+    contentHeight = boxRect.height;
+    contentWidth = boxRect.height * imgAspect;
+    contentTop = boxRect.top;
+    contentLeft = boxRect.left + (boxRect.width - contentWidth) / 2;
+  }
+  const x = clamp(((event.clientX - contentLeft) / contentWidth) * image.width, 0, image.width);
+  const y = clamp(((event.clientY - contentTop) / contentHeight) * image.height, 0, image.height);
   return { x, y };
+}
+
+function toFrameCrop(
+  crop: CropRegion,
+  image: { readonly width: number; readonly height: number },
+  frameEl: HTMLElement
+): CropRegion {
+  const frameRect = frameEl.getBoundingClientRect();
+  const boxAspect = frameRect.width / frameRect.height;
+  const imgAspect = image.width / image.height;
+  let contentW: number, contentH: number, contentL: number, contentT: number;
+  if (imgAspect > boxAspect) {
+    contentW = frameRect.width;
+    contentH = frameRect.width / imgAspect;
+    contentL = 0;
+    contentT = (frameRect.height - contentH) / 2;
+  } else {
+    contentH = frameRect.height;
+    contentW = frameRect.height * imgAspect;
+    contentT = 0;
+    contentL = (frameRect.width - contentW) / 2;
+  }
+  return {
+    x: contentL + (crop.x / image.width) * contentW,
+    y: contentT + (crop.y / image.height) * contentH,
+    width: (crop.width / image.width) * contentW,
+    height: (crop.height / image.height) * contentH
+  };
 }
 
 function clamp(value: number, min: number, max: number): number {

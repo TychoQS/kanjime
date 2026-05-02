@@ -4,6 +4,7 @@
  * @inv History records are persistent and do not belong to volatile screen state.
  * @inv No duplicated history entries exist for the same character and category combination.
  * @inv Every history record belongs to exactly one of the four supported categories.
+ * @inv The history only contains Kanji characters.
  */
 export interface HistoryInterface {
   /**

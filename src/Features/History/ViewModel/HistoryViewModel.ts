@@ -70,15 +70,25 @@ function normalizeGroups(groups: ReadonlyArray<HistoryGroup>): ReadonlyArray<His
 export function createHistoryViewModel(dependencies: CreateHistoryControllerDependencies): HistoryInterface {
   const savedKeys = new Set<string>();
   let cachedGroups: ReadonlyArray<HistoryGroup> = [];
+  const listeners = new Set<() => void>();
+
+  const notifyListeners = () => {
+    listeners.forEach(listener => listener());
+  };
 
   return {
     async getEntriesByCategory(): Promise<ReadonlyArray<HistoryGroup>> {
-      cachedGroups = normalizeGroups(await dependencies.loadGroups());
-
+      if (cachedGroups.length === 0) {
+        cachedGroups = normalizeGroups(await dependencies.loadGroups());
+      }
       return normalizeGroups(cachedGroups);
     },
     async saveEntry(entry): Promise<void> {
-      if (entry.character.trim().length === 0 || !isHistoryCategory(entry.category)) {
+      if (
+        entry.character.trim().length === 0 ||
+        !isHistoryCategory(entry.category) ||
+        !/[\u4e00-\u9fff]/.test(entry.character)
+      ) {
         throw new Error("The history entry could not be saved.");
       }
 
@@ -101,20 +111,26 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
       }
 
       savedKeys.add(key);
-      cachedGroups = normalizeGroups([
-        ...cachedGroups,
-        {
-          category: entry.category,
-          entries: [
-            {
-              character: entry.character,
-              createdAt: entry.createdAt,
-              summary: entry.character
-            }
-          ]
-        }
-      ]);
+      cachedGroups = normalizeGroups(
+        cachedGroups.map(group => {
+          if (group.category === entry.category) {
+            return {
+              ...group,
+              entries: [
+                ...group.entries,
+                {
+                  character: entry.character,
+                  createdAt: entry.createdAt,
+                  summary: entry.character
+                }
+              ]
+            };
+          }
+          return group;
+        })
+      );
       await dependencies.persistEntry({ ...entry });
+      notifyListeners();
     },
     async openKanjiEntry(character: string): Promise<void> {
       if (cachedGroups.length === 0) {
@@ -128,6 +144,12 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
       }
 
       await dependencies.navigateToKanjiEntry(character);
+    },
+    subscribe(listener: () => void): () => void {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
     }
   };
 }
@@ -151,9 +173,18 @@ export function useHistoryScreenViewModel(
       return;
     }
 
-    void historyController.getEntriesByCategory()
-      .then(nextGroups => setGroups(nextGroups as ReadonlyArray<HistoryGroup>))
-      .catch(() => setGroups([]));
+    const load = () => {
+      void historyController.getEntriesByCategory()
+        .then(nextGroups => setGroups(nextGroups as ReadonlyArray<HistoryGroup>))
+        .catch(() => setGroups([]));
+    };
+
+    load();
+    const unsubscribe = historyController.subscribe(load);
+
+    return () => {
+      unsubscribe();
+    };
   }, [historyController, isEnabled]);
 
   const activeGroups = useMemo(() => groups.filter(group => group.category === category), [category, groups]);

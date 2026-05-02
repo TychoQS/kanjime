@@ -22,6 +22,8 @@ export const TEST_PRIMARY_CHARACTER = PROJECT_METADATA.primaryCharacter;
 export const TEST_SECONDARY_CHARACTER = PROJECT_METADATA.secondaryCharacter;
 export const TEST_TERTIARY_CHARACTER = PROJECT_METADATA.thirdCharacter;
 export const TEST_TIMESTAMP = "2026-04-20T10:00:00.000Z";
+export const TEST_HISTORY_CATEGORIES = ["search", "visitedEntry", "imageClassification", "drawingClassification"] as const;
+export const TEST_NON_KANJI_CHARACTERS = ["a", "あ", "ア"];
 
 /**
  * Canonical stroke sample used by drawing-related tests.

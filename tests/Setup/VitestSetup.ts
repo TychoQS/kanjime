@@ -1,8 +1,17 @@
+if (typeof window === "undefined") {
+  (globalThis as any).window = globalThis;
+  (global as any).window = globalThis;
+}
+if (typeof self === "undefined") {
+  (globalThis as any).self = globalThis;
+  (global as any).self = globalThis;
+}
+
 import "@testing-library/jest-dom/vitest";
 
 import { cleanup } from "@testing-library/react";
 import { setupIonicReact } from "@ionic/react";
-import { afterEach } from "vitest";
+import { afterEach, vi } from "vitest";
 import "../../src/Theme/Variables.css";
 
 class ResizeObserverStub {
@@ -42,6 +51,7 @@ setupIonicReact({ _testing: true });
 
 afterEach(() => {
   cleanup();
+  vi.clearAllTimers();
 });
 
 if (!("ResizeObserver" in globalThis)) {
@@ -71,11 +81,7 @@ if (!window.matchMedia) {
 }
 
 if (!HTMLCanvasElement.prototype.getContext) {
-  HTMLCanvasElement.prototype.getContext = function() {
+  HTMLCanvasElement.prototype.getContext = function () {
     return null;
   };
-}
-
-if (!globalThis.window) {
-  (globalThis as unknown as { window: Window }).window = globalThis as unknown as Window;
 }

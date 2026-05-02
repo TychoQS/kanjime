@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { CreateHistoryController } from "../../../src/Features/History/CreateHistoryController";
 import { createAsyncValueRecorder, createVoidArgumentRecorder } from "../../Support/DependencyFactories";
-import { TEST_HISTORY_GROUPS, TEST_PRIMARY_CHARACTER, TEST_TERTIARY_CHARACTER, TEST_TIMESTAMP } from "../../Support/TestData";
+import { TEST_HISTORY_CATEGORIES, TEST_HISTORY_GROUPS, TEST_NON_KANJI_CHARACTERS, TEST_PRIMARY_CHARACTER, TEST_TERTIARY_CHARACTER, TEST_TIMESTAMP } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 
 describe("HistoryInterface", () => {
@@ -273,7 +273,7 @@ describe("HistoryInterface", () => {
    * Type: Unit
    * Condition: Invariant
    */
-  it(buildRequirementTitle("R17", "Unit", "Invariant", "does not persist duplicated history entries"), async () => {
+  it(buildRequirementTitle("R17", "Unit", "Invariant", "enforces duplication and kanji-only constraints across all categories"), async () => {
     const groupsRecorder = createAsyncValueRecorder(TEST_HISTORY_GROUPS);
     const persistRecorder = createVoidArgumentRecorder<{
       character: string;
@@ -296,9 +296,22 @@ describe("HistoryInterface", () => {
       "HistoryInterface did not reject saving a duplicated history entry."
     ).rejects.toThrow();
 
+    for (const category of TEST_HISTORY_CATEGORIES) {
+      for (const char of TEST_NON_KANJI_CHARACTERS) {
+        await expect(
+          controller.saveEntry({
+            character: char,
+            category,
+            createdAt: TEST_TIMESTAMP
+          }),
+          `HistoryInterface did not reject saving a non-kanji character "${char}" for category ${category}.`
+        ).rejects.toThrow();
+      }
+    }
+
     expect(persistRecorder.calls).toHaveLength(
       0,
-      "HistoryInterface attempted to persist a duplicated history entry."
+      "HistoryInterface unexpectedly persisted invalid history entries (duplicates or non-kanji)."
     );
   });
 

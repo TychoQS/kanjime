@@ -4,6 +4,7 @@ import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
 import sqlWasmUrl from "sql.js/dist/sql-wasm.wasm?url";
 
 import type { PackagedDatabaseMetadata } from "./Contracts/PackagedDatabaseMetadata";
+import { DatabaseError } from "../AppErrors";
 
 const PACKAGED_DATABASE_FILE_NAME = "kanji.sqlite";
 const PACKAGED_METADATA_FILE_NAME = "kanji.metadata.json";
@@ -127,7 +128,7 @@ export async function loadPackagedDatabaseMetadata(): Promise<PackagedDatabaseMe
   const response = await fetch(resolvePackagedDatabaseAssetUrl(PACKAGED_METADATA_FILE_NAME));
 
   if (!response.ok) {
-    throw new Error("The packaged database metadata could not be loaded.");
+    throw new DatabaseError("The packaged database metadata could not be loaded.");
   }
 
   return (await response.json()) as PackagedDatabaseMetadata;
@@ -145,7 +146,7 @@ export async function loadPackagedDatabaseBinaryFromAsset(): Promise<Uint8Array>
   const response = await fetch(resolvePackagedDatabaseAssetUrl());
 
   if (!response.ok) {
-    throw new Error("The packaged database asset could not be loaded.");
+    throw new DatabaseError("The packaged database asset could not be loaded.");
   }
 
   return new Uint8Array(await response.arrayBuffer());

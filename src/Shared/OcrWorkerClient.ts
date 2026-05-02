@@ -1,4 +1,5 @@
 import type { CropRegion, InferencePrediction, Stroke } from "./DomainTypes";
+import { InferenceError, ModelError } from "./AppErrors";
 
 export interface DrawingClassificationInput {
   readonly strokes: ReadonlyArray<Stroke>;
@@ -194,13 +195,13 @@ export class OcrWorkerClient {
     this.pendingRequests.delete(response.id);
 
     if (response.type === "error") {
-      pendingRequest.reject(new Error(response.message));
+      pendingRequest.reject(new InferenceError(response.message));
       return;
     }
 
     if (response.type === "loaded") {
       if (pendingRequest.type !== "load") {
-        pendingRequest.reject(new Error("Unexpected worker response for model load."));
+        pendingRequest.reject(new ModelError("Unexpected worker response for model load."));
         return;
       }
 
@@ -210,7 +211,7 @@ export class OcrWorkerClient {
 
     if (response.type === "preprocessedImage") {
       if (pendingRequest.type !== "preprocessedImage") {
-        pendingRequest.reject(new Error("Unexpected worker response for image preprocessing."));
+        pendingRequest.reject(new InferenceError("Unexpected worker response for image preprocessing."));
         return;
       }
 
@@ -219,7 +220,7 @@ export class OcrWorkerClient {
     }
 
     if (pendingRequest.type !== "predictions") {
-      pendingRequest.reject(new Error("Unexpected worker response for inference predictions."));
+      pendingRequest.reject(new InferenceError("Unexpected worker response for inference predictions."));
       return;
     }
 

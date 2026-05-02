@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { HistoryInterface } from "../Contracts/HistoryInterface";
 import type { CreateHistoryControllerDependencies } from "../CreateHistoryController";
 import type { HistoryCategory, HistoryGroup } from "../../../Shared/DomainTypes";
+import { HistoryError } from "../../../Shared/AppErrors";
 
 export const HISTORY_CATEGORIES: ReadonlyArray<HistoryCategory> = [
   "search",
@@ -89,7 +90,7 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
         !isHistoryCategory(entry.category) ||
         !/[\u4e00-\u9fff]/.test(entry.character)
       ) {
-        throw new Error("The history entry could not be saved.");
+        throw new HistoryError("The history entry could not be saved.");
       }
 
       const key = `${entry.character}-${entry.category}-${entry.createdAt}`;
@@ -107,7 +108,7 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
       );
 
       if (savedKeys.has(key) || isDuplicate) {
-        throw new Error("HistoryInterface did not reject saving a duplicated history entry.");
+        throw new HistoryError("HistoryInterface did not reject saving a duplicated history entry.");
       }
 
       savedKeys.add(key);
@@ -140,7 +141,7 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
       const hasEntries = cachedGroups.some(group => group.entries.length > 0);
 
       if (!hasEntries || character.trim().length === 0) {
-        throw new Error("Select a history item before opening details.");
+        throw new HistoryError("Select a history item before opening details.");
       }
 
       await dependencies.navigateToKanjiEntry(character);

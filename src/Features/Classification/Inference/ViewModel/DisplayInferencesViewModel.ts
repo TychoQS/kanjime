@@ -3,6 +3,7 @@ import type {
   CreateDisplayInferencesControllerDependencies
 } from "../CreateDisplayInferencesController";
 import type { CharacterSummary, HistoryCategory } from "../../../../Shared/DomainTypes";
+import { InferenceError } from "../../../../Shared/AppErrors";
 
 const MAX_VISIBLE_RESULTS = 5;
 
@@ -41,11 +42,11 @@ function createVisibleResults(
   dependencies: CreateDisplayInferencesControllerDependencies
 ): ReadonlyArray<CharacterSummary & { strokeCount: number }> {
   if (predictions.length === 0) {
-    throw new Error("empty predictions");
+    throw new InferenceError("empty predictions");
   }
 
   if (predictions.some(prediction => prediction.character.trim().length === 0)) {
-    throw new Error("The character could not be identified.");
+    throw new InferenceError("The character could not be identified.");
   }
 
   const orderedPredictions = options.sortByConfidence
@@ -74,7 +75,7 @@ export function createDisplayInferencesViewModel(
   return {
     updateResultsFromImageSource(sourceId, predictions): void {
       if (sourceId.trim().length === 0) {
-        throw new Error("invalid image source");
+        throw new InferenceError("invalid image source");
       }
 
       if (sourceId === lastImageSourceId) {
@@ -103,7 +104,7 @@ export function createDisplayInferencesViewModel(
           return [];
         }
 
-        throw new Error("No character results are available yet.");
+        throw new InferenceError("No character results are available yet.");
       }
 
       return visibleResults.map(result => ({
@@ -114,7 +115,7 @@ export function createDisplayInferencesViewModel(
     },
     async openKanjiEntry(character: string): Promise<void> {
       if (!visibleResults.some(result => result.character === character)) {
-        throw new Error("Select a result before opening details.");
+        throw new InferenceError("Select a result before opening details.");
       }
 
       await dependencies.navigateToKanjiEntry(character);

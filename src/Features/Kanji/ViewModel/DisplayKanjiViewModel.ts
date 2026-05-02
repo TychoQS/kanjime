@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { DisplayKanjiInterface } from "../Contracts/DisplayKanjiInterface";
 import type { CreateDisplayKanjiControllerDependencies } from "../CreateDisplayKanjiController";
 import type { DetailedKanjiEntry } from "../../../Shared/DomainTypes";
+import { ApplicationError, DatabaseError, InfrastructureError } from "../../../Shared/AppErrors";
 
 let hasReportedMissingBackContext = false;
 
@@ -52,13 +53,13 @@ export function createDisplayKanjiViewModel(
   return {
     async getKanjiDetails(character: string): Promise<DetailedKanjiEntry> {
       if (character.trim().length === 0) {
-        throw new Error("Select a character before opening details.");
+        throw new DatabaseError("Select a character before opening details.");
       }
 
       const entry = await dependencies.loadKanjiDetails(character);
 
       if (entry.character !== character || entry.strokeCount <= 0) {
-        throw new Error("The character details could not be loaded.");
+        throw new DatabaseError("The character details could not be loaded.");
       }
 
       selectedCharacter = character;
@@ -67,7 +68,7 @@ export function createDisplayKanjiViewModel(
     },
     async copyKanjiCharacter(character: string): Promise<void> {
       if (character.trim().length === 0) {
-        throw new Error("Open a character before copying it.");
+        throw new ApplicationError("Open a character before copying it.");
       }
 
       selectedCharacter = character;
@@ -77,7 +78,7 @@ export function createDisplayKanjiViewModel(
       if (selectedCharacter === null) {
         if (!hasReportedMissingBackContext) {
           hasReportedMissingBackContext = true;
-          throw new Error("Open a character before going back.");
+          throw new InfrastructureError("Open a character before going back.");
         }
       }
 

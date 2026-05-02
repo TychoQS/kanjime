@@ -1,6 +1,7 @@
 import type { PhotoInterface } from "../Contracts/PhotoInterface";
 import type { CreatePhotoControllerDependencies } from "../CreatePhotoController";
 import type { ImageDescriptor } from "../../../../Shared/DomainTypes";
+import { ApplicationError, ImageError } from "../../../../Shared/AppErrors";
 
 let cameraDenialCount = 0;
 
@@ -17,7 +18,7 @@ function assertValidAcquiredImage(image: ImageDescriptor): void {
     image.width <= 0 ||
     image.height <= 0
   ) {
-    throw new Error("The selected image could not be used.");
+    throw new ImageError("The selected image could not be used.");
   }
 }
 
@@ -37,7 +38,7 @@ export function createPhotoViewModel(dependencies: CreatePhotoControllerDependen
       return { ...image };
     } catch (error) {
       const message = String(error).toLowerCase();
-      const stack = new Error().stack ?? "";
+      const stack = new ApplicationError("Stack trace capture").stack ?? "";
 
       if (message.includes("permission")) {
         cameraDenialCount += 1;

@@ -1,6 +1,7 @@
 import type { Stroke } from "../../../../Shared/DomainTypes";
 import { DRAWING_CANVAS_SIZE, MODEL_INPUT_SIZE } from "../InferenceRuntimeConfig";
 import type { InferenceInterface } from "../Contracts/InferenceInterface";
+import { ImageError, InferenceError, ModelError, StrokeError } from "../../../../Shared/AppErrors";
 import type {
   CreateInferenceControllerDependencies
 } from "../CreateInferenceController";
@@ -18,29 +19,29 @@ const DRAWING_SOURCE_URL = "drawing://canvas";
 
 function assertValidModelDimensions(width: number, height: number): void {
   if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
-    throw new Error("The image could not be prepared for identification.");
+    throw new InferenceError("The image could not be prepared for identification.");
   }
 }
 
 function assertPositiveInteger(value: number, errorMessage: string): void {
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(errorMessage);
+    throw new InferenceError(errorMessage);
   }
 }
 
 function assertValidCrop(crop: { x: number; y: number; width: number; height: number }): void {
   if (crop.width <= 0 || crop.height <= 0) {
-    throw new Error("Select a valid area before identifying a character.");
+    throw new InferenceError("Select a valid area before identifying a character.");
   }
 }
 
 function assertInputSource(sourceId: string, inputUrl: string): void {
   if (sourceId.trim().length === 0 || inputUrl.trim().length === 0) {
     if (sourceId.trim().length === 0) {
-      throw new Error("InferenceInterface rejected an empty sourceId.");
+      throw new InferenceError("InferenceInterface rejected an empty sourceId.");
     }
 
-    throw new Error("InferenceInterface rejected an empty inputUrl.");
+    throw new InferenceError("InferenceInterface rejected an empty inputUrl.");
   }
 }
 
@@ -69,7 +70,7 @@ function createCompatibilityImageData(width: number, height: number, isCropMode:
 
 function assertMatchesRuntimeModelSize(width: number, height: number, modelInputSize: number): void {
   if (width !== modelInputSize || height !== modelInputSize) {
-    throw new Error("The image could not be prepared for identification.");
+    throw new InferenceError("The image could not be prepared for identification.");
   }
 }
 
@@ -98,12 +99,12 @@ function cloneStrokes(strokes: ReadonlyArray<Stroke>): ReadonlyArray<Stroke> {
 
 function assertPredictionShape(predictions: PredictionWithStrokeCount): void {
   if (predictions.length === 0) {
-    throw new Error("An unexpected error has occurred and the character could not be identified.");
+    throw new InferenceError("An unexpected error has occurred and the character could not be identified.");
   }
 
   for (const prediction of predictions) {
     if (prediction.character.trim().length === 0 || Number.isNaN(prediction.confidence)) {
-      throw new Error("An unexpected error has occurred and the character could not be identified.");
+      throw new InferenceError("An unexpected error has occurred and the character could not be identified.");
     }
   }
 }
@@ -116,7 +117,7 @@ function createCanvasSurface(width: number, height: number): CanvasSurface {
     });
 
     if (context === null) {
-      throw new Error("The image could not be prepared for identification.");
+      throw new InferenceError("The image could not be prepared for identification.");
     }
 
     return {
@@ -135,7 +136,7 @@ function createCanvasSurface(width: number, height: number): CanvasSurface {
     });
 
     if (context === null) {
-      throw new Error("The image could not be prepared for identification.");
+      throw new InferenceError("The image could not be prepared for identification.");
     }
 
     return {
@@ -145,7 +146,7 @@ function createCanvasSurface(width: number, height: number): CanvasSurface {
     };
   }
 
-  throw new Error("The image could not be prepared for identification.");
+  throw new InferenceError("The image could not be prepared for identification.");
 }
 
 async function loadImageBitmapFromUri(sourceUri: string): Promise<ImageBitmap | HTMLImageElement> {
@@ -153,7 +154,7 @@ async function loadImageBitmapFromUri(sourceUri: string): Promise<ImageBitmap | 
     const response = await fetch(sourceUri);
 
     if (!response.ok) {
-      throw new Error("The image could not be loaded.");
+      throw new ImageError("The image could not be loaded.");
     }
 
     return createImageBitmap(await response.blob());
@@ -163,7 +164,7 @@ async function loadImageBitmapFromUri(sourceUri: string): Promise<ImageBitmap | 
     return new Promise((resolve, reject) => {
       const image = new Image();
       const timeout = setTimeout(() => {
-        reject(new Error("The image could not be loaded."));
+        reject(new ImageError("The image could not be loaded."));
       }, 250);
       image.src = sourceUri;
       image.onload = () => {
@@ -172,12 +173,12 @@ async function loadImageBitmapFromUri(sourceUri: string): Promise<ImageBitmap | 
       };
       image.onerror = () => {
         clearTimeout(timeout);
-        reject(new Error("The image could not be loaded."));
+        reject(new ImageError("The image could not be loaded."));
       };
     });
   }
 
-  throw new Error("The image could not be loaded.");
+  throw new ImageError("The image could not be loaded.");
 }
 
 function releaseImageBitmap(image: ImageBitmap | HTMLImageElement): void {
@@ -392,7 +393,7 @@ export function createInferenceViewModel(
   return {
     async preprocessDrawingForModel(input): Promise<ImageData> {
       if (input.strokeCount <= 0 || input.canvasDataUrl.trim().length === 0) {
-        throw new Error("InferenceInterface accepted a drawing input with no strokes.");
+        throw new StrokeError("InferenceInterface accepted a drawing input with no strokes.");
       }
 
       assertValidModelDimensions(input.modelInputWidth, input.modelInputHeight);
@@ -402,7 +403,7 @@ export function createInferenceViewModel(
         const strokes = cloneStrokes(dependencies.getCurrentStrokes());
 
         if (strokes.length === 0) {
-          throw new Error("InferenceInterface accepted a drawing input with no strokes.");
+          throw new StrokeError("InferenceInterface accepted a drawing input with no strokes.");
         }
 
         return dependencies.preprocessDrawing({
@@ -424,7 +425,7 @@ export function createInferenceViewModel(
     },
     async preprocessImageForModel(input): Promise<ImageData> {
       if (input.sourceUri.trim().length === 0) {
-        throw new Error("InferenceInterface rejected an empty sourceUri for preprocessing.");
+        throw new ImageError("InferenceInterface rejected an empty sourceUri for preprocessing.");
       }
 
       assertValidModelDimensions(input.modelInputWidth, input.modelInputHeight);
@@ -455,18 +456,18 @@ export function createInferenceViewModel(
     async classifyInput(input): Promise<PredictionWithStrokeCount> {
       return classifySource(input.sourceId, input.inputUrl, async () => {
         if (typeof input.strokeCount === "number" && input.strokeCount <= 0) {
-          throw new Error("Draw at least one stroke before identifying a character.");
+          throw new StrokeError("Draw at least one stroke before identifying a character.");
         }
 
         if (dependencies.classifyDrawing && dependencies.getCurrentStrokes) {
           if (input.inputUrl !== DRAWING_SOURCE_URL) {
-            throw new Error("InferenceInterface accepted a drawing input from an unsupported source.");
+            throw new InferenceError("InferenceInterface accepted a drawing input from an unsupported source.");
           }
 
           const currentStrokes = cloneStrokes(dependencies.getCurrentStrokes());
 
           if (currentStrokes.length === 0) {
-            throw new Error("Draw at least one stroke before identifying a character.");
+            throw new StrokeError("Draw at least one stroke before identifying a character.");
           }
 
           return dependencies.classifyDrawing({
@@ -480,13 +481,13 @@ export function createInferenceViewModel(
           return dependencies.classifySource(input.sourceId, input.inputUrl);
         }
 
-        throw new Error("The model could not be initialized.");
+        throw new ModelError("The model could not be initialized.");
       });
     },
     async classifyFullImage(input): Promise<PredictionWithoutStrokeCount> {
       if (input.sourceUri.trim().length === 0) {
         if (!dependencies.classifySource) {
-          throw new Error("The image could not be prepared for identification.");
+          throw new InferenceError("The image could not be prepared for identification.");
         }
 
         return toVisiblePredictions(sortPredictions(await dependencies.classifySource(input.sourceId, input.sourceUri)));
@@ -503,7 +504,7 @@ export function createInferenceViewModel(
           return dependencies.classifySource(input.sourceId, input.sourceUri);
         }
 
-        throw new Error("The image could not be prepared for identification.");
+        throw new InferenceError("The image could not be prepared for identification.");
       }));
     },
     async classifyCrop(input): Promise<PredictionWithoutStrokeCount> {
@@ -526,7 +527,7 @@ export function createInferenceViewModel(
           return dependencies.classifySource(input.sourceId, input.sourceUri);
         }
 
-        throw new Error("The image could not be prepared for identification.");
+        throw new InferenceError("The image could not be prepared for identification.");
       }));
     },
     hasProcessedSource(sourceId: string): boolean {

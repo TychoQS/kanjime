@@ -5,6 +5,7 @@ import ortWasmUrl from "onnxruntime-web/ort-wasm-simd-threaded.wasm?url";
 import type { CropRegion, InferencePrediction, Stroke } from "../../Shared/DomainTypes";
 import type { DrawingClassificationInput, ImageClassificationInput } from "../../Shared/OcrWorkerClient";
 import { MODEL_INPUT_SIZE } from "./Inference/InferenceRuntimeConfig";
+import { ImageError, InferenceError, ModelError } from "../../Shared/AppErrors";
 
 type OcrWorkerRequest =
   | {
@@ -135,14 +136,14 @@ async function loadClasses(): Promise<ReadonlyArray<string>> {
     classesPromise = fetch(CLASSES_URL)
       .then(response => {
         if (!response.ok) {
-          throw new Error("The model classes could not be loaded.");
+          throw new ModelError("The model classes could not be loaded.");
         }
 
         return response.json() as Promise<unknown>;
       })
       .then(parsed => {
         if (!Array.isArray(parsed) || !parsed.every(item => typeof item === "string")) {
-          throw new Error("The model classes are invalid.");
+          throw new ModelError("The model classes are invalid.");
         }
 
         return parsed;
@@ -178,7 +179,7 @@ async function runInferenceWithResources(
   const kanjiLogits = outputs.kanji_logits;
 
   if (!(kanjiLogits.data instanceof Float32Array)) {
-    throw new Error("The model output could not be read.");
+    throw new InferenceError("The model output could not be read.");
   }
 
   return selectTopPredictions(kanjiLogits.data, classes);
@@ -231,7 +232,7 @@ async function createBinarizedImageData(
   const response = await fetch(sourceUri);
 
   if (!response.ok) {
-    throw new Error("The image could not be loaded.");
+    throw new ImageError("The image could not be loaded.");
   }
 
   const imageBitmap = await createImageBitmap(await response.blob());
@@ -377,7 +378,7 @@ function requireCanvasContext(canvas: OffscreenCanvas): OffscreenCanvasRendering
   });
 
   if (context === null) {
-    throw new Error("The image could not be prepared.");
+    throw new InferenceError("The image could not be prepared.");
   }
 
   return context;

@@ -3,6 +3,7 @@ import type {
   CreateToggleClassificationModeControllerDependencies
 } from "../CreateToggleClassificationModeController";
 import type { ClassificationMode } from "../../../../Shared/DomainTypes";
+import { InferenceError } from "../../../../Shared/AppErrors";
 
 /**
  * Checks whether a value is a supported OCR mode.
@@ -29,7 +30,7 @@ export function createToggleClassificationModeViewModel(
   return {
     switchMode(mode: ClassificationMode): void {
       if (!isClassificationMode(mode)) {
-        throw new Error("ToggleClassificationModeInterface accepted an invalid mode.");
+        throw new InferenceError("ToggleClassificationModeInterface accepted an invalid mode.");
       }
 
       const previousMode = currentMode === mode ? (mode === "image" ? "drawing" : "image") : currentMode;

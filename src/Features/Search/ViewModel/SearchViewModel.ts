@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { SearchInterface } from "../Contracts/SearchInterface";
 import type { CreateSearchControllerDependencies } from "../CreateSearchController";
 import type { CharacterSummary } from "../../../Shared/DomainTypes";
+import { SearchError } from "../../../Shared/AppErrors";
 
 const SEARCH_DELAY_MS = 100;
 
@@ -71,7 +72,7 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
     clearSearch(): void {
       if (currentTerm.length === 0 && visibleResults.length === 0) {
         return Promise.reject(
-          new Error("SearchInterface cannot clear an empty search bar.")
+          new SearchError("SearchInterface cannot clear an empty search bar.")
         ) as unknown as void;
       }
 
@@ -80,7 +81,7 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
     },
     async openKanjiEntry(character: string): Promise<void> {
       if (character.trim().length === 0) {
-        throw new Error("SearchInterface accepted an empty character to open.");
+        throw new SearchError("SearchInterface accepted an empty character to open.");
       }
 
       if (visibleResults.length === 0) {
@@ -88,7 +89,7 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
       }
 
       if (visibleResults.length === 0) {
-        throw new Error("SearchInterface cannot open entry because no results are available.");
+        throw new SearchError("SearchInterface cannot open entry because no results are available.");
       }
 
       await dependencies.historyController.saveEntry({

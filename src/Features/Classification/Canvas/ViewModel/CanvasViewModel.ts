@@ -5,6 +5,7 @@ import type { CanvasInterface } from "../Contracts/CanvasInterface";
 import type { CreateCanvasControllerDependencies } from "../CreateCanvasController";
 import { DRAWING_CANVAS_SIZE } from "../../Inference/InferenceRuntimeConfig";
 import type { Stroke, StrokePoint } from "../../../../Shared/DomainTypes";
+import { StrokeError } from "../../../../Shared/AppErrors";
 
 let registeredCanvasClear: (() => void) | null = null;
 const CANVAS_SIZE = DRAWING_CANVAS_SIZE;
@@ -34,7 +35,7 @@ export function clearRegisteredCanvasState(): void {
  */
 function assertValidStroke(stroke: Stroke): void {
   if (stroke.points.length === 0 || stroke.startedAt.trim().length === 0 || stroke.endedAt.trim().length === 0) {
-    throw new Error("Draw at least one stroke before identifying a character.");
+    throw new StrokeError("Draw at least one stroke before identifying a character.");
   }
 }
 
@@ -70,7 +71,7 @@ export function createCanvasViewModel(dependencies: CreateCanvasControllerDepend
     },
     clearCanvas(): void {
       if (strokes.length === 0) {
-        throw new Error("There is no drawing to clear.");
+        throw new StrokeError("There is no drawing to clear.");
       }
 
       strokes.splice(0, strokes.length);

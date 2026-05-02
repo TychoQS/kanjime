@@ -112,6 +112,8 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
   );
 }
 
+import { InfrastructureError } from "./AppErrors";
+
 /**
  * Reads the root application view-model context.
  *
@@ -122,7 +124,7 @@ export function useAppViewModelContext(): AppViewModelContextValue {
   const contextValue = useContext(AppViewModelContext);
 
   if (contextValue === null) {
-    throw new Error("AppViewModelContext is only available inside AppViewModelProvider.");
+    throw new InfrastructureError("AppViewModelContext is only available inside AppViewModelProvider.");
   }
 
   return contextValue;

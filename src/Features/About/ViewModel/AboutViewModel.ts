@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { AboutInterface } from "../Contracts/AboutInterface";
 import type { CreateAboutControllerDependencies } from "../CreateAboutController";
 import type { AboutInformationItem } from "../../../Shared/DomainTypes";
+import { ApplicationError } from "../../../Shared/AppErrors";
 
 export interface AboutScreenViewModel {
   readonly items: ReadonlyArray<AboutInformationItem>;
@@ -21,7 +22,7 @@ export function createAboutViewModel(dependencies: CreateAboutControllerDependen
       const information = await dependencies.loadAboutInformation();
 
       if (information.length === 0) {
-        throw new Error("Application information could not be loaded.");
+        throw new ApplicationError("Application information could not be loaded.");
       }
 
       return information.map(item => ({ ...item }));
@@ -30,7 +31,7 @@ export function createAboutViewModel(dependencies: CreateAboutControllerDependen
       const version = await dependencies.loadApplicationVersion();
 
       if (version.trim().length === 0) {
-        throw new Error("Application version could not be loaded.");
+        throw new ApplicationError("Application version could not be loaded.");
       }
 
       return version;

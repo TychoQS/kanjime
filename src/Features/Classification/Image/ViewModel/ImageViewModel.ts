@@ -1,6 +1,7 @@
 import type { ImageInterface } from "../Contracts/ImageInterface";
 import type { CreateImageControllerDependencies } from "../CreateImageController";
 import type { CropRegion, ImageDescriptor, ImageState } from "../../../../Shared/DomainTypes";
+import { ImageError } from "../../../../Shared/AppErrors";
 
 let registeredImageClear: (() => void) | null = null;
 
@@ -26,7 +27,7 @@ function assertValidImage(image: ImageDescriptor): void {
     image.width <= 0 ||
     image.height <= 0
   ) {
-    throw new Error("The selected image could not be used.");
+    throw new ImageError("The selected image could not be used.");
   }
 }
 
@@ -48,7 +49,7 @@ function assertValidCrop(crop: CropRegion, image: ImageDescriptor): void {
     cropRight > image.width ||
     cropBottom > image.height
   ) {
-    throw new Error("ImageInterface accepted a crop outside the image bounds.");
+    throw new ImageError("ImageInterface accepted a crop outside the image bounds.");
   }
 }
 
@@ -88,7 +89,7 @@ export function createImageViewModel(dependencies: CreateImageControllerDependen
     },
     setActiveCrop(crop: CropRegion): void {
       if (state.image === null) {
-        throw new Error("Select an image before choosing an area.");
+        throw new ImageError("Select an image before choosing an area.");
       }
 
       assertValidCrop(crop, state.image);

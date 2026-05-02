@@ -4,6 +4,7 @@ import { toHiragana, toKatakana } from "wanakana";
 import { loadPackagedDatabaseMetadata, openPackagedDatabase } from "./Database/PackagedDatabase";
 import type { PackagedDatabaseMetadata } from "./Database/Contracts/PackagedDatabaseMetadata";
 import type { CharacterSummary, DetailedKanjiEntry, MeaningEntry } from "./DomainTypes";
+import { DatabaseError } from "./AppErrors";
 
 export interface KanjiSummary extends CharacterSummary {
   readonly strokeCount: number;
@@ -195,7 +196,7 @@ export class KanjiRepository {
     );
 
     if (rows.length === 0) {
-      throw new Error("The character details could not be loaded.");
+      throw new DatabaseError("The character details could not be loaded.");
     }
 
     const entryRow = toKanjiEntryRow(rows[0]);
@@ -226,7 +227,7 @@ export class KanjiRepository {
     const response = await fetch(new URL("assets/attributions/data-sources.json", window.location.origin));
 
     if (!response.ok) {
-      throw new Error("The source acknowledgments could not be loaded.");
+      throw new DatabaseError("The source acknowledgments could not be loaded.");
     }
 
     const parsed = (await response.json()) as { readonly sources?: unknown };
@@ -345,7 +346,7 @@ export class KanjiRepository {
 
   private requireDatabase(): Database {
     if (this.database === null) {
-      throw new Error("The offline dictionary is not ready.");
+      throw new DatabaseError("The offline dictionary is not ready.");
     }
 
     return this.database;
@@ -376,7 +377,7 @@ function readRequiredString(row: Record<string, SqlValue>, key: string): string 
   const value = row[key];
 
   if (typeof value !== "string") {
-    throw new Error("The dictionary data could not be read.");
+    throw new DatabaseError("The dictionary data could not be read.");
   }
 
   return value;
@@ -392,7 +393,7 @@ function readRequiredNumber(row: Record<string, SqlValue>, key: string): number 
   const value = row[key];
 
   if (typeof value !== "number") {
-    throw new Error("The dictionary data could not be read.");
+    throw new DatabaseError("The dictionary data could not be read.");
   }
 
   return value;

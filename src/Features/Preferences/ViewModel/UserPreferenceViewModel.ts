@@ -5,6 +5,7 @@ import type { UserPreferenceInterface } from "../Contracts/UserPreferenceInterfa
 import type { CreateUserPreferenceControllerDependencies } from "../CreateUserPreferenceController";
 import type { ApplicationTheme } from "../../../Shared/DomainTypes";
 import type { SupportedLocale } from "../../../Shared/I18n";
+import { PreferenceError } from "../../../Shared/AppErrors";
 
 const SUPPORTED_LANGUAGES = new Set([
   "en-US",
@@ -59,7 +60,7 @@ export function createUserPreferenceViewModel(
   return {
     setLanguage(nextLanguage: string): void {
       if (!SUPPORTED_LANGUAGES.has(nextLanguage)) {
-        throw new Error("UserPreferenceInterface accepted an empty language.");
+        throw new PreferenceError("UserPreferenceInterface accepted an empty language.");
       }
 
       language = nextLanguage;
@@ -67,7 +68,7 @@ export function createUserPreferenceViewModel(
     },
     setTheme(nextTheme: ApplicationTheme): void {
       if (!isApplicationTheme(nextTheme)) {
-        throw new Error("UserPreferenceInterface accepted an invalid theme.");
+        throw new PreferenceError("UserPreferenceInterface accepted an invalid theme.");
       }
 
       theme = nextTheme;

@@ -41,6 +41,7 @@ import type {
 import { getMeaningLanguagePriority, normalizeLocale, type SupportedLocale } from "./Shared/I18n";
 import { KanjiRepository, type KanjiSummary, type SourceAttribution } from "./Shared/KanjiRepository";
 import { OcrWorkerClient } from "./Shared/OcrWorkerClient";
+import { ImageError } from "./Shared/AppErrors";
 
 export interface AboutDisplayItem {
   readonly label: string;
@@ -269,7 +270,7 @@ export function createCompositionRoot(): CompositionRoot {
         });
 
         if (!photo.webPath) {
-          throw new Error("The selected image could not be used.");
+          throw new ImageError("The selected image could not be used.");
         }
 
         const dimensions = await loadImageDimensions(photo.webPath);
@@ -293,7 +294,7 @@ export function createCompositionRoot(): CompositionRoot {
         });
 
         if (!photo.webPath) {
-          throw new Error("The selected image could not be used.");
+          throw new ImageError("The selected image could not be used.");
         }
 
         const dimensions = await loadImageDimensions(photo.webPath);
@@ -394,7 +395,7 @@ function loadImageDimensions(uri: string): Promise<{ readonly width: number; rea
       width: image.naturalWidth,
       height: image.naturalHeight
     });
-    image.onerror = () => reject(new Error("The image could not be loaded."));
+    image.onerror = () => reject(new ImageError("The image could not be loaded."));
     image.src = uri;
   });
 }

@@ -12,6 +12,7 @@ import type { CreateClassificationControllerDependencies } from "../CreateClassi
 import type { ToggleClassificationModeInterface } from "../Contracts/ToggleClassificationModeInterface";
 import type { ClassificationMode } from "../../../../Shared/DomainTypes";
 import type { CharacterSummary, CropRegion, ImageState, StrokePoint } from "../../../../Shared/DomainTypes";
+import { InferenceError } from "../../../../Shared/AppErrors";
 
 interface CropDraft {
   readonly startX: number;
@@ -91,7 +92,7 @@ export function createClassificationViewModel(
     },
     activateMode(mode: ClassificationMode): void {
       if (!isClassificationMode(mode)) {
-        throw new Error("Select a valid input mode.");
+        throw new InferenceError("Select a valid input mode.");
       }
 
       activeMode = mode;

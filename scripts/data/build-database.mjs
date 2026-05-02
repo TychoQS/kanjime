@@ -257,11 +257,11 @@ function parseJmdict(xmlContents, targetCharacters) {
 }
 
 /**
- * Parses KanjiVG into a map of SVG fragments and component lists.
+ * Parses KanjiVG into a map of SVG fragments, component lists, and radical characters.
  *
  * @param {string} xmlContents Expanded KanjiVG XML.
  * @param {ReadonlySet<string>} targetCharacters Characters allowed by the classifier.
- * @returns {Map<string, { components: string[]; strokeOrderSvg: string }>}
+ * @returns {Map<string, { components: string[]; strokeOrderSvg: string; radical: string }>}
  */
 function parseKanjiVg(xmlContents, targetCharacters) {
   const kanjiMap = new Map();
@@ -279,9 +279,13 @@ function parseKanjiVg(xmlContents, targetCharacters) {
     const componentMatches = strokeOrderSvg.matchAll(/(?:kvg:)?element="([^"]+)"/g);
     const components = [...new Set([...componentMatches].map((componentMatch) => componentMatch[1]).filter(Boolean))];
 
+    const radicalMatch = strokeOrderSvg.match(/<[a-z]+[^>]*kvg:radical="[^"]*"[^>]*kvg:element="([^"]+)"|<[a-z]+[^>]*kvg:element="([^"]+)"[^>]*kvg:radical="[^"]*"/);
+    const radical = radicalMatch ? (radicalMatch[1] || radicalMatch[2]) : "";
+
     kanjiMap.set(character, {
       components,
-      strokeOrderSvg
+      strokeOrderSvg,
+      radical
     });
   }
 
@@ -505,9 +509,11 @@ async function buildPackagedDatabase() {
     const kunyomiExamples = kanjidicEntry.kunyomi.flatMap((reading) => selectReadingExamples(candidateExamples, reading));
     const onyomiExamples = kanjidicEntry.onyomi.flatMap((reading) => selectReadingExamples(candidateExamples, reading));
 
+    const radical = kanjiVgEntry.radical || kanjidicEntry.radical;
+
     runStatement(insertEntryStatement, [
       character,
-      kanjidicEntry.radical,
+      radical,
       JSON.stringify(kanjiVgEntry.components),
       kanjidicEntry.strokeCount,
       kanjiVgEntry.strokeOrderSvg,

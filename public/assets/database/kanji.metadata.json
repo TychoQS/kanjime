@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "builtAt": "2026-04-16T16:10:41.054Z",
+  "builtAt": "2026-05-02T12:36:22.316Z",
   "classCount": 2965,
   "packagedDatabaseAssetPath": "/assets/database/kanji.sqlite",
   "sources": [
     {
       "id": "jmdict",
       "downloadUrl": "http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz",
-      "downloadedAt": "2026-04-16T16:10:02.197Z",
+      "downloadedAt": "2026-05-02T12:27:25.607Z",
       "upstreamVersion": null,
-      "expandedSha256": "04a6b9958551f9e053b05c40dfd32ec76cbeafee1f1daed73eb4b46771377d27"
+      "expandedSha256": "a0026b68b6bdffa9524a5126ba8c4a04cf3c2bf20005aa1e32bab788dbae9aa6"
     },
     {
       "id": "kanjidic2",
       "downloadUrl": "https://www.edrdg.org/kanjidic/kanjidic2.xml.gz",
-      "downloadedAt": "2026-04-16T16:10:04.387Z",
+      "downloadedAt": "2026-05-02T12:27:27.782Z",
       "upstreamVersion": null,
-      "expandedSha256": "bc31564fb60a0061e0b321b0d466f40a64e1dce14d2441ab36daea436356cecb"
+      "expandedSha256": "74b8c42c544988baf1755018c3de736b1227c20992e25a0981b8326f8cfb8b75"
     },
     {
       "id": "kanjivg",
       "downloadUrl": "https://github.com/KanjiVG/kanjivg/releases/download/r20250816/kanjivg-20250816.xml.gz",
-      "downloadedAt": "2026-04-16T16:10:05.707Z",
+      "downloadedAt": "2026-05-02T12:27:29.043Z",
       "upstreamVersion": "r20250816",
       "expandedSha256": "97f316c265eee227cac44af1baf1227f16c707a367038c6b3d72afc864dd8010"
     }

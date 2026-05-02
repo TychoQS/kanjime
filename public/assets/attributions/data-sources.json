@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-16T16:10:41.054Z",
+  "generatedAt": "2026-05-02T12:36:22.316Z",
   "sources": [
     {
       "id": "jmdict",
@@ -7,7 +7,7 @@
       "homepage": "https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project",
       "license": "EDRDG licence statement",
       "downloadUrl": "http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz",
-      "downloadedAt": "2026-04-16T16:10:02.197Z",
+      "downloadedAt": "2026-05-02T12:27:25.607Z",
       "upstreamVersion": null
     },
     {
@@ -16,7 +16,7 @@
       "homepage": "https://www.edrdg.org/wiki/index.php/KANJIDIC_Project",
       "license": "EDRDG licence statement",
       "downloadUrl": "https://www.edrdg.org/kanjidic/kanjidic2.xml.gz",
-      "downloadedAt": "2026-04-16T16:10:04.387Z",
+      "downloadedAt": "2026-05-02T12:27:27.782Z",
       "upstreamVersion": null
     },
     {
@@ -25,7 +25,7 @@
       "homepage": "https://kanjivg.tagaini.net/",
       "license": "Creative Commons Attribution-Share Alike 3.0",
       "downloadUrl": "https://github.com/KanjiVG/kanjivg/releases/download/r20250816/kanjivg-20250816.xml.gz",
-      "downloadedAt": "2026-04-16T16:10:05.707Z",
+      "downloadedAt": "2026-05-02T12:27:29.043Z",
       "upstreamVersion": "r20250816"
     }
   ]

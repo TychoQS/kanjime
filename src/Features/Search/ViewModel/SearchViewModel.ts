@@ -6,6 +6,8 @@ import type { CharacterSummary } from "../../../Shared/DomainTypes";
 import { SearchError } from "../../../Shared/AppErrors";
 
 const SEARCH_DELAY_MS = 100;
+let registeredSearchScreenClear: (() => void) | null = null;
+let shouldClearSearchScreenOnEnable = false;
 
 export interface SearchScreenViewModel {
   readonly term: string;
@@ -14,6 +16,24 @@ export interface SearchScreenViewModel {
   setTerm(term: string): void;
   clear(): void;
   openKanjiEntry(character: string): Promise<void>;
+}
+
+/**
+ * Clears the registered Search screen hook state, when available.
+ *
+ * @post The visible search term, results, and busy state are reset.
+ */
+export function clearRegisteredSearchScreenState(): void {
+  registeredSearchScreenClear?.();
+}
+
+/**
+ * Marks the Search screen to clear its state the next time it becomes active.
+ *
+ * @post The next enabled Search screen render resets its visible state.
+ */
+export function markRegisteredSearchScreenForReset(): void {
+  shouldClearSearchScreenOnEnable = true;
 }
 
 /**
@@ -121,6 +141,35 @@ export function useSearchScreenViewModel(
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
+    registeredSearchScreenClear = () => {
+      try {
+        searchController.clearSearch();
+      } catch {
+        // no-op: the screen can already be empty
+      }
+
+      setTerm("");
+      setResults([]);
+      setIsSearching(false);
+    };
+
+    return () => {
+      if (registeredSearchScreenClear !== null) {
+        registeredSearchScreenClear = null;
+      }
+    };
+  }, [searchController]);
+
+  useEffect(() => {
+    if (!isEnabled || !shouldClearSearchScreenOnEnable) {
+      return;
+    }
+
+    shouldClearSearchScreenOnEnable = false;
+    clearRegisteredSearchScreenState();
+  }, [isEnabled]);
+
+  useEffect(() => {
     if (!isEnabled) {
       return;
     }
@@ -155,15 +204,7 @@ export function useSearchScreenViewModel(
     isSearching,
     setTerm,
     clear(): void {
-      try {
-        searchController.clearSearch();
-      } catch {
-        // no-op: the screen can already be empty
-      }
-
-      setTerm("");
-      setResults([]);
-      setIsSearching(false);
+      clearRegisteredSearchScreenState();
     },
     openKanjiEntry(character: string): Promise<void> {
       return searchController.openKanjiEntry(character);

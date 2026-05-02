@@ -22,6 +22,8 @@ interface CropDraft {
 }
 
 const IMAGE_INFERENCE_DELAY_MS = 450;
+let registeredClassificationScreenClear: (() => void) | null = null;
+let shouldClearClassificationScreenOnEnable = false;
 
 export interface ClassificationScreenViewModel {
   readonly mode: ClassificationMode;
@@ -51,6 +53,24 @@ export interface ClassificationScreenViewModel {
   continueStroke(event: ReactPointerEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement | null): void;
   completeStroke(): void;
   cancelStroke(): void;
+}
+
+/**
+ * Clears the registered OCR screen hook state, when available.
+ *
+ * @post The visible OCR mode, image, strokes, crop, results, and transient feedback are reset.
+ */
+export function clearRegisteredClassificationScreenState(): void {
+  registeredClassificationScreenClear?.();
+}
+
+/**
+ * Marks the OCR screen to clear its state the next time it becomes active.
+ *
+ * @post The next enabled OCR screen render resets controller-backed and local visual state.
+ */
+export function markRegisteredClassificationScreenForReset(): void {
+  shouldClearClassificationScreenOnEnable = true;
 }
 
 export interface ClassificationScreenViewModelDependencies {
@@ -136,6 +156,49 @@ export function useClassificationScreenViewModel(
   const refreshCanvasState = useCallback(() => {
     setCanvasStrokes(dependencies.canvasController.getStrokeHistory());
   }, [dependencies.canvasController]);
+
+  useEffect(() => {
+    registeredClassificationScreenClear = () => {
+      try {
+        dependencies.canvasController.clearCanvas();
+      } catch {
+        // no-op: empty canvas clears are ignored
+      }
+
+      dependencies.imageController.clearImage();
+      dependencies.displayInferencesController.clearResults();
+      setMode(dependencies.classificationController.getActiveMode());
+      setImageState(dependencies.imageController.getImageState());
+      setCanvasStrokes(dependencies.canvasController.getStrokeHistory());
+      setCropDraft(null);
+      setResults(safeGetVisibleResults(dependencies.displayInferencesController));
+      setIsProcessing(false);
+      setErrorMessage(null);
+      lastImageSourceIdRef.current = "";
+      dependencies.canvasInteraction.cancelStroke();
+    };
+
+    return () => {
+      if (registeredClassificationScreenClear !== null) {
+        registeredClassificationScreenClear = null;
+      }
+    };
+  }, [
+    dependencies.canvasController,
+    dependencies.canvasInteraction,
+    dependencies.classificationController,
+    dependencies.displayInferencesController,
+    dependencies.imageController
+  ]);
+
+  useEffect(() => {
+    if (!isEnabled || !shouldClearClassificationScreenOnEnable) {
+      return;
+    }
+
+    shouldClearClassificationScreenOnEnable = false;
+    clearRegisteredClassificationScreenState();
+  }, [isEnabled]);
 
   const classifyImage = useCallback(async (
     sourceId: string,

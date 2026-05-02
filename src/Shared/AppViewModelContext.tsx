@@ -72,10 +72,13 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
     ? decodeURIComponent(routeMatch.params.character)
     : null;
   const language = preferences.preferences.language;
+  const isClassificationActive = location.pathname === "/classification";
+  const isSearchActive = location.pathname === "/search";
+  const isHistoryActive = location.pathname === "/history";
 
   const about = useAboutScreenViewModel(props.root.aboutController, language, isReady);
-  const search = useSearchScreenViewModel(props.root.searchController, isReady);
-  const history = useHistoryScreenViewModel(props.root.historyController, isReady);
+  const search = useSearchScreenViewModel(props.root.searchController, isReady && isSearchActive);
+  const history = useHistoryScreenViewModel(props.root.historyController, isReady && isHistoryActive);
   const kanji = useKanjiDetailScreenViewModel(
     props.root.displayKanjiController,
     currentCharacter,
@@ -92,7 +95,7 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
     classificationController: props.root.classificationController,
     toggleClassificationModeController: props.root.toggleClassificationModeController,
     canvasInteraction
-  }, isReady);
+  }, isReady && isClassificationActive);
 
   const contextValue = useMemo<AppViewModelContextValue>(() => ({
     root: props.root,

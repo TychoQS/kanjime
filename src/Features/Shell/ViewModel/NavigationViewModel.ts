@@ -1,16 +1,32 @@
 import type { NavigationInterface } from "../Contracts/NavigationInterface";
 import type { CreateNavigationControllerDependencies } from "../CreateNavigationController";
 import type { NavigationPage } from "../../../Shared/DomainTypes";
-import { clearRegisteredCanvasState } from "../../Classification/Canvas/ViewModel/CanvasViewModel";
-import { clearRegisteredImageState } from "../../Classification/Image/ViewModel/ImageViewModel";
 import {
-  clearRegisteredInferenceDisplayState
-} from "../../Classification/Inference/ViewModel/DisplayInferencesViewModel";
+  markRegisteredClassificationScreenForReset
+} from "../../Classification/Mode/ViewModel/ClassificationViewModel";
+import { markRegisteredHistoryScreenForReset } from "../../History/ViewModel/HistoryViewModel";
+import { markRegisteredSearchScreenForReset } from "../../Search/ViewModel/SearchViewModel";
 
 const INITIAL_ROUTE = {
   page: "classification",
   mode: "image"
 } as const;
+
+function markCurrentPageStateForReset(page: NavigationPage): void {
+  if (page === "classification") {
+    markRegisteredClassificationScreenForReset();
+    return;
+  }
+
+  if (page === "search") {
+    markRegisteredSearchScreenForReset();
+    return;
+  }
+
+  if (page === "history") {
+    markRegisteredHistoryScreenForReset();
+  }
+}
 
 /**
  * Creates the navigation view model.
@@ -32,12 +48,11 @@ export function createNavigationViewModel(
         void dependencies.publishInitialRoute(INITIAL_ROUTE);
       }
 
-      void dependencies.clearPageState(page);
-      if (page === "classification") {
-        clearRegisteredCanvasState();
-        clearRegisteredImageState();
-        clearRegisteredInferenceDisplayState();
+      const previousPage = currentPage;
+      if (previousPage !== page) {
+        markCurrentPageStateForReset(previousPage);
       }
+      void dependencies.clearPageState(page);
       currentPage = page;
     },
     getInitialRoute(): { page: "classification"; mode: "image" } {

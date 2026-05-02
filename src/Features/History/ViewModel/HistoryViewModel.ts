@@ -5,6 +5,9 @@ import type { CreateHistoryControllerDependencies } from "../CreateHistoryContro
 import type { HistoryCategory, HistoryGroup } from "../../../Shared/DomainTypes";
 import { HistoryError } from "../../../Shared/AppErrors";
 
+let registeredHistoryScreenClear: (() => void) | null = null;
+let shouldClearHistoryScreenOnEnable = false;
+
 export const HISTORY_CATEGORIES: ReadonlyArray<HistoryCategory> = [
   "search",
   "visitedEntry",
@@ -19,6 +22,24 @@ export interface HistoryScreenViewModel {
   readonly isEmpty: boolean;
   setCategory(category: string): void;
   openKanjiEntry(character: string): Promise<void>;
+}
+
+/**
+ * Clears the registered History screen hook state, when available.
+ *
+ * @post The selected category and loaded groups return to their initial state.
+ */
+export function clearRegisteredHistoryScreenState(): void {
+  registeredHistoryScreenClear?.();
+}
+
+/**
+ * Marks the History screen to clear its transient state the next time it becomes active.
+ *
+ * @post The next enabled History screen render resets its selected category and local groups.
+ */
+export function markRegisteredHistoryScreenForReset(): void {
+  shouldClearHistoryScreenOnEnable = true;
 }
 
 /**
@@ -168,6 +189,28 @@ export function useHistoryScreenViewModel(
 ): HistoryScreenViewModel {
   const [groups, setGroups] = useState<ReadonlyArray<HistoryGroup>>([]);
   const [category, setCategory] = useState<HistoryCategory>("search");
+
+  useEffect(() => {
+    registeredHistoryScreenClear = () => {
+      setGroups([]);
+      setCategory("search");
+    };
+
+    return () => {
+      if (registeredHistoryScreenClear !== null) {
+        registeredHistoryScreenClear = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isEnabled || !shouldClearHistoryScreenOnEnable) {
+      return;
+    }
+
+    shouldClearHistoryScreenOnEnable = false;
+    clearRegisteredHistoryScreenState();
+  }, [isEnabled]);
 
   useEffect(() => {
     if (!isEnabled) {

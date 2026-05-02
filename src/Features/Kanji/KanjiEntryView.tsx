@@ -1,5 +1,5 @@
 import { IonContent } from "@ionic/react";
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 import type { DetailedKanjiEntry } from "../../Shared/DomainTypes";
 import { translate } from "../../Shared/I18n";
@@ -17,6 +17,11 @@ interface KanjiEntryRenderContextValue {
 }
 
 const KanjiEntryRenderContext = createContext<KanjiEntryRenderContextValue | null>(null);
+
+const STROKE_ANIMATION_STYLES = Array.from(
+  { length: 40 },
+  (_, index) => `.stroke-order-svg path[id$="-s${index + 1}"] { animation-delay: ${index * 0.8}s; }`
+).join("\n");
 
 /**
  * Provides detail context for rendering the full kanji entry content.
@@ -40,6 +45,18 @@ export function KanjiEntryRenderProvider(props: KanjiEntryRenderProviderProps): 
 export function KanjiEntryView(props: KanjiEntryProps): JSX.Element {
   const contextValue = useContext(KanjiEntryRenderContext);
   const requestCopy = props.onCopyRequested as unknown as (character: string) => void;
+  const [animationKey, setAnimationKey] = useState(0);
+
+  useEffect(() => {
+    if (contextValue?.details?.strokeOrder && contextValue.details.strokeCount > 0) {
+      const durationMs = (contextValue.details.strokeCount * 800) + 1000 + 500;
+      const interval = setInterval(() => {
+        setAnimationKey(k => k + 1);
+      }, durationMs);
+
+      return () => clearInterval(interval);
+    }
+  }, [contextValue?.details]);
 
   if (contextValue !== null) {
     const { details, language } = contextValue;
@@ -105,7 +122,9 @@ export function KanjiEntryView(props: KanjiEntryProps): JSX.Element {
         {details.strokeOrder ? (
           <section className="detail-section" data-testid="kanji-stroke-order-section">
             <h2>{translate(language, "strokeOrder")}</h2>
+            <style>{STROKE_ANIMATION_STYLES}</style>
             <svg
+              key={animationKey}
               className="stroke-order-svg"
               viewBox="0 0 109 109"
               role="img"

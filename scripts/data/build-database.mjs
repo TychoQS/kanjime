@@ -275,11 +275,12 @@ function parseKanjiVg(xmlContents, targetCharacters) {
       continue;
     }
 
-    const strokeOrderSvg = matchedKanji[0];
-    const componentMatches = strokeOrderSvg.matchAll(/(?:kvg:)?element="([^"]+)"/g);
+    const rawStrokeOrderSvg = matchedKanji[0];
+    const strokeOrderSvg = rawStrokeOrderSvg.replace(/<kanji/g, "<g").replace(/<\/kanji>/g, "</g>");
+    const componentMatches = rawStrokeOrderSvg.matchAll(/(?:kvg:)?element="([^"]+)"/g);
     const components = [...new Set([...componentMatches].map((componentMatch) => componentMatch[1]).filter(Boolean))];
 
-    const radicalMatch = strokeOrderSvg.match(/<[a-z]+[^>]*kvg:radical="[^"]*"[^>]*kvg:element="([^"]+)"|<[a-z]+[^>]*kvg:element="([^"]+)"[^>]*kvg:radical="[^"]*"/);
+    const radicalMatch = rawStrokeOrderSvg.match(/<[a-z]+[^>]*kvg:radical="[^"]*"[^>]*kvg:element="([^"]+)"|<[a-z]+[^>]*kvg:element="([^"]+)"[^>]*kvg:radical="[^"]*"/);
     const radical = radicalMatch ? (radicalMatch[1] || radicalMatch[2]) : "";
 
     kanjiMap.set(character, {

@@ -1,5 +1,5 @@
 import { Capacitor } from "@capacitor/core";
-import { Directory, Filesystem } from "@capacitor/filesystem";
+import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
 import sqlWasmUrl from "sql.js/dist/sql-wasm.wasm?url";
 
@@ -10,8 +10,25 @@ const PACKAGED_DATABASE_FILE_NAME = "kanji.sqlite";
 const PACKAGED_METADATA_FILE_NAME = "kanji.metadata.json";
 const NATIVE_PACKAGED_DATABASE_DIRECTORY = "databases";
 const NATIVE_PACKAGED_DATABASE_PATH = `${NATIVE_PACKAGED_DATABASE_DIRECTORY}/${PACKAGED_DATABASE_FILE_NAME}`;
+const NATIVE_PACKAGED_METADATA_PATH = `${NATIVE_PACKAGED_DATABASE_DIRECTORY}/${PACKAGED_METADATA_FILE_NAME}`;
 
 let cachedSqlJsRuntimePromise: Promise<SqlJsStatic> | null = null;
+
+/**
+ * Determines whether the installed native database metadata matches the bundled asset metadata.
+ *
+ * @param installedMetadata Metadata stored in native app storage.
+ * @param bundledMetadata Metadata bundled with the current application build.
+ * @returns `true` when the installed copy can be reused safely.
+ */
+export function isInstalledPackagedDatabaseCurrent(
+  installedMetadata: PackagedDatabaseMetadata,
+  bundledMetadata: PackagedDatabaseMetadata
+): boolean {
+  return installedMetadata.schemaVersion === bundledMetadata.schemaVersion
+    && installedMetadata.builtAt === bundledMetadata.builtAt
+    && installedMetadata.classCount === bundledMetadata.classCount;
+}
 
 /**
  * Resolves the asset URL used to serve the packaged database.
@@ -77,6 +94,29 @@ function decodeBase64ToBytes(base64Contents: string): Uint8Array {
 }
 
 /**
+ * Ensures the native packaged database directory exists without failing when it is already present.
+ *
+ * @returns {Promise<void>}
+ *
+ * @pre The application is running inside a native Capacitor container.
+ * @post The packaged database directory exists in `Directory.Data`.
+ */
+async function ensureNativePackagedDatabaseDirectory(): Promise<void> {
+  try {
+    await Filesystem.stat({
+      directory: Directory.Data,
+      path: NATIVE_PACKAGED_DATABASE_DIRECTORY
+    });
+  } catch {
+    await Filesystem.mkdir({
+      directory: Directory.Data,
+      path: NATIVE_PACKAGED_DATABASE_DIRECTORY,
+      recursive: true
+    });
+  }
+}
+
+/**
  * Ensures that the packaged database has been copied to native app storage.
  *
  * @returns Native path to the installed packaged database.
@@ -89,31 +129,54 @@ export async function ensureInstalledPackagedDatabase(): Promise<string> {
     return NATIVE_PACKAGED_DATABASE_PATH;
   }
 
+  const bundledMetadata = await loadPackagedDatabaseMetadata();
+
   try {
-    await Filesystem.stat({
-      directory: Directory.Data,
-      path: NATIVE_PACKAGED_DATABASE_PATH
-    });
+    const [databaseStat, installedMetadataFile] = await Promise.all([
+      Filesystem.stat({
+        directory: Directory.Data,
+        path: NATIVE_PACKAGED_DATABASE_PATH
+      }),
+      Filesystem.readFile({
+        directory: Directory.Data,
+        path: NATIVE_PACKAGED_METADATA_PATH,
+        encoding: Encoding.UTF8
+      })
+    ]);
 
-    return NATIVE_PACKAGED_DATABASE_PATH;
+    if (!databaseStat || typeof installedMetadataFile.data !== "string") {
+      throw new DatabaseError("The installed packaged database metadata could not be read.");
+    }
+
+    const installedMetadata = JSON.parse(installedMetadataFile.data) as PackagedDatabaseMetadata;
+
+    if (isInstalledPackagedDatabaseCurrent(installedMetadata, bundledMetadata)) {
+      return NATIVE_PACKAGED_DATABASE_PATH;
+    }
   } catch {
-    await Filesystem.mkdir({
-      directory: Directory.Data,
-      path: NATIVE_PACKAGED_DATABASE_DIRECTORY,
-      recursive: true
-    });
-
-    const packagedDatabaseBytes = await loadPackagedDatabaseBinaryFromAsset();
-
-    await Filesystem.writeFile({
-      directory: Directory.Data,
-      path: NATIVE_PACKAGED_DATABASE_PATH,
-      data: encodeBytesToBase64(packagedDatabaseBytes),
-      recursive: true
-    });
-
-    return NATIVE_PACKAGED_DATABASE_PATH;
+    // Install or refresh the packaged database below.
   }
+
+  await ensureNativePackagedDatabaseDirectory();
+
+  const packagedDatabaseBytes = await loadPackagedDatabaseBinaryFromAsset();
+
+  await Filesystem.writeFile({
+    directory: Directory.Data,
+    path: NATIVE_PACKAGED_DATABASE_PATH,
+    data: encodeBytesToBase64(packagedDatabaseBytes),
+    recursive: true
+  });
+
+  await Filesystem.writeFile({
+    directory: Directory.Data,
+    path: NATIVE_PACKAGED_METADATA_PATH,
+    data: JSON.stringify(bundledMetadata),
+    encoding: Encoding.UTF8,
+    recursive: true
+  });
+
+  return NATIVE_PACKAGED_DATABASE_PATH;
 }
 
 /**

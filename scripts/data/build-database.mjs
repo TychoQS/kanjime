@@ -276,7 +276,7 @@ function parseKanjiVg(xmlContents, targetCharacters) {
     }
 
     const rawStrokeOrderSvg = matchedKanji[0];
-    const strokeOrderSvg = rawStrokeOrderSvg.replace(/<kanji/g, "<g").replace(/<\/kanji>/g, "</g>");
+    const strokeOrderSvg = normalizeStrokeOrderSvg(rawStrokeOrderSvg);
     const componentMatches = rawStrokeOrderSvg.matchAll(/(?:kvg:)?element="([^"]+)"/g);
     const components = [...new Set([...componentMatches].map((componentMatch) => componentMatch[1]).filter(Boolean))];
 
@@ -291,6 +291,20 @@ function parseKanjiVg(xmlContents, targetCharacters) {
   }
 
   return kanjiMap;
+}
+
+/**
+ * Converts a raw KanjiVG entry to a parser-safe SVG fragment for mobile WebViews.
+ *
+ * @param {string} rawStrokeOrderSvg Raw XML block extracted from KanjiVG.
+ * @returns {string}
+ */
+function normalizeStrokeOrderSvg(rawStrokeOrderSvg) {
+  return rawStrokeOrderSvg
+    .replace(/<kanji/g, "<g")
+    .replace(/<\/kanji>/g, "</g>")
+    .replace(/\s+xmlns(?::[a-zA-Z0-9_-]+)?="[^"]*"/g, "")
+    .replace(/\s+kvg:[a-zA-Z0-9_-]+="[^"]*"/g, "");
 }
 
 /**

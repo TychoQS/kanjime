@@ -14,6 +14,7 @@ export interface CreateHistoryControllerDependencies {
       createdAt: string;
     }
   ) => Promise<void>;
+  readonly resolveEntrySummary?: (character: string) => string;
   readonly navigateToKanjiEntry: (character: string) => Promise<void>;
 }
 

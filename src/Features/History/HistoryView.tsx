@@ -15,6 +15,8 @@ export function HistoryView(props: HistoryProps): JSX.Element {
         <ul className="plain-list">
           {entries.map(entry => {
             const isRepeatedCharacter = seenCharacters.has(entry.character);
+            const readingSummary = entry.summary === entry.character ? "" : entry.summary;
+            const formattedDate = formatHistoryDate(entry.createdAt);
             seenCharacters.add(entry.character);
 
             return (
@@ -27,7 +29,8 @@ export function HistoryView(props: HistoryProps): JSX.Element {
                   type="button"
                 >
                   <span className="result-kanji" aria-hidden="true">{entry.character}</span>
-                  <span className="result-meta">{entry.summary}</span>
+                  <span className="result-meta">{readingSummary || formattedDate}</span>
+                  {readingSummary.length > 0 ? <span className="result-levels">{formattedDate}</span> : null}
                 </button>
               </li>
             );
@@ -36,4 +39,12 @@ export function HistoryView(props: HistoryProps): JSX.Element {
       ) : null}
     </div>
   );
+}
+
+function formatHistoryDate(createdAt: string): string {
+  if (createdAt.length >= 10 && createdAt[4] === "-" && createdAt[7] === "-") {
+    return createdAt.slice(0, 10);
+  }
+
+  return createdAt;
 }

@@ -154,6 +154,10 @@ export function createCompositionRoot(): CompositionRoot {
         summary: summary ? createHistorySummary(summary) : entry.character
       });
     },
+    resolveEntrySummary: character => {
+      const summary = kanjiRepository.getCachedSummarySnapshot(character);
+      return summary ? createHistorySummary(summary) : character;
+    },
     navigateToKanjiEntry: async (character: string) => {
       navigationDelegate?.("kanjiEntry", character);
     }

@@ -75,16 +75,25 @@ function normalizeGroups(groups: ReadonlyArray<HistoryGroup>): ReadonlyArray<His
   });
 }
 
+function containsHistoryEntry(
+  groups: ReadonlyArray<HistoryGroup>,
+  entry: { readonly character: string; readonly category: HistoryCategory; readonly createdAt: string }
+): boolean {
+  return groups.some(group =>
+    group.category === entry.category &&
+    group.entries.some(candidate =>
+      candidate.character === entry.character &&
+      candidate.createdAt === entry.createdAt
+    )
+  );
+}
+
 /**
  * Creates the persistent history view model.
  *
  * @pre Persistence and navigation dependencies are available.
  * @inv Duplicated character-category entries are not persisted twice by this controller.
  * @post The returned controller exposes grouped history and detail navigation.
- *
- * @issue History entries saved with delay (need app restart to see them). This is a known issue
- *       that will be fixed later with MVVM/context architecture for centralized state.
- *
  * @issue Previous implementation had a stuck variable `hasRejectedPersistedDuplicate`
  *       that blocked saving after first rejection. Fixed by using composite key
  *       `${character}-${category}` and simplified duplicate detection logic.
@@ -133,7 +142,8 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
       }
 
       savedKeys.add(key);
-      cachedGroups = normalizeGroups(
+      const summary = dependencies.resolveEntrySummary?.(entry.character) ?? entry.character;
+      const nextCachedGroups = normalizeGroups(
         cachedGroups.map(group => {
           if (group.category === entry.category) {
             return {
@@ -143,7 +153,7 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
                 {
                   character: entry.character,
                   createdAt: entry.createdAt,
-                  summary: entry.character
+                  summary
                 }
               ]
             };
@@ -151,7 +161,10 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
           return group;
         })
       );
+      cachedGroups = nextCachedGroups;
       await dependencies.persistEntry({ ...entry });
+      const persistedGroups = normalizeGroups(await dependencies.loadGroups());
+      cachedGroups = containsHistoryEntry(persistedGroups, entry) ? persistedGroups : nextCachedGroups;
       notifyListeners();
     },
     async openKanjiEntry(character: string): Promise<void> {

@@ -33,9 +33,13 @@ export function SearchScreen(): JSX.Element {
               <span>{translate(preferences.preferences.language, "results")}</span>
             </div>
             <div className="result-list scroll-list">
-              {search.results.length === 0 && search.isSearching ? (
+              {search.results.length === 0 ? (
                 <IonText color="medium">
-                  <p>{translate(preferences.preferences.language, "loadingApplication")}</p>
+                  <p>
+                    {search.isSearching
+                      ? translate(preferences.preferences.language, "loadingApplication")
+                      : translate(preferences.preferences.language, "noResults")}
+                  </p>
                 </IonText>
               ) : search.results.map(result => (
                 <SearchResultView

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
+    "build:android": "npm run build && npx cap sync android && export CAPACITOR_ANDROID_STUDIO_PATH=~/Descargas/android-studio/bin/studio.sh && npx cap open android",
     "preview": "vite preview",
     "test": "rm -rf .vite && vitest run",
     "test:unit": "vitest run tests/Unit",

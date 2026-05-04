@@ -79,16 +79,16 @@ export function KanjiEntryView(props: KanjiEntryProps): JSX.Element {
           <section className="detail-section" data-testid="kanji-readings-section">
             <h2>{translate(language, "readings")}</h2>
             <div className="two-column">
-              {details.kunyomi && details.kunyomi.length > 0 ? (
-                <div>
-                  <h3>{translate(language, "kunyomi")}</h3>
-                  <p>{details.kunyomi.join(" · ")}</p>
-                </div>
-              ) : null}
               {details.onyomi && details.onyomi.length > 0 ? (
                 <div>
                   <h3>{translate(language, "onyomi")}</h3>
                   <p>{details.onyomi.join(" · ")}</p>
+                </div>
+              ) : null}
+              {details.kunyomi && details.kunyomi.length > 0 ? (
+                <div>
+                  <h3>{translate(language, "kunyomi")}</h3>
+                  <p>{details.kunyomi.join(" · ")}</p>
                 </div>
               ) : null}
             </div>
@@ -110,11 +110,11 @@ export function KanjiEntryView(props: KanjiEntryProps): JSX.Element {
         {(details.kunyomiExamples?.length || details.onyomiExamples?.length) ? (
           <section className="detail-section" data-testid="kanji-examples-section">
             <h2>{translate(language, "examples")}</h2>
-            {details.kunyomiExamples && details.kunyomiExamples.length > 0 ? (
-              <ExampleGroup title={translate(language, "kunyomi")} examples={details.kunyomiExamples} />
-            ) : null}
             {details.onyomiExamples && details.onyomiExamples.length > 0 ? (
               <ExampleGroup title={translate(language, "onyomi")} examples={details.onyomiExamples} />
+            ) : null}
+            {details.kunyomiExamples && details.kunyomiExamples.length > 0 ? (
+              <ExampleGroup title={translate(language, "kunyomi")} examples={details.kunyomiExamples} />
             ) : null}
           </section>
         ) : null}

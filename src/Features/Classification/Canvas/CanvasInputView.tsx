@@ -22,6 +22,7 @@ export const CanvasInputView: React.FC<CanvasInputProps> = props => {
 
   return (
     <div
+      className="canvas-container"
       data-background={props.backgroundColor}
       data-stroke={props.strokeColor}
       data-testid="canvas-container"
@@ -36,17 +37,6 @@ export const CanvasInputView: React.FC<CanvasInputProps> = props => {
         data-testid="drawing-canvas"
         height={CANVAS_SIZE}
         role="presentation"
-        style={{
-          backgroundColor: props.backgroundColor,
-          borderColor: "var(--ion-color-medium)",
-          borderStyle: "solid",
-          borderWidth: "1px",
-          color: props.strokeColor,
-          display: "block",
-          maxWidth: "100%",
-          touchAction: "none",
-          width: "100%"
-        }}
         width={CANVAS_SIZE}
         onPointerDown={props.onPointerDown}
         onPointerMove={props.onPointerMove}

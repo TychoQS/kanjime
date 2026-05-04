@@ -67,6 +67,7 @@ export function GlobalView(props: GlobalProps): JSX.Element {
   return (
     <div
       ref={rootRef}
+      className="global-view"
       data-testid="global-view"
       data-theme={props.theme}
       lang={props.language}
@@ -80,13 +81,13 @@ export function GlobalView(props: GlobalProps): JSX.Element {
 function resolveThemeColors(theme: GlobalProps["theme"]): { readonly backgroundColor: string; readonly color: string } {
   if (theme === "dark") {
     return {
-      backgroundColor: "#0b1220",
-      color: "#f8fbff"
+      backgroundColor: "#0d1110",
+      color: "#eef2ee"
     };
   }
 
   return {
-    backgroundColor: "#f6f8fb",
-    color: "#101828"
+    backgroundColor: "#fbfbf8",
+    color: "#171b19"
   };
 }

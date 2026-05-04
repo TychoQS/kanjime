@@ -14,7 +14,7 @@ import {
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 import { moon, phonePortrait, sunny } from "ionicons/icons";
-import { useEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo } from "react";
 import { Redirect, Route, useHistory, useLocation } from "react-router-dom";
 
 import { AboutScreen } from "./Features/About/AboutScreen";
@@ -28,8 +28,6 @@ import { NavigationView } from "./Features/Shell/NavigationView";
 import { createCompositionRoot, type CompositionRoot } from "./CompositionRoot";
 import type { ApplicationTheme, NavigationPage } from "./Shared/DomainTypes";
 import { LANGUAGE_NAMES, SUPPORTED_LOCALES, normalizeLocale, translate, type TranslationKey } from "./Shared/I18n";
-
-import "./Theme/Variables.css";
 
 /**
  * Application root with Ionic routing, sidebar navigation, preferences, and startup loading.
@@ -49,7 +47,7 @@ function App(): JSX.Element {
 function AppRoot(): JSX.Element {
   const { preferences } = useAppViewModelContext();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.lang = preferences.preferences.language;
     document.documentElement.dataset.theme = resolveEffectiveTheme(preferences.preferences.theme);
   }, [preferences.preferences]);
@@ -108,12 +106,12 @@ function AppShell(): JSX.Element {
       <IonMenu contentId="main-content" side="start" type="overlay" data-testid="app-menu">
         <IonHeader>
           <IonToolbar>
-            <IonButtons slot="start" style={{ marginLeft: "8px" }}>
+            <IonButtons slot="start" className="toolbar-start-controls">
               <IonSelect
+                className="language-select"
                 interface="action-sheet"
                 value={preferences.preferences.language}
                 onIonChange={event => preferences.setLanguage(normalizeLocale(String(event.detail.value)))}
-                style={{ maxWidth: "200px" }}
               >
                 {SUPPORTED_LOCALES.map(locale => (
                   <IonSelectOption key={locale} value={locale}>
@@ -122,7 +120,7 @@ function AppShell(): JSX.Element {
                 ))}
               </IonSelect>
             </IonButtons>
-            <IonButtons slot="end" style={{ marginRight: "8px" }}>
+            <IonButtons slot="end" className="toolbar-end-controls">
               <IonButton
                 data-testid="theme-cycle-button"
                 onClick={() => preferences.setTheme(nextTheme(preferences.preferences.theme))}

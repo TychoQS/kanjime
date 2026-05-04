@@ -8,9 +8,9 @@ import {
   IonText
 } from "@ionic/react";
 import { camera, close, createOutline, imageOutline, trash } from "ionicons/icons";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import type { CropRegion } from "../../Shared/DomainTypes";
+import type { ApplicationTheme, CropRegion } from "../../Shared/DomainTypes";
 import { translate } from "../../Shared/I18n";
 import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
 import { MobilePage } from "../Shell/MobilePage";
@@ -25,6 +25,7 @@ import { InferenceListView } from "./Inference/InferenceListView";
 export function ClassificationScreen(): JSX.Element {
   const { classification, preferences } = useAppViewModelContext();
   const imageFrameRef = useRef<HTMLDivElement>(null);
+  const canvasColors = useCanvasThemeColors(preferences.preferences.theme);
 
   return (
     <MobilePage title={translate(preferences.preferences.language, "recognition")} testId="classification-screen">
@@ -108,8 +109,8 @@ export function ClassificationScreen(): JSX.Element {
             <div className="ocr-input-zone" data-testid="drawing-ocr-zone">
               <div className="classification-canvas-view-embedded">
                 <CanvasInputView
-                  backgroundColor={getCssColor("--ion-color-secondary")}
-                  strokeColor={getCssColor("--ion-color-primary")}
+                  backgroundColor={canvasColors.backgroundColor}
+                  strokeColor={canvasColors.strokeColor}
                   isDrawingEnabled
                   activeStroke={classification.activeStroke}
                   strokes={classification.canvasStrokes}
@@ -199,6 +200,44 @@ function toFrameCrop(
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+interface CanvasThemeColors {
+  readonly backgroundColor: string;
+  readonly strokeColor: string;
+}
+
+/**
+ * Reads canvas colors after theme changes so painted pixels stay synchronized with CSS variables.
+ */
+function useCanvasThemeColors(theme: ApplicationTheme): CanvasThemeColors {
+  const [colors, setColors] = useState<CanvasThemeColors>(() => readCanvasThemeColors());
+
+  useEffect(() => {
+    const updateColors = (): void => {
+      setColors(readCanvasThemeColors());
+    };
+
+    updateColors();
+
+    if (theme !== "system") {
+      return undefined;
+    }
+
+    const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    colorSchemeQuery.addEventListener("change", updateColors);
+
+    return () => colorSchemeQuery.removeEventListener("change", updateColors);
+  }, [theme]);
+
+  return colors;
+}
+
+function readCanvasThemeColors(): CanvasThemeColors {
+  return {
+    backgroundColor: getCssColor("--ion-color-secondary"),
+    strokeColor: getCssColor("--ion-color-primary")
+  };
 }
 
 function getCssColor(name: string): string {

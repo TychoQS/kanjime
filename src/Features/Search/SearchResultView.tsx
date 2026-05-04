@@ -22,13 +22,13 @@ export function SearchResultView(props: SearchResultProps): JSX.Element {
       type="button"
       aria-label={`${props.character} ${props.mainReadings.join(" ")} ${props.levels.join(" ")}`}
     >
-      <h2 className="result-kanji" style={{ margin: 0 }}>{props.character}</h2>
-      <ul className="result-meta" style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", gap: "1ch" }}>
+      <h2 className="result-kanji">{props.character}</h2>
+      <ul className="result-meta inline-list">
         {readings.map((reading, index) => (
           <li key={`reading-${index}`}>{reading}</li>
         ))}
       </ul>
-      <ul className="result-levels" style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", gap: "1ch" }}>
+      <ul className="result-levels inline-list">
         {levels.map((level, index) => (
           <li key={`level-${index}`}>{level}</li>
         ))}

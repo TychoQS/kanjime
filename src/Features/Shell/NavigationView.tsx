@@ -24,7 +24,7 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
   return (
     <div data-testid="navigation-view" className="menu-shell">
       <nav aria-label="Application navigation">
-        <ul role="menu" className="menu-list" style={{ listStyle: "none", padding: 0 }}>
+        <ul role="menu" className="menu-list">
           {props.availablePages.map(page => (
             <li key={page.id} className={props.currentPage === page.id ? "menu-item-active" : ""}>
               <button
@@ -34,19 +34,8 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
                 role="menuitem"
                 type="button"
                 className="menu-item-button"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  width: "100%",
-                  background: "none",
-                  border: "none",
-                  padding: "12px 16px",
-                  textAlign: "left",
-                  color: "inherit",
-                  font: "inherit"
-                }}
               >
-                <IonIcon icon={PAGE_ICONS[page.id]} style={{ marginRight: "16px" }} />
+                <IonIcon className="menu-item-icon" icon={PAGE_ICONS[page.id]} />
                 {page.label}
               </button>
             </li>
@@ -55,21 +44,11 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
       </nav>
       <button
         aria-label="Close navigation"
+        className="menu-close-button"
         onClick={props.onCloseRequested}
         type="button"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          background: "none",
-          border: "none",
-          padding: "12px 16px",
-          width: "100%",
-          color: "inherit",
-          font: "inherit",
-          cursor: "pointer"
-        }}
       >
-        <IonIcon icon={close} style={{ marginRight: "16px" }} />
+        <IonIcon className="menu-item-icon" icon={close} />
         Cerrar
       </button>
     </div>

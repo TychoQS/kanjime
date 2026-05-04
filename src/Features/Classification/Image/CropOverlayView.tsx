@@ -8,23 +8,36 @@ export function CropOverlayView(props: CropProps): JSX.Element | null {
     return null;
   }
 
+  const cropX = (props.activeCrop.x / props.imageWidth) * 100;
+  const cropY = (props.activeCrop.y / props.imageHeight) * 100;
+  const cropWidth = (props.activeCrop.width / props.imageWidth) * 100;
+  const cropHeight = (props.activeCrop.height / props.imageHeight) * 100;
+  const cropRight = cropX + cropWidth;
+  const cropBottom = cropY + cropHeight;
+
   return (
-    <div
+    <svg
+      aria-hidden="true"
+      className="crop-overlay-layer"
       data-crop-x={String(props.activeCrop.x)}
       data-crop-y={String(props.activeCrop.y)}
       data-testid="crop-overlay-view"
-      style={{ inset: 0, pointerEvents: "none", position: "absolute" }}
+      preserveAspectRatio="none"
+      viewBox="0 0 100 100"
     >
-      <div
+      <path
+        className="crop-overlay-scrim"
+        d={`M0 0H100V100H0Z M${cropX} ${cropY}H${cropRight}V${cropBottom}H${cropX}Z`}
+        fillRule="evenodd"
+      />
+      <rect
         className="crop-overlay"
         data-testid="active-crop-box"
-        style={{
-          height: `${(props.activeCrop.height / props.imageHeight) * 100}%`,
-          left: `${(props.activeCrop.x / props.imageWidth) * 100}%`,
-          top: `${(props.activeCrop.y / props.imageHeight) * 100}%`,
-          width: `${(props.activeCrop.width / props.imageWidth) * 100}%`
-        }}
+        height={cropHeight}
+        width={cropWidth}
+        x={cropX}
+        y={cropY}
       />
-    </div>
+    </svg>
   );
 }

@@ -12,11 +12,11 @@ export function HistoryView(props: HistoryProps): JSX.Element {
   return (
     <div className="result-list scroll-list" data-testid="history-view">
       {entries.length === 0 ? (
-        <p style={{ color: "var(--ion-color-medium)", textAlign: "center", width: "100%" }}>
+        <p className="empty-state-text">
           No history entries are available.
         </p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, width: "100%" }}>
+        <ul className="plain-list">
           {entries.map(entry => {
             const isRepeatedCharacter = seenCharacters.has(entry.character);
             seenCharacters.add(entry.character);

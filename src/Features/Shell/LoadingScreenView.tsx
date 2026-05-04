@@ -12,29 +12,17 @@ export function LoadingScreenView(props: LoadingScreenProps): JSX.Element | null
 
   return (
     <IonContent
+      className="loading-screen"
       data-testid="loading-screen-view"
       aria-busy="true"
       aria-live="polite"
       role="status"
       fullscreen
-      style={{
-        "--background": "var(--ion-background-color)",
-        "--color": "var(--ion-text-color)"
-      }}
     >
       <section
+        className="loading-state"
         aria-label={props.message}
         data-blocks-interaction={props.blocksInteraction ? "true" : "false"}
-        style={{
-          alignItems: "center",
-          display: "flex",
-          flexDirection: "column",
-          gap: "var(--ion-padding)",
-          justifyContent: "center",
-          minHeight: "100%",
-          pointerEvents: props.blocksInteraction ? "all" : "auto",
-          textAlign: "center"
-        }}
       >
         <IonSpinner aria-label={props.message} name="crescent" role="progressbar" />
         <IonText>

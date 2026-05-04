@@ -1,4 +1,4 @@
-import { IonLabel, IonSegment, IonSegmentButton, IonText } from "@ionic/react";
+import { IonLabel, IonSegment, IonSegmentButton } from "@ionic/react";
 
 import { getHistoryCategoryLabel, translate } from "../../Shared/I18n";
 import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
@@ -38,11 +38,7 @@ export function HistoryScreen(): JSX.Element {
 
           <section className="results-panel grow-panel" data-testid="history-list-panel">
             {history.isEmpty ? (
-              <div className="result-list scroll-list" data-testid="history-view">
-                <IonText color="medium">
-                  <p>{translate(preferences.preferences.language, "emptyHistory")}</p>
-                </IonText>
-              </div>
+              <div className="result-list scroll-list" data-testid="history-view" />
             ) : (
               <HistoryView
                 groups={history.activeGroups}

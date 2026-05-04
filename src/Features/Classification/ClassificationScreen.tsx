@@ -145,11 +145,7 @@ export function ClassificationScreen(): JSX.Element {
               </IonText>
             ) : null}
             <div className="result-list scroll-list">
-              {classification.results.length === 0 && !classification.isProcessing ? (
-                <IonText color="medium">
-                  <p>{translate(preferences.preferences.language, "emptyResults")}</p>
-                </IonText>
-              ) : (
+              {classification.results.length > 0 ? (
                 <InferenceListView
                   results={classification.results.map(result => ({
                     character: result.character,
@@ -161,7 +157,7 @@ export function ClassificationScreen(): JSX.Element {
                     void classification.openResult(character);
                   }}
                 />
-              )}
+              ) : null}
             </div>
           </section>
         </div>

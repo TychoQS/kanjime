@@ -11,11 +11,7 @@ export function HistoryView(props: HistoryProps): JSX.Element {
 
   return (
     <div className="result-list scroll-list" data-testid="history-view">
-      {entries.length === 0 ? (
-        <p className="empty-state-text">
-          No history entries are available.
-        </p>
-      ) : (
+      {entries.length > 0 ? (
         <ul className="plain-list">
           {entries.map(entry => {
             const isRepeatedCharacter = seenCharacters.has(entry.character);
@@ -37,7 +33,7 @@ export function HistoryView(props: HistoryProps): JSX.Element {
             );
           })}
         </ul>
-      )}
+      ) : null}
     </div>
   );
 }

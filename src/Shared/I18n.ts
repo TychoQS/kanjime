@@ -133,7 +133,7 @@ const ENGLISH_TRANSLATIONS: TranslationMap = {
   results: "Results",
   search: "Search",
   searchHistory: "Searches",
-  searchPlaceholder: "Kanji, reading, or meaning",
+  searchPlaceholder: "Kanji or reading",
   selectCrop: "Drag on the image to refine the area.",
   settings: "Settings",
   strokeCount: "Strokes",
@@ -155,6 +155,9 @@ const ENGLISH_TRANSLATIONS: TranslationMap = {
 };
 
 const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = {
+  "en-GB": {
+    searchPlaceholder: "Kanji or reading"
+  },
   "es-ES": {
     about: "Acerca de",
     acknowledgments: "Agradecimientos",
@@ -186,7 +189,7 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     results: "Resultados",
     search: "Buscar",
     searchHistory: "Búsquedas",
-    searchPlaceholder: "Kanji, lectura o significado",
+    searchPlaceholder: "Kanji o lectura",
     settings: "Ajustes",
     strokeCount: "Trazos",
     strokeOrder: "Orden de trazos",
@@ -217,7 +220,7 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     recognition: "Reconnaissance",
     results: "Résultats",
     search: "Recherche",
-    searchPlaceholder: "Kanji, lecture ou sens",
+    searchPlaceholder: "Kanji ou lecture",
     settings: "Réglages",
     strokeCount: "Traits",
     version: "Version"
@@ -232,6 +235,7 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     recognition: "Erkennung",
     results: "Ergebnisse",
     search: "Suche",
+    searchPlaceholder: "Kanji oder Lesung",
     settings: "Einstellungen"
   },
   "it-IT": {
@@ -244,6 +248,7 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     recognition: "Riconoscimento",
     results: "Risultati",
     search: "Cerca",
+    searchPlaceholder: "Kanji o lettura",
     settings: "Impostazioni"
   },
   "pt-PT": {
@@ -256,7 +261,7 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     recognition: "Reconhecimento",
     results: "Resultados",
     search: "Pesquisar",
-    searchPlaceholder: "Kanji, leitura ou significado",
+    searchPlaceholder: "Kanji ou leitura",
     settings: "Definições"
   },
   "ja-JP": {
@@ -270,6 +275,7 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     recognition: "認識",
     results: "結果",
     search: "検索",
+    searchPlaceholder: "漢字または読み",
     settings: "設定",
     strokeCount: "画数"
   },
@@ -283,6 +289,7 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     recognition: "识别",
     results: "结果",
     search: "搜索",
+    searchPlaceholder: "汉字或读音",
     settings: "设置"
   },
   "zh-TW": {
@@ -295,6 +302,7 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     recognition: "辨識",
     results: "結果",
     search: "搜尋",
+    searchPlaceholder: "漢字或讀音",
     settings: "設定"
   },
   "ko-KR": {
@@ -307,7 +315,11 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     recognition: "인식",
     results: "결과",
     search: "검색",
+    searchPlaceholder: "한자 또는 읽기",
     settings: "설정"
+  },
+  "hi-IN": {
+    searchPlaceholder: "कांजी या पाठन"
   },
   "ar-SA": {
     about: "حول",
@@ -319,7 +331,23 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     recognition: "التعرّف",
     results: "النتائج",
     search: "البحث",
+    searchPlaceholder: "كانجي أو قراءة",
     settings: "الإعدادات"
+  },
+  "sw-KE": {
+    searchPlaceholder: "Kanji au usomaji"
+  },
+  "am-ET": {
+    searchPlaceholder: "ካንጂ ወይም ንባብ"
+  },
+  "ha-NG": {
+    searchPlaceholder: "Kanji ko karatu"
+  },
+  "yo-NG": {
+    searchPlaceholder: "Kanji tabi kika"
+  },
+  "zu-ZA": {
+    searchPlaceholder: "Kanji noma ukufunda"
   }
 };
 

@@ -165,6 +165,14 @@ ion-searchbar::part(input) {
   box-shadow: none;
 }
 
+ion-searchbar input {
+  color: var(--ion-color-secondary-contrast) !important;
+}
+
+ion-action-sheet .action-sheet-button-inner {
+  color: var(--ion-color-secondary-contrast) !important;
+}
+
 .global-view {
   background: var(--ion-background-color);
   color: var(--ion-text-color);
@@ -385,11 +393,11 @@ ion-searchbar::part(input) {
   gap: 0;
 }
 
-.inline-list > li:empty {
+.inline-list>li:empty {
   display: none;
 }
 
-.inline-list > li:not(.result-placeholder-item) + li:not(.result-placeholder-item)::before {
+.inline-list>li:not(.result-placeholder-item)+li:not(.result-placeholder-item)::before {
   color: currentColor;
   content: "・";
   margin-right: 1ch;

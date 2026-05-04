@@ -15,8 +15,8 @@ export function InferenceListView(props: InferenceListProps): JSX.Element {
           type="button"
         >
           <span className="result-kanji">{result.character}</span>
-          <span className="result-meta">{result.primaryReadings.join(" ")}</span>
-          <span className="result-levels">{result.levels.join(" ")}</span>
+          <span className="result-meta">{result.primaryReadings.filter(reading => reading.length > 0).join(" ・ ")}</span>
+          <span className="result-levels">{result.levels.filter(level => level.length > 0).join(" ・ ")}</span>
         </button>
       ))}
     </>

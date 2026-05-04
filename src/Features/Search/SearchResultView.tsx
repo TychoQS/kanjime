@@ -25,12 +25,22 @@ export function SearchResultView(props: SearchResultProps): JSX.Element {
       <h2 className="result-kanji">{props.character}</h2>
       <ul className="result-meta inline-list">
         {readings.map((reading, index) => (
-          <li key={`reading-${index}`}>{reading}</li>
+          <li
+            className={reading.length === 0 ? "result-placeholder-item" : undefined}
+            key={`reading-${index}`}
+          >
+            {reading.length > 0 ? reading : "_"}
+          </li>
         ))}
       </ul>
       <ul className="result-levels inline-list">
         {levels.map((level, index) => (
-          <li key={`level-${index}`}>{level}</li>
+          <li
+            className={level.length === 0 ? "result-placeholder-item" : undefined}
+            key={`level-${index}`}
+          >
+            {level.length > 0 ? level : "_"}
+          </li>
         ))}
       </ul>
     </button>

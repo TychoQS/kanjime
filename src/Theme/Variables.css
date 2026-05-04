@@ -382,20 +382,40 @@ ion-searchbar::part(input) {
 
 .inline-list {
   display: flex;
-  gap: 1ch;
+  gap: 0;
+}
+
+.inline-list > li:empty {
+  display: none;
+}
+
+.inline-list > li:not(.result-placeholder-item) + li:not(.result-placeholder-item)::before {
+  color: currentColor;
+  content: "・";
+  margin-right: 1ch;
+}
+
+.result-placeholder-item {
+  color: transparent;
+  font-size: 0.01px;
+  line-height: 0;
+  margin: 0;
+  max-width: 0;
+  overflow: hidden;
 }
 
 .result-row {
-  align-items: center;
+  align-items: start;
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--app-border);
   color: var(--ion-text-color);
   cursor: pointer;
   display: grid;
-  gap: 12px;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
-  min-height: 62px;
+  column-gap: 12px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  min-height: 72px;
   padding: 10px 2px;
   text-align: start;
   transition-duration: 140ms;
@@ -414,9 +434,12 @@ ion-searchbar::part(input) {
 }
 
 .result-kanji {
+  align-self: center;
   color: var(--ion-color-primary);
   font-size: 2rem;
   font-weight: 800;
+  grid-column: 1;
+  grid-row: 1 / span 2;
   line-height: 1;
   margin: 0;
   text-align: center;
@@ -424,6 +447,7 @@ ion-searchbar::part(input) {
 
 .result-meta {
   color: var(--ion-text-color);
+  grid-column: 2;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -433,6 +457,10 @@ ion-searchbar::part(input) {
 .result-levels {
   color: var(--app-muted);
   font-size: 0.8rem;
+  grid-column: 2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -697,10 +725,6 @@ ion-searchbar::part(input) {
 
   .result-row {
     grid-template-columns: 42px minmax(0, 1fr);
-  }
-
-  .result-levels {
-    grid-column: 2;
   }
 
   .two-column {

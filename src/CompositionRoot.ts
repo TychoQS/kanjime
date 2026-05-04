@@ -103,18 +103,10 @@ export function createCompositionRoot(): CompositionRoot {
     loadAboutInformation: async () => {
       const attributions = await kanjiRepository.loadSourceAttributions();
       const metadata = kanjiRepository.getMetadata();
-
       return [
         { label: "version", value: packageMetadata.version },
-        { label: "license", value: "licenseDetail" },
-        { label: "terms", value: "termsDetail" },
         { label: "authorship", value: "authorshipName" },
-        {
-          label: "model",
-          value: metadata ? `__MODEL_DETAIL__:${metadata.classCount}` : "modelDetailEmpty"
-        },
         { label: "textConversion", value: "textConversionValue" },
-        { label: "interface", value: "interfaceValue" },
         ...formatAttributions(attributions)
       ];
     },

@@ -27,6 +27,7 @@
   --app-border: #dfe4dc;
   --app-border-strong: #c3cbc1;
   --app-muted: #68726d;
+  --app-search-placeholder: #68726d;
   --app-shadow: none;
   --app-radius: 6px;
   --app-gap: 14px;
@@ -61,6 +62,7 @@ html[data-theme="dark"] {
   --app-border: #2e3834;
   --app-border-strong: #46534e;
   --app-muted: #b5beb9;
+  --app-search-placeholder: #c8d0cb;
   --app-shadow: none;
 }
 
@@ -147,10 +149,15 @@ ion-searchbar {
   --border-radius: 0;
   --box-shadow: none;
   --color: var(--ion-text-color);
-  --placeholder-color: var(--app-muted);
   border-bottom: 1px solid var(--app-border);
   box-shadow: none;
   padding: 0;
+}
+
+ion-searchbar.sc-ion-searchbar-md-h,
+ion-searchbar.sc-ion-searchbar-ios-h {
+  --placeholder-color: var(--app-search-placeholder);
+  --placeholder-opacity: 1;
 }
 
 ion-searchbar::part(container),
@@ -256,8 +263,8 @@ ion-searchbar::part(input) {
   display: contents;
 }
 
-.classification-image-view-embedded > button,
-.classification-canvas-view-embedded > button {
+.classification-image-view-embedded>button,
+.classification-canvas-view-embedded>button {
   display: none;
 }
 
@@ -494,7 +501,7 @@ ion-searchbar::part(input) {
   overflow-wrap: anywhere;
 }
 
-.example-group + .example-group {
+.example-group+.example-group {
   margin-top: 14px;
 }
 
@@ -649,6 +656,7 @@ ion-searchbar::part(input) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

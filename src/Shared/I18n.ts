@@ -30,6 +30,8 @@ export type TranslationKey =
   | "activeLanguage"
   | "activeTheme"
   | "cameraOrLibrary"
+  | "ok"
+  | "takePhoto"
   | "changeLanguage"
   | "changeTheme"
   | "clear"
@@ -72,6 +74,7 @@ export type TranslationKey =
   | "settings"
   | "strokeCount"
   | "strokeOrder"
+  | "uploadImage"
   | "terms"
   | "version"
   | "visitedEntries"
@@ -96,6 +99,8 @@ const ENGLISH_TRANSLATIONS: TranslationMap = {
   activeLanguage: "Language",
   activeTheme: "Theme",
   cameraOrLibrary: "Choose image",
+  ok: "OK",
+  takePhoto: "Take photo",
   changeLanguage: "Change language",
   changeTheme: "Change theme",
   clear: "Clear",
@@ -138,6 +143,7 @@ const ENGLISH_TRANSLATIONS: TranslationMap = {
   settings: "Settings",
   strokeCount: "Strokes",
   strokeOrder: "Stroke order",
+  uploadImage: "Upload image",
   terms: "Terms of use",
   version: "Version",
   visitedEntries: "Visited",
@@ -164,6 +170,8 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     activeLanguage: "Idioma",
     activeTheme: "Tema",
     cameraOrLibrary: "Elegir imagen",
+    ok: "Aceptar",
+    takePhoto: "Tomar foto",
     changeLanguage: "Cambiar idioma",
     changeTheme: "Cambiar tema",
     clear: "Borrar",
@@ -193,6 +201,7 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     settings: "Ajustes",
     strokeCount: "Trazos",
     strokeOrder: "Orden de trazos",
+    uploadImage: "Subir imagen",
     version: "Versión",
     visitedEntries: "Visitadas",
     authorship: "Autoría",
@@ -212,6 +221,7 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     activeLanguage: "Langue",
     activeTheme: "Thème",
     cameraOrLibrary: "Choisir une image",
+    ok: "OK",
     drawing: "Dessin",
     history: "Historique",
     image: "Image",
@@ -222,7 +232,9 @@ const TRANSLATIONS: Partial<Record<SupportedLocale, Partial<TranslationMap>>> = 
     search: "Recherche",
     searchPlaceholder: "Kanji ou lecture",
     settings: "Réglages",
+    takePhoto: "Prendre une photo",
     strokeCount: "Traits",
+    uploadImage: "Importer une image",
     version: "Version"
   },
   "de-DE": {

@@ -1,4 +1,5 @@
 import {
+  IonAlert,
   IonButton,
   IonIcon,
   IonLabel,
@@ -7,7 +8,7 @@ import {
   IonSpinner,
   IonText
 } from "@ionic/react";
-import { camera, close, createOutline, imageOutline, trash } from "ionicons/icons";
+import { camera, close, createOutline, imageOutline, imagesOutline, trash } from "ionicons/icons";
 import { useEffect, useRef, useState } from "react";
 
 import type { ApplicationTheme, CropRegion } from "../../Shared/DomainTypes";
@@ -30,6 +31,15 @@ export function ClassificationScreen(): JSX.Element {
   return (
     <MobilePage title={translate(preferences.preferences.language, "recognition")} testId="classification-screen">
       <div className="screen-shell">
+        <IonAlert
+          isOpen={classification.errorMessage !== null}
+          message={classification.errorMessage ?? ""}
+          buttons={[{
+            text: translate(preferences.preferences.language, "ok"),
+            role: "cancel"
+          }]}
+          onDidDismiss={() => classification.dismissError()}
+        />
         <IonSegment
           className="mode-segment"
           value={classification.mode}
@@ -81,20 +91,42 @@ export function ClassificationScreen(): JSX.Element {
                   onCropChanged={() => undefined}
                 />
                 {classification.imageState.image === null ? (
-                  <IonText color="medium">
-                    <p>{translate(preferences.preferences.language, "noImage")}</p>
-                  </IonText>
+                  <IonIcon
+                    aria-hidden="true"
+                    className="empty-image-icon"
+                    icon={imageOutline}
+                  />
                 ) : null}
               </div>
-              <IonText color="medium">
-                <p className="helper-text">{translate(preferences.preferences.language, "selectCrop")}</p>
-              </IonText>
-              <div className="center-actions">
-                <IonButton data-testid="choose-image-button" onClick={() => void classification.chooseImage()}>
-                  <IonIcon icon={camera} slot="icon-only" />
-                </IonButton>
-                {classification.imageState.image ? (
+              {classification.imageState.image !== null ? (
+                <IonText color="medium">
+                  <p className="helper-text">{translate(preferences.preferences.language, "selectCrop")}</p>
+                </IonText>
+              ) : null}
+              <div className="center-actions image-actions">
+                {classification.imageState.image === null ? (
+                  <>
+                    <IonButton
+                      className="image-action-button"
+                      data-testid="take-photo-button"
+                      onClick={() => void classification.takePhoto()}
+                      aria-label={translate(preferences.preferences.language, "takePhoto")}
+                    >
+                      <IonIcon icon={camera} slot="icon-only" />
+                    </IonButton>
+                    <IonButton
+                      className="image-action-button"
+                      data-testid="choose-image-button"
+                      fill="outline"
+                      onClick={() => void classification.chooseImage()}
+                      aria-label={translate(preferences.preferences.language, "uploadImage")}
+                    >
+                      <IonIcon icon={imagesOutline} slot="icon-only" />
+                    </IonButton>
+                  </>
+                ) : (
                   <IonButton
+                    className="image-clear-button"
                     data-testid="clear-image-button"
                     fill="clear"
                     onClick={classification.clearImage}
@@ -102,7 +134,7 @@ export function ClassificationScreen(): JSX.Element {
                   >
                     <IonIcon icon={close} slot="icon-only" />
                   </IonButton>
-                ) : null}
+                )}
               </div>
             </div>
           ) : (
@@ -139,11 +171,6 @@ export function ClassificationScreen(): JSX.Element {
               <span>{translate(preferences.preferences.language, "results")}</span>
               {classification.isProcessing ? <IonSpinner name="crescent" data-testid="ocr-spinner" /> : null}
             </div>
-            {classification.errorMessage ? (
-              <IonText color="danger">
-                <p>{classification.errorMessage}</p>
-              </IonText>
-            ) : null}
             <div className="result-list scroll-list">
               {classification.results.length > 0 ? (
                 <InferenceListView

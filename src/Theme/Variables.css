@@ -239,6 +239,11 @@ ion-searchbar::part(input) {
   width: 100%;
 }
 
+.empty-image-icon {
+  color: var(--app-muted);
+  font-size: clamp(4rem, 12vw, 5.5rem);
+}
+
 .crop-overlay-layer {
   height: 100%;
   inset: 0;
@@ -294,6 +299,23 @@ ion-searchbar::part(input) {
   display: flex;
   gap: 8px;
   justify-content: center;
+}
+
+.image-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+}
+
+.image-action-button,
+.image-clear-button {
+  flex: 0 0 auto;
+}
+
+.image-action-button::part(native),
+.image-clear-button::part(native) {
+  min-width: 48px;
 }
 
 .helper-text,

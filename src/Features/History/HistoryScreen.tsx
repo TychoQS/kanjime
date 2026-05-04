@@ -1,10 +1,18 @@
-import { IonLabel, IonSegment, IonSegmentButton } from "@ionic/react";
+import { IonIcon, IonSegment, IonSegmentButton } from "@ionic/react";
+import { createOutline, eyeOutline, imageOutline, searchOutline } from "ionicons/icons";
 
 import { getHistoryCategoryLabel, translate } from "../../Shared/I18n";
 import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
 import { MobilePage } from "../Shell/MobilePage";
 import { HistoryView } from "./HistoryView";
 import { HISTORY_CATEGORIES } from "./ViewModel/HistoryViewModel";
+
+const HISTORY_CATEGORY_ICONS = {
+  search: searchOutline,
+  visitedEntry: eyeOutline,
+  imageClassification: imageOutline,
+  drawingClassification: createOutline
+} as const;
 
 /**
  * Categorized persistent history screen.
@@ -27,11 +35,13 @@ export function HistoryScreen(): JSX.Element {
           >
             {HISTORY_CATEGORIES.map(historyCategory => (
               <IonSegmentButton
+                aria-label={getHistoryCategoryLabel(preferences.preferences.language, historyCategory)}
                 data-testid={`history-segment-${historyCategory}`}
                 key={historyCategory}
                 value={historyCategory}
+                title={getHistoryCategoryLabel(preferences.preferences.language, historyCategory)}
               >
-                <IonLabel>{getHistoryCategoryLabel(preferences.preferences.language, historyCategory)}</IonLabel>
+                <IonIcon icon={HISTORY_CATEGORY_ICONS[historyCategory]} />
               </IonSegmentButton>
             ))}
           </IonSegment>

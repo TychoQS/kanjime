@@ -265,7 +265,7 @@ export function createCompositionRoot(): CompositionRoot {
           correctOrientation: true,
           quality: 80,
           resultType: CameraResultType.Uri,
-          source: CameraSource.Prompt,
+          source: CameraSource.Camera,
           width: 1024
         });
 

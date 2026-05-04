@@ -7,6 +7,7 @@ import type { ImageInterface } from "../../Image/Contracts/ImageInterface";
 import type { PhotoInterface } from "../../Image/Contracts/PhotoInterface";
 import type { DisplayInferencesInterface } from "../../Inference/Contracts/DisplayInferencesInterface";
 import type { InferenceInterface } from "../../Inference/Contracts/InferenceInterface";
+import { PHOTO_SELECTION_CANCELLED_MESSAGE } from "../../Image/ViewModel/PhotoViewModel";
 import type { ClassificationInterface } from "../Contracts/ClassificationInterface";
 import type { CreateClassificationControllerDependencies } from "../CreateClassificationController";
 import type { ToggleClassificationModeInterface } from "../Contracts/ToggleClassificationModeInterface";
@@ -35,6 +36,8 @@ export interface ClassificationScreenViewModel {
   readonly isProcessing: boolean;
   readonly errorMessage: string | null;
   readonly activeStroke: CanvasInteractionViewModel["activeStroke"];
+  dismissError(): void;
+  takePhoto(): Promise<void>;
   chooseImage(): Promise<void>;
   clearImage(): void;
   switchMode(mode: ClassificationMode): void;
@@ -251,7 +254,10 @@ export function useClassificationScreenViewModel(
     isProcessing,
     errorMessage,
     activeStroke: dependencies.canvasInteraction.activeStroke,
-    async chooseImage(): Promise<void> {
+    dismissError(): void {
+      setErrorMessage(null);
+    },
+    async takePhoto(): Promise<void> {
       setErrorMessage(null);
 
       try {
@@ -261,7 +267,29 @@ export function useClassificationScreenViewModel(
         refreshImageState();
         dependencies.displayInferencesController.clearResults();
         refreshResults();
-      } catch {
+      } catch (error) {
+        if (isCancelledPhotoSelection(error)) {
+          return;
+        }
+
+        setErrorMessage("The photo could not be captured.");
+      }
+    },
+    async chooseImage(): Promise<void> {
+      setErrorMessage(null);
+
+      try {
+        const image = await dependencies.photoController.pickPhotoFromLibrary();
+        dependencies.imageController.setImage(image);
+        lastImageSourceIdRef.current = "";
+        refreshImageState();
+        dependencies.displayInferencesController.clearResults();
+        refreshResults();
+      } catch (error) {
+        if (isCancelledPhotoSelection(error)) {
+          return;
+        }
+
         setErrorMessage("The image could not be selected.");
       }
     },
@@ -455,4 +483,8 @@ function safeGetVisibleResults(displayInferencesController: DisplayInferencesInt
   } catch {
     return [];
   }
+}
+
+function isCancelledPhotoSelection(error: unknown): boolean {
+  return error instanceof Error && error.message === PHOTO_SELECTION_CANCELLED_MESSAGE;
 }

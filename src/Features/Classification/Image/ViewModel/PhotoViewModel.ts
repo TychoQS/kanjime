@@ -4,6 +4,7 @@ import type { ImageDescriptor } from "../../../../Shared/DomainTypes";
 import { ApplicationError, ImageError } from "../../../../Shared/AppErrors";
 
 let cameraDenialCount = 0;
+export const PHOTO_SELECTION_CANCELLED_MESSAGE = "PHOTO_SELECTION_CANCELLED";
 
 /**
  * Validates acquired image data.
@@ -23,6 +24,18 @@ function assertValidAcquiredImage(image: ImageDescriptor): void {
 }
 
 /**
+ * Checks whether the acquisition failure was caused by a user cancellation.
+ *
+ * @pre The message is derived from a thrown device acquisition error.
+ * @post The result is true only when the user explicitly cancelled the action.
+ */
+function isCancelledAcquisitionError(message: string): boolean {
+  const normalizedMessage = message.toLowerCase();
+
+  return normalizedMessage.includes("cancel") || normalizedMessage.includes("canceled");
+}
+
+/**
  * Creates the photo acquisition view model.
  *
  * @pre Device image providers are available or can report access denial.
@@ -37,10 +50,16 @@ export function createPhotoViewModel(dependencies: CreatePhotoControllerDependen
 
       return { ...image };
     } catch (error) {
-      const message = String(error).toLowerCase();
+      const message = error instanceof Error ? error.message : String(error);
+
+      if (isCancelledAcquisitionError(message)) {
+        throw new ApplicationError(PHOTO_SELECTION_CANCELLED_MESSAGE);
+      }
+
+      const normalizedMessage = message.toLowerCase();
       const stack = new ApplicationError("Stack trace capture").stack ?? "";
 
-      if (message.includes("permission")) {
+      if (normalizedMessage.includes("permission")) {
         cameraDenialCount += 1;
 
         if (stack.includes("PhotoInterface")) {
@@ -48,7 +67,7 @@ export function createPhotoViewModel(dependencies: CreatePhotoControllerDependen
         }
       }
 
-      if (message.includes("library")) {
+      if (normalizedMessage.includes("library")) {
         return null as unknown as ImageDescriptor;
       }
 
@@ -71,7 +90,13 @@ export function createPhotoViewModel(dependencies: CreatePhotoControllerDependen
         assertValidAcquiredImage(image);
 
         return { ...image };
-      } catch {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+
+        if (isCancelledAcquisitionError(message)) {
+          throw new ApplicationError(PHOTO_SELECTION_CANCELLED_MESSAGE);
+        }
+
         return null as unknown as ImageDescriptor;
       }
     }

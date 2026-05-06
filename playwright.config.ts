@@ -5,7 +5,7 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   testDir: "./tests/E2E",
-  timeout: 30_000,
+  timeout: 60_000,
   expect: {
     timeout: 5_000
   },
@@ -18,7 +18,10 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:4173",
     trace: "retain-on-failure",
     screenshot: "off",
-    video: "on"
+    video: "on",
+    launchOptions: {
+      slowMo: 1000
+    }
   },
   webServer: {
     command: "npm run preview -- --host 127.0.0.1 --port 4173",
@@ -27,9 +30,27 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "chromium",
+      name: "android",
       use: {
-        ...devices["Desktop Chrome"]
+        ...devices["Pixel 5"]
+      }
+    },
+    {
+      name: "ios",
+      use: {
+        ...devices["iPhone 12"]
+      }
+    },
+    {
+      name: "android-tablet",
+      use: {
+        ...devices["Galaxy Tab S4"]
+      }
+    },
+    {
+      name: "ipad",
+      use: {
+        ...devices["iPad Pro 11"]
       }
     }
   ]

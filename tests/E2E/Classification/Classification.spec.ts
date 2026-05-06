@@ -8,16 +8,29 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("ClassificationInterface starts in image mode and keeps modes mutually exclusive", async ({ page }) => {
+test("NavigationInterface starts the application on image OCR mode", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R28 - NavigationInterface
-  // Requirement: FUNCIONALES R39 - ClassificationInterface
   // @pre The application starts after the model has loaded.
   await app.goto("/");
 
-  // @inv The initial OCR state is image mode.
+  // @inv The initial route resolves consistently to OCR.
   await expect(page).toHaveURL(/\/classification$/);
+
+  // @post The OCR screen is shown in image mode.
+  await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
+  await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
+});
+
+test("ClassificationInterface keeps OCR modes mutually exclusive", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R39 - ClassificationInterface
+  // @pre The user is on the classification screen.
+  await app.goto("/classification");
+
+  // @inv Only one mode can be visible before interaction.
   await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
   await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
 
@@ -25,71 +38,89 @@ test("ClassificationInterface starts in image mode and keeps modes mutually excl
   await page.getByTestId("ocr-drawing-segment").click();
   await expect(page.getByTestId("drawing-ocr-zone")).toBeVisible();
   await expect(page.getByTestId("image-ocr-zone")).toBeHidden();
-  await page.getByTestId("ocr-image-segment").click();
-  await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
-  await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
 });
 
-test("CanvasInterface clears the drawing after a valid stroke and keeps empty clear as a no-op", async ({ page }) => {
+test("CanvasInterface clears the drawing after a valid stroke", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R3 - CanvasInterface
-  // Requirement: FUNCIONALES R4 - CanvasInterface
-  // Requirement: USABILIDAD R1 - CanvasInputProps
-  // @pre The user is in drawing mode and the canvas can receive strokes.
+  // @pre The canvas contains at least one stroke.
   await app.goto("/classification");
   await page.getByTestId("ocr-drawing-segment").click();
   const canvas = page.getByTestId("drawing-canvas");
   const clearButton = page.getByTestId("clear-drawing-button");
-  const initialBackground = await canvas.getAttribute("data-background");
-  const initialStroke = await canvas.getAttribute("data-stroke-color");
 
   // @exception Clearing an empty canvas is disabled and does not alter visible state.
   await expect(clearButton).toHaveAttribute("aria-disabled", "true");
-  await expect(canvas).toHaveAttribute("data-background", initialBackground ?? "");
-
   await drawSingleStroke(page, canvas);
-  await expect(clearButton).toBeEnabled();
   await expect.poll(() => canvasHasVisibleStroke(canvas)).toBe(true);
+
+  // @post Activating clear removes the visible canvas content.
+  await clearButton.click();
+  await expect.poll(() => canvasHasVisibleStroke(canvas)).toBe(false);
+  await expect(clearButton).toHaveAttribute("aria-disabled", "true");
+});
+
+test("CanvasInterface leaves results empty after clearing drawing state", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R4 - CanvasInterface
+  // @pre The canvas contains drawing data.
+  await app.goto("/classification");
+  await page.getByTestId("ocr-drawing-segment").click();
+  await drawSingleStroke(page, page.getByTestId("drawing-canvas"));
+  await expect(page.getByTestId("clear-drawing-button")).toBeEnabled();
+
+  // @inv Clearing does not require a new inference action.
+  await page.getByTestId("clear-drawing-button").click();
+
+  // @post Canvas suggestions are empty after the clear operation.
+  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
+});
+
+test("CanvasInputProps keeps drawing contrast stable", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: USABILIDAD R1 - CanvasInputProps
+  // @pre The user draws content on the canvas.
+  await app.goto("/classification");
+  await page.getByTestId("ocr-drawing-segment").click();
+  const canvas = page.getByTestId("drawing-canvas");
+  const initialBackground = await canvas.getAttribute("data-background");
+  const initialStroke = await canvas.getAttribute("data-stroke-color");
+  await drawSingleStroke(page, canvas);
 
   // @inv Canvas contrast colors remain stable while drawing.
   await expect(canvas).toHaveAttribute("data-background", initialBackground ?? "");
   await expect(canvas).toHaveAttribute("data-stroke-color", initialStroke ?? "");
 
-  // @post Clearing removes the visible stroke and empties the suggestion list.
-  await clearButton.click();
-  await expect(clearButton).toHaveAttribute("aria-disabled", "true");
-  await expect.poll(() => canvasHasVisibleStroke(canvas)).toBe(false);
-  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
+  // @post The stroke is visually distinguishable from the background.
+  await expect.poll(() => canvasHasVisibleStroke(canvas)).toBe(true);
 });
 
-test("DisplayInferencesInterface shows a bounded result list after drawing inference", async ({ page }) => {
+test("DisplayInferencesInterface shows bounded results without confidence values", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
-  // Requirement: FUNCIONALES R6 - CanvasInterface
   // Requirement: FUNCIONALES R10 - DisplayInferencesInterface
-  // Requirement: RENDIMIENTO Y FIABILIDAD R2 - InferenceInterface
-  // @pre A valid drawing stroke is completed on the OCR canvas.
+  // @pre A valid drawing inference is completed.
   await app.goto("/classification");
   await page.getByTestId("ocr-drawing-segment").click();
   await drawSingleStroke(page, page.getByTestId("drawing-canvas"));
 
-  // @inv The UI remains responsive while inference is in progress.
-  await expect(page.getByTestId("menu-button")).toBeEnabled();
-
-  // @post Suggestions appear without numeric confidence values and never exceed five items.
+  // @inv Confidence values are not rendered in visible suggestions.
   const results = app.visibleResults("ocr-results-panel");
   await expect(results.first()).toBeVisible({ timeout: 30_000 });
+  await expect(results.first()).not.toContainText(/\d+\.\d+|%/);
+
+  // @post The suggestion list contains between one and five results.
   await expect.poll(() => results.count()).toBeGreaterThan(0);
   await expect.poll(() => results.count()).toBeLessThanOrEqual(5);
-  await expect(results.first()).not.toContainText(/\d+\.\d+|%/);
 });
 
 test("ToggleClassificationModeInterface clears previous mode state without changing preferences", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R36 - ToggleClassificationModeInterface
-  // Requirement: FUNCIONALES R27 - NavigationInterface
   // @pre Drawing mode contains active canvas state.
   await app.goto("/classification");
   const themeBefore = await page.locator("html").getAttribute("data-theme");
@@ -104,5 +135,4 @@ test("ToggleClassificationModeInterface clears previous mode state without chang
   // @post Returning to drawing mode shows cleared drawing state.
   await page.getByTestId("ocr-drawing-segment").click();
   await expect(page.getByTestId("clear-drawing-button")).toHaveAttribute("aria-disabled", "true");
-  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
 });

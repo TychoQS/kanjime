@@ -26,7 +26,6 @@ test("NavigationInterface navigates clearly and resets page state", async ({ pag
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R27 - NavigationInterface
-  // Requirement: USABILIDAD R9 - NavigationProps
   // @pre Search contains active state and the menu is open.
   await app.goto("/search");
   await page.getByTestId("kanji-searchbar").locator("input").fill("日");
@@ -45,7 +44,6 @@ test("NavigationInterface navigates clearly and resets page state", async ({ pag
 
 test("LoadingScreenProps shows a blocking loading indicator during startup", async ({ page }) => {
   // Requirement: USABILIDAD R7 - LoadingScreenProps
-  // Requirement: RENDIMIENTO Y FIABILIDAD R1 - ModelLoaderInterface
   // @pre The application has just started and blocking startup work exists.
   await page.goto("/classification", { waitUntil: "domcontentloaded" });
 

@@ -24,11 +24,10 @@ test("HistoryInterface renders the four history categories", async ({ page }) =>
   await expect(page.getByTestId("history-view")).toBeVisible();
 });
 
-test("HistoryInterface persists search and visited entries across screens", async ({ page }) => {
+test("HistoryInterface displays persistent history records across screens", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R15 - HistoryInterface
-  // Requirement: FUNCIONALES R41 - HistoryInterface
   // @pre The user performs actions that create history records.
   await app.goto("/search");
   await page.getByTestId("kanji-searchbar").locator("input").fill("日");
@@ -42,17 +41,32 @@ test("HistoryInterface persists search and visited entries across screens", asyn
   await page.getByTestId("history-segment-visitedEntry").click();
   await expect(page.getByTestId("history-entry-visitedEntry-日")).toBeVisible();
 
-  // @post Stored records are visible immediately without restarting the application.
+  // @post Stored records remain visible when the History screen is reopened.
   await app.goto("/history");
   await page.getByTestId("history-segment-visitedEntry").click();
   await expect(page.getByTestId("history-entry-visitedEntry-日")).toBeVisible();
+});
+
+test("HistoryInterface updates immediately after a new history entry is created", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R41 - HistoryInterface
+  // @pre The user performs an action that generates a new history record.
+  await app.goto("/search");
+  await page.getByTestId("kanji-searchbar").locator("input").fill("日");
+  await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
+
+  // @inv The application is not restarted before checking History.
+  await app.goto("/history");
+
+  // @post The new record appears immediately in the History screen.
+  await expect(page.getByTestId("history-entry-search-日")).toBeVisible();
 });
 
 test("HistoryInterface opens a stored kanji without altering the history list", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R16 - HistoryInterface
-  // Requirement: USABILIDAD R2 - HistoryProps
   // @pre At least one history entry exists in the selected category.
   await page.addInitScript(() => {
     window.localStorage.setItem("tfg-app.history", JSON.stringify([

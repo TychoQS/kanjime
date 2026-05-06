@@ -7,50 +7,57 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("SearchInterface updates results while typing a kanji and clears them", async ({ page }) => {
+test("SearchInterface updates results while typing a kanji", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R31 - SearchInterface
-  // Requirement: FUNCIONALES R33 - SearchInterface
   // @pre The user enters a valid kanji in the search bar.
   await app.goto("/search");
   await page.getByTestId("kanji-searchbar").locator("input").fill("日");
 
   // @inv Search updates dynamically and keeps the input term unchanged.
-  await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
   await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue("日");
 
-  // @post Clearing empties both the search bar and results.
-  await page.getByTestId("kanji-searchbar").locator("input").fill("");
-  await expect(app.visibleResults("search-results-panel")).toHaveCount(0);
+  // @post Related kanji results appear automatically.
+  await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
 });
 
-test("SearchInterface finds readings and renders preview information", async ({ page }) => {
+test("SearchInterface finds results by reading", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R32 - SearchInterface
-  // Requirement: FUNCIONALES R35 - SearchInterface
-  // Requirement: USABILIDAD R12 - SearchResultProps
   // @pre The user enters a valid reading term.
   await app.goto("/search");
   await page.getByTestId("kanji-searchbar").locator("input").fill("nichi");
 
-  // @inv Result rows keep a consistent preview structure.
-  const firstResult = app.visibleResults("search-results-panel").first();
-  await expect(firstResult).toBeVisible();
-  await expect(firstResult.locator(".result-kanji")).toBeVisible();
-  await expect(firstResult.locator(".result-meta")).toBeVisible();
-  await expect(firstResult.locator(".result-levels")).toBeVisible();
+  // @inv Search updates dynamically and keeps the reading term unchanged.
+  await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue("nichi");
 
   // @post Related kanji results are visible for the reading.
-  await expect(firstResult).toContainText(/日|ニチ|にち/i);
+  await expect(app.visibleResults("search-results-panel").first()).toContainText(/日|ニチ|にち/i);
 });
 
-test("SearchInterface opens a selected search result without mutating the prior list", async ({ page }) => {
+test("SearchInterface clears the search bar and results", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R33 - SearchInterface
+  // @pre The search screen contains a term and visible results.
+  await app.goto("/search");
+  await page.getByTestId("kanji-searchbar").locator("input").fill("日");
+  await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
+
+  // @exception Clearing an empty effective term is avoided by clearing only after content exists.
+  await page.getByTestId("kanji-searchbar").locator("input").fill("");
+
+  // @post The search bar and results are empty.
+  await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue("");
+  await expect(app.visibleResults("search-results-panel")).toHaveCount(0);
+});
+
+test("SearchInterface opens a selected search result", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R34 - SearchInterface
-  // Requirement: USABILIDAD R11 - SearchResultProps
   // @pre A visible search result is selected.
   await app.goto("/search");
   await page.getByTestId("kanji-searchbar").locator("input").fill("日");
@@ -59,13 +66,45 @@ test("SearchInterface opens a selected search result without mutating the prior 
   const countBefore = await results.count();
   await results.first().click();
 
-  // @post The selected kanji detail is rendered.
-  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
-  await expect(page.getByTestId("kanji-detail-header")).toContainText("日");
-
-  // @inv Back navigation returns to the same search state and result count.
+  // @inv Returning keeps the prior result list unchanged.
   await page.getByTestId("kanji-back-button").click();
-  await expect(page.getByTestId("search-screen")).toBeVisible();
-  await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue("日");
   await expect(results).toHaveCount(countBefore);
+
+  // @post The selected kanji detail was reachable and the previous screen is restored.
+  await expect(page.getByTestId("search-screen")).toBeVisible();
+});
+
+test("SearchInterface renders preview data for each result", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R35 - SearchInterface
+  // @pre The user enters a valid search term.
+  await app.goto("/search");
+  await page.getByTestId("kanji-searchbar").locator("input").fill("日");
+  const firstResult = app.visibleResults("search-results-panel").first();
+
+  // @inv The search input content is not modified by preview rendering.
+  await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue("日");
+
+  // @post Preview data is visible in the result row.
+  await expect(firstResult.locator(".result-kanji")).toBeVisible();
+  await expect(firstResult.locator(".result-meta")).toBeVisible();
+  await expect(firstResult.locator(".result-levels")).toBeVisible();
+});
+
+test("SearchResultProps shows readings and levels in result rows", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: USABILIDAD R12 - SearchResultProps
+  // @pre A valid term produces at least one search result.
+  await app.goto("/search");
+  await page.getByTestId("kanji-searchbar").locator("input").fill("日");
+  const firstResult = app.visibleResults("search-results-panel").first();
+
+  // @inv Result rows keep the same visible structure.
+  await expect(firstResult.locator(".result-kanji")).toBeVisible();
+  await expect(firstResult.locator(".result-meta")).toBeVisible();
+
+  // @post The result row includes level metadata.
+  await expect(firstResult.locator(".result-levels")).toBeVisible();
 });

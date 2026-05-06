@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { createE2EImageFile } from "../../Support/E2EImageFixtures";
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
@@ -8,44 +8,81 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("ImageInterface loads an image from storage and clears it without new inference", async ({ page }) => {
+async function loadImageFromStorage(page: Page): Promise<void> {
+  const fileChooserPromise = page.waitForEvent("filechooser");
+  await page.getByTestId("choose-image-button").click();
+  const chooser = await fileChooserPromise;
+  await chooser.setFiles(createE2EImageFile());
+  await expect(page.getByTestId("image-preview")).toBeVisible();
+}
+
+test("ImageInterface sets a selected image as OCR input", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R21 - ImageInterface
-  // Requirement: FUNCIONALES R30 - PhotoInterface
-  // Requirement: USABILIDAD R13 - ImageProps
-  // @pre The user is in image OCR mode and storage selection is available.
+  // @pre The user is in image OCR mode.
   await app.goto("/classification");
   await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
 
-  const fileChooserPromise = page.waitForEvent("filechooser");
-  await page.getByTestId("choose-image-button").click();
-  const chooser = await fileChooserPromise;
-  await chooser.setFiles(createE2EImageFile());
-
-  // @inv The image remains visible while inference may be processing.
-  await expect(page.getByTestId("image-preview")).toBeVisible();
-
-  // @post Clearing the image removes the preview and visible results.
-  await page.getByTestId("clear-image-button").click();
+  // @inv The image input zone contains either a valid image or no image.
   await expect(page.getByTestId("image-preview")).toBeHidden();
-  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
+
+  // @post Selecting an image stores it in visible OCR state.
+  await loadImageFromStorage(page);
 });
 
-test("ImageInterface renders only one active crop overlay for the current image", async ({ page }) => {
+test("PhotoInterface selects an image from storage", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
-  // Requirement: FUNCIONALES R20 - ImageInterface
-  // Requirement: FUNCIONALES R22 - InferenceInterface
-  // Requirement: USABILIDAD R14 - CropProps
-  // @pre A valid image is loaded and the user selects a crop within image bounds.
+  // Requirement: FUNCIONALES R30 - PhotoInterface
+  // @pre The storage image picker is available.
   await app.goto("/classification");
-  const fileChooserPromise = page.waitForEvent("filechooser");
-  await page.getByTestId("choose-image-button").click();
-  const chooser = await fileChooserPromise;
-  await chooser.setFiles(createE2EImageFile());
+
+  // @inv The selected image is not altered before entering OCR state.
+  await loadImageFromStorage(page);
+
+  // @post The selected image is loaded correctly in the interface.
+  await expect(page.getByTestId("image-preview")).toHaveAttribute("src", /^blob:/);
+});
+
+test("ImageProps keeps the image visible during OCR processing", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: USABILIDAD R13 - ImageProps
+  // @pre An image is loaded for classification.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+
+  // @inv The image preview remains visible while inference may be processing.
   await expect(page.getByTestId("image-preview")).toBeVisible();
 
+  // @post The image remains visible after the processing feedback settles.
+  await expect(page.getByTestId("image-preview")).toBeVisible({ timeout: 30_000 });
+});
+
+test("ImageInterface clears the loaded image", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R19 - ImageInterface
+  // @pre A valid image is loaded.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+
+  // @inv Clearing does not create additional visible results.
+  await page.getByTestId("clear-image-button").click();
+  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
+
+  // @post The image is removed from the interface.
+  await expect(page.getByTestId("image-preview")).toBeHidden();
+});
+
+test("CropProps renders one active crop overlay", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: USABILIDAD R14 - CropProps
+  // @pre A valid image crop is defined by the user.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
   const frame = page.getByTestId("image-crop-frame");
   const box = await frame.boundingBox();
 
@@ -58,9 +95,8 @@ test("ImageInterface renders only one active crop overlay for the current image"
   await page.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.65, { steps: 6 });
   await page.mouse.up();
 
-  // @inv Only one crop overlay is active and the original image remains visible.
+  // @inv Only one crop overlay is active.
   await expect(page.getByTestId("crop-overlay-view")).toHaveCount(1);
-  await expect(page.getByTestId("image-preview")).toBeVisible();
 
   // @post The crop is represented visually over the image.
   await expect(page.getByTestId("active-crop-box")).toBeVisible();

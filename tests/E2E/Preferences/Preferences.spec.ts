@@ -11,7 +11,6 @@ test("UserPreferenceInterface changes theme without losing functional state", as
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R38 - UserPreferenceInterface
-  // Requirement: USABILIDAD R15 - GlobalProps
   // @pre A valid theme control is available while functional state exists.
   await app.goto("/search");
   await page.getByTestId("kanji-searchbar").locator("input").fill("日");
@@ -34,7 +33,6 @@ test("UserPreferenceInterface applies the configured language consistently", asy
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R37 - UserPreferenceInterface
-  // Requirement: USABILIDAD R10 - GlobalProps
   // @pre A different supported language is persisted before startup.
   await page.addInitScript(() => {
     window.localStorage.setItem("tfg-app.preferences", JSON.stringify({ language: "es-ES", theme: "light" }));

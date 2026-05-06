@@ -30,7 +30,6 @@ test("DisplayKanjiInterface copies the selected character", async ({ page }) => 
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R13 - DisplayKanjiInterface
-  // Requirement: USABILIDAD R5 - KanjiEntryProps
   // @pre The user is on a valid kanji detail screen.
   await app.goto("/kanji/日");
   await expect(page.getByTestId("kanji-copy-button")).toBeEnabled();
@@ -47,7 +46,6 @@ test("DisplayKanjiInterface returns to the previous screen preserving state", as
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R14 - DisplayKanjiInterface
-  // Requirement: USABILIDAD R6 - KanjiEntryProps
   // @pre A kanji detail was opened from search results.
   await app.goto("/search");
   await page.getByTestId("kanji-searchbar").locator("input").fill("日");

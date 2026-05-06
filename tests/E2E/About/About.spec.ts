@@ -1,10 +1,28 @@
 import { expect, test } from "@playwright/test";
 import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
+import { ENGLISH_TRANSLATIONS } from "../../../src/Shared/I18n";
 
 const require = createRequire(import.meta.url);
 const packageMetadata = require("../../../package.json") as { readonly version: string };
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const attributionsPath = join(__dirname, "../../../public/assets/attributions/data-sources.json");
+const attributionsData = JSON.parse(readFileSync(attributionsPath, "utf-8")) as {
+  readonly sources: ReadonlyArray<{
+    readonly id: string;
+    readonly attribution: string;
+    readonly license: string;
+  }>;
+};
+
+const expectedAttributions = attributionsData.sources.map(
+  source => `${source.attribution}. ${source.license}.`
+);
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -22,7 +40,13 @@ test("AboutInterface renders non-empty application information", async ({ page }
   await expect(page.getByTestId("about-list")).toBeVisible();
 
   // @post Application information is visible to the user.
-  await expect(page.getByTestId("about-list").locator("dd")).not.toHaveCount(0);
+  await expect(page.getByTestId("about-list").locator("dd")).toHaveCount(6);
+  await expect(page.getByTestId("about-row-version").locator("dd")).toContainText(packageMetadata.version);
+  await expect(page.getByTestId("about-row-authorship").locator("dd")).toContainText(ENGLISH_TRANSLATIONS.authorshipName);
+  await expect(page.getByTestId("about-row-textConversion").locator("dd")).toContainText(ENGLISH_TRANSLATIONS.textConversionValue);
+  await expect(page.getByTestId("about-row-jmdict").locator("dd")).toContainText(expectedAttributions[0]);
+  await expect(page.getByTestId("about-row-kanjidic2").locator("dd")).toContainText(expectedAttributions[1]);
+  await expect(page.getByTestId("about-row-kanjivg").locator("dd")).toContainText(expectedAttributions[2]);
 });
 
 test("AboutInterface renders the project version", async ({ page }) => {

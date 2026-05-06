@@ -29,7 +29,7 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("AboutInterface renders non-empty application information", async ({ page }) => {
+test("[R1][E2E] AboutInterface renders non-empty application information", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R1 - AboutInterface
@@ -49,7 +49,7 @@ test("AboutInterface renders non-empty application information", async ({ page }
   await expect(page.getByTestId("about-row-kanjivg").locator("dd")).toContainText(expectedAttributions[2]);
 });
 
-test("AboutInterface renders the project version", async ({ page }) => {
+test("[R2][E2E] AboutInterface renders the project version", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R2 - AboutInterface

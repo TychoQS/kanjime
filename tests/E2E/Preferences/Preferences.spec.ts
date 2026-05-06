@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("UserPreferenceInterface changes theme without losing functional state", async ({ page }) => {
+test("[R38][E2E] UserPreferenceInterface changes theme without losing functional state", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R38 - UserPreferenceInterface
@@ -29,7 +29,7 @@ test("UserPreferenceInterface changes theme without losing functional state", as
   await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
 });
 
-test("UserPreferenceInterface applies the configured language consistently", async ({ page }) => {
+test("[R37][E2E] UserPreferenceInterface applies the configured language consistently", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R37 - UserPreferenceInterface

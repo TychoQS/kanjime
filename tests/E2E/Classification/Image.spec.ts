@@ -16,7 +16,7 @@ async function loadImageFromStorage(page: Page): Promise<void> {
   await expect(page.getByTestId("image-preview")).toBeVisible();
 }
 
-test("ImageInterface sets a selected image as OCR input", async ({ page }) => {
+test("[R21][E2E] ImageInterface sets a selected image as OCR input", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R21 - ImageInterface
@@ -31,7 +31,7 @@ test("ImageInterface sets a selected image as OCR input", async ({ page }) => {
   await loadImageFromStorage(page);
 });
 
-test("PhotoInterface selects an image from storage", async ({ page }) => {
+test("[R30][E2E] PhotoInterface selects an image from storage", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R30 - PhotoInterface
@@ -45,7 +45,7 @@ test("PhotoInterface selects an image from storage", async ({ page }) => {
   await expect(page.getByTestId("image-preview")).toHaveAttribute("src", /^blob:/);
 });
 
-test("ImageProps keeps the image visible during OCR processing", async ({ page }) => {
+test("[R13][E2E] ImageProps keeps the image visible during OCR processing", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: USABILIDAD R13 - ImageProps
@@ -60,7 +60,7 @@ test("ImageProps keeps the image visible during OCR processing", async ({ page }
   await expect(page.getByTestId("image-preview")).toBeVisible({ timeout: 30_000 });
 });
 
-test("ImageInterface clears the loaded image", async ({ page }) => {
+test("[R19][E2E] ImageInterface clears the loaded image", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R19 - ImageInterface
@@ -76,7 +76,7 @@ test("ImageInterface clears the loaded image", async ({ page }) => {
   await expect(page.getByTestId("image-preview")).toBeHidden();
 });
 
-test("CropProps renders one active crop overlay", async ({ page }) => {
+test("[R14][E2E] CropProps renders one active crop overlay", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: USABILIDAD R14 - CropProps

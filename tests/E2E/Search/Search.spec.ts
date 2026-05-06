@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("SearchInterface updates results while typing a kanji", async ({ page }) => {
+test("[R31][E2E] SearchInterface updates results while typing a kanji", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R31 - SearchInterface
@@ -22,7 +22,7 @@ test("SearchInterface updates results while typing a kanji", async ({ page }) =>
   await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
 });
 
-test("SearchInterface finds results by reading", async ({ page }) => {
+test("[R32][E2E] SearchInterface finds results by reading", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R32 - SearchInterface
@@ -37,7 +37,7 @@ test("SearchInterface finds results by reading", async ({ page }) => {
   await expect(app.visibleResults("search-results-panel").first()).toContainText(/日|ニチ|にち/i);
 });
 
-test("SearchInterface clears the search bar and results", async ({ page }) => {
+test("[R33][E2E] SearchInterface clears the search bar and results", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R33 - SearchInterface
@@ -54,7 +54,7 @@ test("SearchInterface clears the search bar and results", async ({ page }) => {
   await expect(app.visibleResults("search-results-panel")).toHaveCount(0);
 });
 
-test("SearchInterface opens a selected search result", async ({ page }) => {
+test("[R34][E2E] SearchInterface opens a selected search result", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R34 - SearchInterface
@@ -74,7 +74,7 @@ test("SearchInterface opens a selected search result", async ({ page }) => {
   await expect(page.getByTestId("search-screen")).toBeVisible();
 });
 
-test("SearchInterface renders preview data for each result", async ({ page }) => {
+test("[R35][E2E] SearchInterface renders preview data for each result", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R35 - SearchInterface
@@ -92,7 +92,7 @@ test("SearchInterface renders preview data for each result", async ({ page }) =>
   await expect(firstResult.locator(".result-levels")).toBeVisible();
 });
 
-test("SearchResultProps shows readings and levels in result rows", async ({ page }) => {
+test("[R12][E2E] SearchResultProps shows readings and levels in result rows", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: USABILIDAD R12 - SearchResultProps

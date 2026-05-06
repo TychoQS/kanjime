@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("NavigationInterface starts the application on image OCR mode", async ({ page }) => {
+test("[R28][E2E] NavigationInterface starts the application on image OCR mode", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R28 - NavigationInterface
@@ -23,7 +23,7 @@ test("NavigationInterface starts the application on image OCR mode", async ({ pa
   await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
 });
 
-test("ClassificationInterface keeps OCR modes mutually exclusive", async ({ page }) => {
+test("[R39][E2E] ClassificationInterface keeps OCR modes mutually exclusive", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R39 - ClassificationInterface
@@ -40,7 +40,7 @@ test("ClassificationInterface keeps OCR modes mutually exclusive", async ({ page
   await expect(page.getByTestId("image-ocr-zone")).toBeHidden();
 });
 
-test("CanvasInterface clears the drawing after a valid stroke", async ({ page }) => {
+test("[R3][E2E] CanvasInterface clears the drawing after a valid stroke", async ({ page }) => {
   const app = new E2EApplicationPage(page);
   // Requirement: FUNCIONALES R3 - CanvasInterface
   await app.goto("/classification");
@@ -63,7 +63,7 @@ test("CanvasInterface clears the drawing after a valid stroke", async ({ page })
   await expect(clearButton).toHaveAttribute("aria-disabled", "true");
 });
 
-test("CanvasInterface leaves results empty after clearing drawing state", async ({ page }) => {
+test("[R4][E2E] CanvasInterface leaves results empty after clearing drawing state", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R4 - CanvasInterface
@@ -78,7 +78,7 @@ test("CanvasInterface leaves results empty after clearing drawing state", async 
   await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
 });
 
-test("CanvasInterface filters results by stroke count within one tolerance", async ({ page }) => {
+test("[R6][E2E] CanvasInterface filters results by stroke count within one tolerance", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R6 - CanvasInterface
@@ -119,7 +119,7 @@ test("CanvasInterface filters results by stroke count within one tolerance", asy
   }
 });
 
-test("CanvasInterface triggers exactly one inference per stroke", async ({ page }) => {
+test("[R7][E2E] CanvasInterface triggers exactly one inference per stroke", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R7 - CanvasInterface
@@ -145,7 +145,7 @@ test("CanvasInterface triggers exactly one inference per stroke", async ({ page 
   expect(countAfterSecond).toBeGreaterThan(0);
 });
 
-test("CanvasInputProps keeps drawing contrast stable", async ({ page }) => {
+test("[R1][E2E] CanvasInputProps keeps drawing contrast stable", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: USABILIDAD R1 - CanvasInputProps
@@ -165,7 +165,7 @@ test("CanvasInputProps keeps drawing contrast stable", async ({ page }) => {
   await expect.poll(() => canvasHasVisibleStroke(canvas)).toBe(true);
 });
 
-test("DisplayInferencesInterface shows bounded results without confidence values", async ({ page }) => {
+test("[R10][E2E] DisplayInferencesInterface shows bounded results without confidence values", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R10 - DisplayInferencesInterface
@@ -184,7 +184,7 @@ test("DisplayInferencesInterface shows bounded results without confidence values
   await expect.poll(() => results.count()).toBeLessThanOrEqual(5);
 });
 
-test("ToggleClassificationModeInterface clears previous mode state without changing preferences", async ({ page }) => {
+test("[R36][E2E] ToggleClassificationModeInterface clears previous mode state without changing preferences", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R36 - ToggleClassificationModeInterface

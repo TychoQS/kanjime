@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("HistoryInterface renders the four history categories", async ({ page }) => {
+test("[R18][E2E] HistoryInterface renders the four history categories", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R18 - HistoryInterface
@@ -24,7 +24,7 @@ test("HistoryInterface renders the four history categories", async ({ page }) =>
   await expect(page.getByTestId("history-view")).toBeVisible();
 });
 
-test("HistoryInterface displays persistent history records across screens", async ({ page }) => {
+test("[R15][E2E] HistoryInterface displays persistent history records across screens", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R15 - HistoryInterface
@@ -47,7 +47,7 @@ test("HistoryInterface displays persistent history records across screens", asyn
   await expect(page.getByTestId("history-entry-visitedEntry-日")).toBeVisible();
 });
 
-test("HistoryInterface updates immediately after a new history entry is created", async ({ page }) => {
+test("[R41][E2E] HistoryInterface updates immediately after a new history entry is created", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R41 - HistoryInterface
@@ -63,7 +63,7 @@ test("HistoryInterface updates immediately after a new history entry is created"
   await expect(page.getByTestId("history-entry-search-日")).toBeVisible();
 });
 
-test("HistoryInterface opens a stored kanji without altering the history list", async ({ page }) => {
+test("[R16][E2E] HistoryInterface opens a stored kanji without altering the history list", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R16 - HistoryInterface

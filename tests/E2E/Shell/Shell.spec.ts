@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("NavigationInterface closes the menu with the visible control", async ({ page }) => {
+test("[R8][E2E] NavigationInterface closes the menu with the visible control", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: USABILIDAD R8 - NavigationProps
@@ -22,7 +22,7 @@ test("NavigationInterface closes the menu with the visible control", async ({ pa
   await app.closeMenu();
 });
 
-test("NavigationInterface navigates clearly and resets page state", async ({ page }) => {
+test("[R27][E2E] NavigationInterface navigates clearly and resets page state", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R27 - NavigationInterface
@@ -42,7 +42,7 @@ test("NavigationInterface navigates clearly and resets page state", async ({ pag
   await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue("");
 });
 
-test("LoadingScreenProps shows a blocking loading indicator during startup", async ({ page }) => {
+test("[R7][E2E] LoadingScreenProps shows a blocking loading indicator during startup", async ({ page }) => {
   // Requirement: USABILIDAD R7 - LoadingScreenProps
   // @pre The application has just started and blocking startup work exists.
   await page.goto("/classification", { waitUntil: "domcontentloaded" });

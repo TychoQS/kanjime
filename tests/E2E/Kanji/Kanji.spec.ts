@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("DisplayKanjiInterface renders available fields for the selected kanji", async ({ page }) => {
+test("[R12][E2E] DisplayKanjiInterface renders available fields for the selected kanji", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R12 - DisplayKanjiInterface
@@ -26,7 +26,7 @@ test("DisplayKanjiInterface renders available fields for the selected kanji", as
   await expect(page.getByTestId("kanji-information-section")).toContainText(/Strokes|Trazos|Stroke/i);
 });
 
-test("DisplayKanjiInterface copies the selected character", async ({ page }) => {
+test("[R13][E2E] DisplayKanjiInterface copies the selected character", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R13 - DisplayKanjiInterface
@@ -42,7 +42,7 @@ test("DisplayKanjiInterface copies the selected character", async ({ page }) => 
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("日");
 });
 
-test("DisplayKanjiInterface returns to the previous screen preserving state", async ({ page }) => {
+test("[R14][E2E] DisplayKanjiInterface returns to the previous screen preserving state", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R14 - DisplayKanjiInterface

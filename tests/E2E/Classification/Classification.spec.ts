@@ -42,18 +42,20 @@ test("ClassificationInterface keeps OCR modes mutually exclusive", async ({ page
 
 test("CanvasInterface clears the drawing after a valid stroke", async ({ page }) => {
   const app = new E2EApplicationPage(page);
-
   // Requirement: FUNCIONALES R3 - CanvasInterface
-  // @pre The canvas contains at least one stroke.
   await app.goto("/classification");
   await page.getByTestId("ocr-drawing-segment").click();
+
   const canvas = page.getByTestId("drawing-canvas");
   const clearButton = page.getByTestId("clear-drawing-button");
 
-  // @exception Clearing an empty canvas is disabled and does not alter visible state.
+  // @inv Clearing an empty canvas is disabled and does not alter visible state.
   await expect(clearButton).toHaveAttribute("aria-disabled", "true");
+
+  // @pre The canvas contains at least one stroke.
   await drawSingleStroke(page, canvas);
   await expect.poll(() => canvasHasVisibleStroke(canvas)).toBe(true);
+  await expect(clearButton).not.toHaveAttribute("aria-disabled", "true");
 
   // @post Activating clear removes the visible canvas content.
   await clearButton.click();
@@ -71,11 +73,76 @@ test("CanvasInterface leaves results empty after clearing drawing state", async 
   await drawSingleStroke(page, page.getByTestId("drawing-canvas"));
   await expect(page.getByTestId("clear-drawing-button")).toBeEnabled();
 
-  // @inv Clearing does not require a new inference action.
-  await page.getByTestId("clear-drawing-button").click();
-
   // @post Canvas suggestions are empty after the clear operation.
+  await page.getByTestId("clear-drawing-button").click();
   await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
+});
+
+test("CanvasInterface filters results by stroke count within one tolerance", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R6 - CanvasInterface
+  await app.goto("/classification");
+  await page.getByTestId("ocr-drawing-segment").click();
+  const canvas = page.getByTestId("drawing-canvas");
+
+  // @pre Draw a known number of strokes (3).
+  const drawnStrokes = 3;
+  for (let i = 0; i < drawnStrokes; i++) {
+    await drawSingleStroke(page, canvas);
+  }
+
+  // @inv The suggestion list contains at most 5 results.
+  const results = app.visibleResults("ocr-results-panel");
+  await expect(results.first()).toBeVisible({ timeout: 30_000 });
+  await expect.poll(() => results.count()).toBeLessThanOrEqual(5);
+
+  // @post Every result has a stroke count within drawnStrokes ± 1.
+  const count = await results.count();
+  for (let i = 0; i < count; i++) {
+    const character = await results.nth(i).getAttribute("data-testid");
+    await results.nth(i).click();
+    await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+
+    const strokesText = await page
+      .getByTestId("kanji-information-section")
+      .locator("dt", { hasText: "Strokes" })
+      .locator("xpath=following-sibling::dd[1]")
+      .innerText();
+
+    const strokeCount = parseInt(strokesText, 10);
+    expect(strokeCount).toBeGreaterThanOrEqual(drawnStrokes - 1);
+    expect(strokeCount).toBeLessThanOrEqual(drawnStrokes + 1);
+
+    await page.goBack();
+    await expect(results.first()).toBeVisible();
+  }
+});
+
+test("CanvasInterface triggers exactly one inference per stroke", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R7 - CanvasInterface
+  await app.goto("/classification");
+  await page.getByTestId("ocr-drawing-segment").click();
+  const canvas = page.getByTestId("drawing-canvas");
+  const results = app.visibleResults("ocr-results-panel");
+
+  // @inv No results are shown before any stroke is drawn.
+  await expect(page.getByTestId("ocr-results-panel").locator("button")).toHaveCount(0);
+
+  // @pre A stroke is completed on the canvas.
+  await drawSingleStroke(page, canvas);
+
+  // @post Each new stroke produces exactly one inference update.
+  await expect(page.getByTestId("ocr-spinner")).toBeHidden({ timeout: 30_000 });
+  const countAfterFirst = await results.count();
+  expect(countAfterFirst).toBeGreaterThan(0);
+
+  await drawSingleStroke(page, canvas);
+  await expect(page.getByTestId("ocr-spinner")).toBeHidden({ timeout: 30_000 });
+  const countAfterSecond = await results.count();
+  expect(countAfterSecond).toBeGreaterThan(0);
 });
 
 test("CanvasInputProps keeps drawing contrast stable", async ({ page }) => {

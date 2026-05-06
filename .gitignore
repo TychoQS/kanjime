@@ -12,3 +12,4 @@ coverage
 android
 ios
 public/assets/database/
+test-results/

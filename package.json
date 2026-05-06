@@ -9,6 +9,7 @@
     "build:android": "npm run build && npx cap sync android && export CAPACITOR_ANDROID_STUDIO_PATH=~/Descargas/android-studio/bin/studio.sh && npx cap open android",
     "preview": "vite preview",
     "test": "rm -rf .vite && vitest run",
+    "test:all": "rm -rf .vite && vitest run && npm run build && playwright test",
     "test:unit": "vitest run tests/Unit",
     "test:integration": "vitest run tests/Integration",
     "test:e2e": "playwright test",

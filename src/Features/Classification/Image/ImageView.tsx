@@ -13,6 +13,7 @@ export function ImageView(props: ImageProps): JSX.Element | null {
       <img
         alt={props.image.altText}
         className="image-preview"
+        data-testid="image-preview"
         draggable={false}
         height={props.image.height}
         src={props.image.uri}

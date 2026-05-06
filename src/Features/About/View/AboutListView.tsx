@@ -14,9 +14,9 @@ interface AboutListViewProps {
  */
 export function AboutListView(props: AboutListViewProps): JSX.Element {
   return (
-    <dl className="about-list">
+    <dl className="about-list" data-testid="about-list">
       {props.items.map(item => (
-        <div key={`${item.label}-${item.value}`} className="about-row">
+        <div key={`${item.label}-${item.value}`} className="about-row" data-testid={`about-row-${item.label}`}>
           <dt>{translate(props.language, item.label as TranslationKey) ?? item.label}</dt>
           <dd>{localizeAboutValue(props.language, item.value)}</dd>
         </div>

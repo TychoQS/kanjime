@@ -216,6 +216,35 @@ export const TEST_MOCK_RESOLVE_SUMMARY = (character: string): (CharacterSummary 
 };
 
 /**
+ * Kanji "日" (sun/day) test data - corresponds to database entry.
+ * Used by R12 (DisplayKanjiInterface) tests.
+ */
+export const TEST_KANJI_DAY: DetailedKanjiEntry = {
+  character: "日",
+  radical: "日",
+  components: ["日"],
+  meanings: [
+    { language: "en", value: "Japan" },
+    { language: "en", value: "day" },
+    { language: "en", value: "sun" },
+    { language: "es", value: "Japón" },
+    { language: "es", value: "día" },
+    { language: "es", value: "sol" },
+    { language: "fr", value: "Japon" },
+    { language: "fr", value: "jour" },
+    { language: "fr", value: "soleil" }
+  ],
+  kunyomi: ["ひ", "-び", "-か"],
+  kunyomiExamples: ["向日葵", "日", "日の丸", "日の出", "昼日中"],
+  onyomi: ["ニチ", "ジツ"],
+  onyomiExamples: ["日々草"],
+  strokeCount: 4,
+  strokeOrder: '<g id="kvg:kanji_065e5"><g id="kvg:065e5"><path id="kvg:065e5-s1" d="M31.5,24.5c1.12,1.12,1.74,2.75,1.74,4.75c0,1.6-0.16,38.11-0.09,53.5c0.02,3.82,0.05,6.35,0.09,6.75"/><path id="kvg:065e5-s2" d="M33.48,26c0.8-0.05,37.67-3.01,40.77-3.25c3.19-0.25,5,1.75,5,4.25c0,4-0.22,40.84-0.23,56c0,3.48,0,5.72,0,6"/><path id="kvg:065e5-s3" d="M34.22,55.25c7.78-0.5,35.9-2.5,44.06-2.75"/><path id="kvg:065e5-s4" d="M34.23,86.5c10.52-0.75,34.15-2.12,43.81-2.25"/></g></g>',
+  jlptLevel: "1",
+  joyoLevel: "1"
+};
+
+/**
  * Detailed kanji entry used by kanji-detail tests.
  */
 export const TEST_KANJI_DETAILS: DetailedKanjiEntry = {

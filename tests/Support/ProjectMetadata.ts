@@ -1,7 +1,7 @@
-import packageJson from "../../package.json";
-import dataSourceAttributions from "../../public/assets/attributions/data-sources.json";
-import packagedDatabaseMetadata from "../../public/assets/database/kanji.metadata.json";
-import modelClasses from "../../data/model/classes.json";
+import packageJson from "../../package.json" with { type: "json" };
+import dataSourceAttributions from "../../public/assets/attributions/data-sources.json" with { type: "json" };
+import packagedDatabaseMetadata from "../../public/assets/database/kanji.metadata.json" with { type: "json" };
+import modelClasses from "../../data/model/classes.json" with { type: "json" };
 
 /**
  * Static metadata extracted from repository artifacts for test inputs.

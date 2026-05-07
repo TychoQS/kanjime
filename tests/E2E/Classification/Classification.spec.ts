@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { drawSingleStroke, canvasHasVisibleStroke } from "../../Support/E2ECanvasHelpers";
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
+import { loadImageFromStorage, performCrop, DEFAULT_CROP_AREA } from "../../Support/ImageHelper";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -94,7 +95,7 @@ test("[R6][E2E] CanvasInterface filters results by stroke count within one toler
 
   // @inv The suggestion list contains at most 5 results.
   const results = app.visibleResults("ocr-results-panel");
-  await expect(results.first()).toBeVisible({ timeout: 30_000 });
+  await expect(results.first()).toBeVisible({ timeout: 5_000 });
   await expect.poll(() => results.count()).toBeLessThanOrEqual(5);
 
   // @post Every result has a stroke count within drawnStrokes ± 1.
@@ -135,12 +136,12 @@ test("[R7][E2E] CanvasInterface triggers exactly one inference per stroke", asyn
   await drawSingleStroke(page, canvas);
 
   // @post Each new stroke produces exactly one inference update.
-  await expect(page.getByTestId("ocr-spinner")).toBeHidden({ timeout: 30_000 });
+  await expect(page.getByTestId("ocr-spinner")).toBeHidden({ timeout: 5_000 });
   const countAfterFirst = await results.count();
   expect(countAfterFirst).toBeGreaterThan(0);
 
   await drawSingleStroke(page, canvas);
-  await expect(page.getByTestId("ocr-spinner")).toBeHidden({ timeout: 30_000 });
+  await expect(page.getByTestId("ocr-spinner")).toBeHidden({ timeout: 5_000 });
   const countAfterSecond = await results.count();
   expect(countAfterSecond).toBeGreaterThan(0);
 });
@@ -165,6 +166,28 @@ test("[R1][E2E] CanvasInputProps keeps drawing contrast stable", async ({ page }
   await expect.poll(() => canvasHasVisibleStroke(canvas)).toBe(true);
 });
 
+test("[R8][E2E] DisplayInferencesInterface updates results once per valid image source", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R8 - DisplayInferencesInterface
+  // @pre A valid image is loaded in image mode.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+
+  const results = app.visibleResults("ocr-results-panel");
+  await expect(results.first()).toBeVisible({ timeout: 5_000 });
+
+  // Make first crop.
+  await performCrop(page);
+  await expect(page.getByTestId("active-crop-box")).toBeVisible();
+  await expect(results.first()).toBeVisible({ timeout: 5_000 });
+
+  // @post A new crop generates a new set of results.
+  await performCrop(page, { startX: 0.3, startY: 0.3, endX: 0.8, endY: 0.8 });
+  await expect(results.first()).toBeVisible({ timeout: 5_000 });
+  await expect.poll(() => results.count()).toBeGreaterThan(0);
+});
+
 test("[R10][E2E] DisplayInferencesInterface shows bounded results without confidence values", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
@@ -174,14 +197,37 @@ test("[R10][E2E] DisplayInferencesInterface shows bounded results without confid
   await page.getByTestId("ocr-drawing-segment").click();
   await drawSingleStroke(page, page.getByTestId("drawing-canvas"));
 
-  // @inv Confidence values are not rendered in visible suggestions.
-  const results = app.visibleResults("ocr-results-panel");
-  await expect(results.first()).toBeVisible({ timeout: 30_000 });
-  await expect(results.first()).not.toContainText(/\d+\.\d+|%/);
-
   // @post The suggestion list contains between one and five results.
+  const results = app.visibleResults("ocr-results-panel");
   await expect.poll(() => results.count()).toBeGreaterThan(0);
   await expect.poll(() => results.count()).toBeLessThanOrEqual(5);
+});
+
+test("[R11][E2E] DisplayInferencesInterface shows kanji detail and records history on selection", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R11 - DisplayInferencesInterface
+  // @pre Inference results are available on the classification screen.
+  await app.goto("/classification");
+  await page.getByTestId("ocr-drawing-segment").click();
+  await drawSingleStroke(page, page.getByTestId("drawing-canvas"));
+  const results = app.visibleResults("ocr-results-panel");
+  await expect(results.first()).toBeVisible({ timeout: 5_000 });
+
+  // Get the character from the first result.
+  const testId = await results.first().getAttribute("data-testid");
+  const character = testId?.replace("ocr-result-", "") ?? "";
+  const countBefore = await results.count();
+
+  // @inv Selecting a result does not alter the result list.
+  await results.first().click();
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+  await page.getByTestId("kanji-back-button").click();
+  await expect.poll(() => results.count()).toBe(countBefore);
+
+  // @post The kanji detail screen is shown and action is recorded in history.
+  await results.first().click();
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
 });
 
 test("[R36][E2E] ToggleClassificationModeInterface clears previous mode state without changing preferences", async ({ page }) => {

@@ -1,20 +1,12 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-import { createE2EImageFile } from "../../Support/E2EImageFixtures";
+import { loadImageFromStorage, performCrop } from "../../Support/ImageHelper";
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.evaluate(() => window.localStorage.clear());
 });
-
-async function loadImageFromStorage(page: Page): Promise<void> {
-  const fileChooserPromise = page.waitForEvent("filechooser");
-  await page.getByTestId("choose-image-button").click();
-  const chooser = await fileChooserPromise;
-  await chooser.setFiles(createE2EImageFile());
-  await expect(page.getByTestId("image-preview")).toBeVisible();
-}
 
 test("[R21][E2E] ImageInterface sets a selected image as OCR input", async ({ page }) => {
   const app = new E2EApplicationPage(page);
@@ -83,17 +75,7 @@ test("[R14][E2E] CropProps renders one active crop overlay", async ({ page }) =>
   // @pre A valid image crop is defined by the user.
   await app.goto("/classification");
   await loadImageFromStorage(page);
-  const frame = page.getByTestId("image-crop-frame");
-  const box = await frame.boundingBox();
-
-  if (!box) {
-    throw new Error("The image crop frame is not visible.");
-  }
-
-  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.2);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.65, { steps: 6 });
-  await page.mouse.up();
+  await performCrop(page);
 
   // @inv Only one crop overlay is active.
   await expect(page.getByTestId("crop-overlay-view")).toHaveCount(1);

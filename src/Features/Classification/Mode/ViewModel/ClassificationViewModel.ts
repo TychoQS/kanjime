@@ -362,7 +362,7 @@ export function useClassificationScreenViewModel(
     finishCrop(): void {
       const nextCrop = cropDraftToRegion(cropDraft);
 
-      if (nextCrop && nextCrop.width >= 8 && nextCrop.height >= 8) {
+      if (nextCrop) {
         dependencies.imageController.setActiveCrop(nextCrop);
       }
 

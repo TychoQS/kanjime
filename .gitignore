@@ -13,3 +13,4 @@ android
 ios
 public/assets/database/
 test-results/
+playwright-report/

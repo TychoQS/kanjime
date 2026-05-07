@@ -17,12 +17,14 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:4173",
     trace: "retain-on-failure",
-    screenshot: "off",
-    video: "on",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
     launchOptions: {
       slowMo: 1000
     }
   },
+  reporter: [["html", { outputFolder: "playwright-report" }]],
+  outputDir: "test-results",
   webServer: {
     command: "npm run preview -- --host 127.0.0.1 --port 4173",
     reuseExistingServer: !process.env.CI,

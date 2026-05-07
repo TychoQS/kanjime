@@ -217,7 +217,6 @@ export const TEST_MOCK_RESOLVE_SUMMARY = (character: string): (CharacterSummary 
 
 /**
  * Kanji "日" (sun/day) test data - corresponds to database entry.
- * Used by R12 (DisplayKanjiInterface) tests.
  */
 export const TEST_KANJI_DAY: DetailedKanjiEntry = {
   character: "日",
@@ -243,6 +242,16 @@ export const TEST_KANJI_DAY: DetailedKanjiEntry = {
   jlptLevel: "1",
   joyoLevel: "1"
 };
+
+/**
+ * Second kanji for history tests (moon/month).
+ */
+export const TEST_KANJI_MOON = "月";
+
+/**
+ * Third kanji for history tests (fire).
+ */
+export const TEST_KANJI_FIRE = "火";
 
 /**
  * Detailed kanji entry used by kanji-detail tests.

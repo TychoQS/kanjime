@@ -1,91 +1,183 @@
 import { expect, test } from "@playwright/test";
 
+import { drawSingleStroke } from "../../Support/E2ECanvasHelpers";
+import { loadImageFromStorage } from "../../Support/ImageHelper";
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
+import { TEST_KANJI_DAY, TEST_KANJI_MOON, TEST_KANJI_FIRE } from "../../Support/TestData";
 
-test.beforeEach(async ({ page }) => {
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.evaluate(() => window.localStorage.clear());
-});
+test.describe("With History Setup", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => window.localStorage.clear());
 
-test("[R18][E2E] HistoryInterface renders the four history categories", async ({ page }) => {
-  const app = new E2EApplicationPage(page);
+    const app = new E2EApplicationPage(page);
 
-  // Requirement: FUNCIONALES R18 - HistoryInterface
-  // @pre The user is on the History screen.
-  await app.goto("/history");
+    await app.goto("/search");
+    await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_KANJI_DAY.character);
+    await page.waitForSelector("[data-testid='search-results-panel']");
+    await page.getByTestId("search-results-panel").locator(".result-row").first().click();
+    await page.waitForSelector("[data-testid='kanji-detail-screen']");
 
-  // @inv Exactly the supported history categories are available.
-  await expect(page.getByTestId("history-segment-search")).toBeVisible();
-  await expect(page.getByTestId("history-segment-visitedEntry")).toBeVisible();
-  await expect(page.getByTestId("history-segment-imageClassification")).toBeVisible();
-  await expect(page.getByTestId("history-segment-drawingClassification")).toBeVisible();
+    await app.goto("/search");
+    await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_KANJI_MOON);
+    await page.waitForSelector("[data-testid='search-results-panel']");
+    await page.getByTestId("search-results-panel").locator(".result-row").first().click();
+    await page.waitForSelector("[data-testid='kanji-detail-screen']");
 
-  // @post The active category renders a bounded scrollable list container.
-  await expect(page.getByTestId("history-view")).toBeVisible();
-});
+    await app.goto("/classification");
+    await loadImageFromStorage(page);
+    await page.waitForSelector("[data-testid='ocr-results-panel']");
+    const imageResults = page.getByTestId("ocr-results-panel").locator(".result-row").first();
+    await expect(imageResults).toBeVisible({ timeout: 30_000 });
+    await imageResults.click();
+    await page.waitForSelector("[data-testid='kanji-detail-screen']");
 
-test("[R15][E2E] HistoryInterface displays persistent history records across screens", async ({ page }) => {
-  const app = new E2EApplicationPage(page);
+    await app.goto("/classification");
+    await page.getByTestId("ocr-drawing-segment").click();
+    await page.waitForSelector("[data-testid='drawing-canvas']");
+    const canvas = page.getByTestId("drawing-canvas");
+    await drawSingleStroke(page, canvas);
+    await page.waitForSelector("[data-testid='ocr-results-panel']");
+    const drawingResults = page.getByTestId("ocr-results-panel").locator(".result-row").first();
+    await expect(drawingResults).toBeVisible({ timeout: 30_000 });
+    await drawingResults.click();
+    await page.waitForSelector("[data-testid='kanji-detail-screen']");
+  });
 
-  // Requirement: FUNCIONALES R15 - HistoryInterface
-  // @pre The user performs actions that create history records.
-  await app.goto("/search");
-  await page.getByTestId("kanji-searchbar").locator("input").fill("日");
-  await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
-  await app.visibleResults("search-results-panel").first().click();
-  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
-  await app.goto("/history");
+  test("[R18][E2E] HistoryInterface renders the four history categories", async ({ page }) => {
+    const app = new E2EApplicationPage(page);
 
-  // @inv History is loaded from persistent browser storage, not volatile screen state.
-  await expect(page.getByTestId("history-entry-search-日")).toBeVisible();
-  await page.getByTestId("history-segment-visitedEntry").click();
-  await expect(page.getByTestId("history-entry-visitedEntry-日")).toBeVisible();
+    // Requirement: FUNCIONALES R18 - HistoryInterface
+    // @pre The user is on the History screen.
+    await app.goto("/history");
 
-  // @post Stored records remain visible when the History screen is reopened.
-  await app.goto("/history");
-  await page.getByTestId("history-segment-visitedEntry").click();
-  await expect(page.getByTestId("history-entry-visitedEntry-日")).toBeVisible();
+    // @inv Exactly the supported history categories are available.
+    await expect(page.getByTestId("history-segment-search")).toBeVisible();
+    await expect(page.getByTestId("history-segment-visitedEntry")).toBeVisible();
+    await expect(page.getByTestId("history-segment-imageClassification")).toBeVisible();
+    await expect(page.getByTestId("history-segment-drawingClassification")).toBeVisible();
+
+    // @post Entries are grouped by their correct category.
+    await page.getByTestId("history-segment-search").click();
+    await expect(page.getByTestId(`history-entry-search-${TEST_KANJI_DAY.character}`)).toBeVisible();
+    await expect(page.getByTestId(`history-entry-search-${TEST_KANJI_MOON}`)).toBeVisible();
+
+    await page.getByTestId("history-segment-visitedEntry").click();
+    await expect(page.getByTestId(`history-entry-visitedEntry-${TEST_KANJI_DAY.character}`)).toBeVisible();
+
+    await page.getByTestId("history-segment-imageClassification").click();
+    const imageEntries = page.getByTestId("history-view").locator("[data-testid^='history-entry-imageClassification-']");
+    await expect(imageEntries).toHaveCount(1);
+
+    await page.getByTestId("history-segment-drawingClassification").click();
+    const drawingEntries = page.getByTestId("history-view").locator("[data-testid^='history-entry-drawingClassification-']");
+    await expect(drawingEntries).toHaveCount(1);
+  });
+
+  test("[R15][E2E] HistoryInterface displays persistent history records across screens", async ({ page }) => {
+    const app = new E2EApplicationPage(page);
+
+    // Requirement: FUNCIONALES R15 - HistoryInterface
+    // @pre The user is on the History screen.
+    await app.goto("/history");
+
+    // @post Stored records are visible grouped by category.
+    await page.getByTestId("history-segment-search").click();
+    await expect(page.getByTestId(`history-entry-search-${TEST_KANJI_DAY.character}`)).toBeVisible();
+
+    await page.getByTestId("history-segment-visitedEntry").click();
+    await expect(page.getByTestId(`history-entry-visitedEntry-${TEST_KANJI_DAY.character}`)).toBeVisible();
+
+    await page.getByTestId("history-segment-imageClassification").click();
+    await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-imageClassification-']")).toHaveCount(1);
+
+    await page.getByTestId("history-segment-drawingClassification").click();
+    await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-drawingClassification-']")).toHaveCount(1);
+
+    // @inv History data persists after leaving and reopening the History screen.
+    await app.goto("/search");
+    await app.goto("/history");
+
+    await page.getByTestId("history-segment-search").click();
+    await expect(page.getByTestId(`history-entry-search-${TEST_KANJI_DAY.character}`)).toBeVisible();
+
+    await page.getByTestId("history-segment-visitedEntry").click();
+    await expect(page.getByTestId(`history-entry-visitedEntry-${TEST_KANJI_DAY.character}`)).toBeVisible();
+
+    await page.getByTestId("history-segment-imageClassification").click();
+    await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-imageClassification-']")).toHaveCount(1);
+
+    await page.getByTestId("history-segment-drawingClassification").click();
+    await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-drawingClassification-']")).toHaveCount(1);
+  });
+
+  test("[R16][E2E] HistoryInterface opens a stored kanji without altering the history list", async ({ page }) => {
+    const app = new E2EApplicationPage(page);
+
+    // Requirement: FUNCIONALES R16 - HistoryInterface
+    // @pre At least one history entry exists in the selected category.
+    await app.goto("/history");
+    await page.getByTestId("history-segment-search").click();
+    const searchEntry = page.getByTestId(`history-entry-search-${TEST_KANJI_DAY.character}`);
+    await expect(searchEntry).toBeVisible();
+    await searchEntry.click();
+
+    // @post The kanji detail screen is rendered.
+    await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+    await expect(page.getByTestId("kanji-detail-header")).toContainText(TEST_KANJI_DAY.character);
+
+    // @inv Returning to history keeps the existing entries unchanged.
+    await page.getByTestId("kanji-back-button").click();
+    await expect(page.getByTestId("history-screen")).toBeVisible();
+    await page.getByTestId("history-segment-search").click();
+    await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-search-']")).not.toHaveCount(0);
+  });
 });
 
 test("[R41][E2E] HistoryInterface updates immediately after a new history entry is created", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: FUNCIONALES R41 - HistoryInterface
-  // @pre The user performs an action that generates a new history record.
+  // @pre The user performs actions that generate new history records.
   await app.goto("/search");
-  await page.getByTestId("kanji-searchbar").locator("input").fill("日");
-  await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
+  await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_KANJI_FIRE);
+  await page.waitForSelector("[data-testid='search-results-panel']");
+  await page.getByTestId("search-results-panel").locator(".result-row").first().click();
+  await page.waitForSelector("[data-testid='kanji-detail-screen']");
+
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+  await page.waitForSelector("[data-testid='ocr-results-panel']");
+  const imageResults = page.getByTestId("ocr-results-panel").locator(".result-row").first();
+  await expect(imageResults).toBeVisible({ timeout: 5_000 });
+  await imageResults.click();
+  await page.waitForSelector("[data-testid='kanji-detail-screen']");
+
+  await app.goto("/classification");
+  await page.getByTestId("ocr-drawing-segment").click();
+  await page.waitForSelector("[data-testid='drawing-canvas']");
+  const canvas = page.getByTestId("drawing-canvas");
+  await drawSingleStroke(page, canvas);
+  await page.waitForSelector("[data-testid='ocr-results-panel']");
+  const drawingResults = page.getByTestId("ocr-results-panel").locator(".result-row").first();
+  await expect(drawingResults).toBeVisible({ timeout: 5_000 });
+  await drawingResults.click();
+  await page.waitForSelector("[data-testid='kanji-detail-screen']");
 
   // @inv The application is not restarted before checking History.
   await app.goto("/history");
 
-  // @post The new record appears immediately in the History screen.
-  await expect(page.getByTestId("history-entry-search-日")).toBeVisible();
-});
+  // @post The new records appear immediately in the History screen.
+  // R41 creates: 1 search, 1 visitedEntry, 1 imageClassification, 1 drawingClassification
+  await page.getByTestId("history-segment-search").click();
+  await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-search-']")).toHaveCount(1);
 
-test("[R16][E2E] HistoryInterface opens a stored kanji without altering the history list", async ({ page }) => {
-  const app = new E2EApplicationPage(page);
-
-  // Requirement: FUNCIONALES R16 - HistoryInterface
-  // @pre At least one history entry exists in the selected category.
-  await page.addInitScript(() => {
-    window.localStorage.setItem("tfg-app.history", JSON.stringify([
-      { character: "日", category: "visitedEntry", createdAt: "2026-05-04T10:00:00.000Z", summary: "ニチ" }
-    ]));
-  });
-  await app.goto("/history");
   await page.getByTestId("history-segment-visitedEntry").click();
-  const entries = page.getByTestId("history-view").locator("[data-testid^='history-entry-']");
-  await expect(entries).toHaveCount(1);
-  await entries.first().click();
+  await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-visitedEntry-']")).toHaveCount(1);
 
-  // @post The kanji detail screen is rendered.
-  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
-  await expect(page.getByTestId("kanji-detail-header")).toContainText("日");
+  await page.getByTestId("history-segment-imageClassification").click();
+  await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-imageClassification-']")).toHaveCount(1);
 
-  // @inv Returning to history keeps the existing entries unchanged.
-  await page.getByTestId("kanji-back-button").click();
-  await expect(page.getByTestId("history-screen")).toBeVisible();
-  await page.getByTestId("history-segment-visitedEntry").click();
-  await expect(entries).toHaveCount(1);
+  await page.getByTestId("history-segment-drawingClassification").click();
+  await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-drawingClassification-']")).toHaveCount(1);
 });

@@ -216,7 +216,7 @@ export const TEST_MOCK_RESOLVE_SUMMARY = (character: string): (CharacterSummary 
 };
 
 /**
- * Kanji "日" (sun/day) test data - corresponds to database entry.
+ * Kanji "日" test data.
  */
 export const TEST_KANJI_DAY: DetailedKanjiEntry = {
   character: "日",
@@ -244,14 +244,24 @@ export const TEST_KANJI_DAY: DetailedKanjiEntry = {
 };
 
 /**
- * Second kanji for history tests (moon/month).
+ * Second kanji for history tests.
  */
 export const TEST_KANJI_MOON = "月";
 
 /**
- * Third kanji for history tests (fire).
+ * Third kanji for history tests.
  */
 export const TEST_KANJI_FIRE = "火";
+
+/**
+ * Reading for search tests.
+ */
+export const TEST_READING_NICHI = "ニチ";
+
+/**
+ * Reading for search tests.
+ */
+export const TEST_READING_HI = "ひ";
 
 /**
  * Detailed kanji entry used by kanji-detail tests.

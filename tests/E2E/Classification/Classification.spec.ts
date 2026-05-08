@@ -203,6 +203,48 @@ test("[R11][E2E] DisplayInferencesInterface shows kanji detail and records histo
   await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
 });
 
+test("[R4][E2E] InferenceListProps opens the complete selected kanji entry without changing results", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R4 - InferenceListProps
+  // @pre Classification results are available.
+  await app.goto("/classification");
+  await page.getByTestId("ocr-drawing-segment").click();
+  await drawSingleStroke(page, page.getByTestId("drawing-canvas"));
+
+  const results = app.visibleResults("ocr-results-panel");
+  await expect(results.first()).toBeVisible({ timeout: 5_000 });
+  const selectedCharacter = await results.first().locator(".result-kanji").innerText();
+  const resultsBeforeSelection = await results.evaluateAll(nodes =>
+    nodes.map(node => ({
+      testId: node.getAttribute("data-testid"),
+      text: node.textContent
+    }))
+  );
+
+  await results.first().click();
+
+  // @post The complete selected kanji entry is rendered.
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+  await expect(page.getByTestId("kanji-detail-header")).toContainText(selectedCharacter);
+  await expect(page.getByTestId("kanji-meanings-section")).toBeVisible();
+  await expect(page.getByTestId("kanji-readings-section")).toBeVisible();
+  await expect(page.getByTestId("kanji-information-section")).toBeVisible();
+  await expect(page.getByTestId("kanji-stroke-order-section")).toBeVisible();
+
+  // @inv Selecting a result does not modify the classification result list.
+  await page.getByTestId("kanji-back-button").click();
+  await expect(page.getByTestId("classification-screen")).toBeVisible();
+  const resultsAfterSelection = await app.visibleResults("ocr-results-panel").evaluateAll(nodes =>
+    nodes.map(node => ({
+      testId: node.getAttribute("data-testid"),
+      text: node.textContent
+    }))
+  );
+
+  expect(resultsAfterSelection).toEqual(resultsBeforeSelection);
+});
+
 test("[R22][E2E] InferenceInterface classifies a crop as an independent input source", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 

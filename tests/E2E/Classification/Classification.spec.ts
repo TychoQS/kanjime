@@ -9,23 +9,6 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("[R39][E2E] ClassificationInterface keeps OCR modes mutually exclusive", async ({ page }) => {
-  const app = new E2EApplicationPage(page);
-
-  // Requirement: FUNCIONALES R39 - ClassificationInterface
-  // @pre The user is on the classification screen.
-  await app.goto("/classification");
-
-  // @inv Only one mode can be visible before interaction.
-  await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
-  await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
-
-  // @post Only the selected OCR mode remains active after switching.
-  await page.getByTestId("ocr-drawing-segment").click();
-  await expect(page.getByTestId("drawing-ocr-zone")).toBeVisible();
-  await expect(page.getByTestId("image-ocr-zone")).toBeHidden();
-});
-
 test("[R3][E2E] CanvasInterface clears the drawing after a valid stroke", async ({ page }) => {
   const app = new E2EApplicationPage(page);
   // Requirement: FUNCIONALES R3 - CanvasInterface
@@ -313,4 +296,21 @@ test("[R36][E2E] ToggleClassificationModeInterface clears previous mode state wi
   // @post Returning to drawing mode shows cleared drawing state.
   await page.getByTestId("ocr-drawing-segment").click();
   await expect(page.getByTestId("clear-drawing-button")).toHaveAttribute("aria-disabled", "true");
+});
+
+test("[R39][E2E] ClassificationInterface keeps OCR modes mutually exclusive", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R39 - ClassificationInterface
+  // @pre The user is on the classification screen.
+  await app.goto("/classification");
+
+  // @inv Only one mode can be visible before interaction.
+  await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
+  await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
+
+  // @post Only the selected OCR mode remains active after switching.
+  await page.getByTestId("ocr-drawing-segment").click();
+  await expect(page.getByTestId("drawing-ocr-zone")).toBeVisible();
+  await expect(page.getByTestId("image-ocr-zone")).toBeHidden();
 });

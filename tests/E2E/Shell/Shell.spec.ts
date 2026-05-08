@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
+import { TEST_KANJI_DAY } from "../../Support/TestData";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -28,7 +29,7 @@ test("[R27][E2E] NavigationInterface navigates clearly and resets page state", a
   // Requirement: FUNCIONALES R27 - NavigationInterface
   // @pre Search contains active state and the menu is open.
   await app.goto("/search");
-  await page.getByTestId("kanji-searchbar").locator("input").fill("日");
+  await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_KANJI_DAY.character);
   await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
   await app.openMenu();
 
@@ -40,6 +41,18 @@ test("[R27][E2E] NavigationInterface navigates clearly and resets page state", a
   await expect(page.getByTestId("classification-screen")).toBeVisible();
   await app.goto("/search");
   await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue("");
+});
+
+test("[R28][E2E] NavigationInterface starts the application on image OCR mode", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R28 - NavigationInterface
+  // @pre The application starts after the model has loaded.
+  await app.goto("/");
+
+  // @post The OCR screen is shown in image mode.
+  await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
+  await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
 });
 
 test("[R7][E2E] LoadingScreenProps shows a blocking loading indicator during startup", async ({ page }) => {

@@ -9,21 +9,6 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("[R28][E2E] NavigationInterface starts the application on image OCR mode", async ({ page }) => {
-  const app = new E2EApplicationPage(page);
-
-  // Requirement: FUNCIONALES R28 - NavigationInterface
-  // @pre The application starts after the model has loaded.
-  await app.goto("/");
-
-  // @inv The initial route resolves consistently to OCR.
-  await expect(page).toHaveURL(/\/classification$/);
-
-  // @post The OCR screen is shown in image mode.
-  await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
-  await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
-});
-
 test("[R39][E2E] ClassificationInterface keeps OCR modes mutually exclusive", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 

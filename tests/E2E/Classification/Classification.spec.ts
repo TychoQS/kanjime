@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { getContrast } from "polished";
 
 import { drawSingleStroke, canvasHasVisibleStroke } from "../../Support/E2ECanvasHelpers";
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
 import { loadImageFromStorage, performCrop, DEFAULT_CROP_AREA } from "../../Support/ImageHelper";
+import { WCAG_AAA_CONTRAST_THRESHOLD } from "../../Support/TestData";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -132,6 +134,9 @@ test("[R1][E2E] CanvasInputProps keeps drawing contrast stable", async ({ page }
 
   // @post The stroke is visually distinguishable from the background.
   await expect.poll(() => canvasHasVisibleStroke(canvas)).toBe(true);
+
+  const contrastRatio = getContrast(initialBackground ?? "", initialStroke ?? "");
+  expect(contrastRatio).toBeGreaterThanOrEqual(WCAG_AAA_CONTRAST_THRESHOLD);
 });
 
 test("[R8][E2E] DisplayInferencesInterface updates results once per valid image source", async ({ page }) => {

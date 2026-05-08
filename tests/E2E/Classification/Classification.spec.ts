@@ -230,6 +230,82 @@ test("[R11][E2E] DisplayInferencesInterface shows kanji detail and records histo
   await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
 });
 
+test("[R22][E2E] InferenceInterface classifies a crop as an independent input source", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R22 - InferenceInterface
+  // @pre Image OCR mode is active with a valid image loaded.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+  await expect(page.getByTestId("image-preview")).toBeVisible();
+
+  // Make first crop and record its position.
+  await performCrop(page);
+  await expect(page.getByTestId("active-crop-box")).toBeVisible();
+  const firstCropX = await page.getByTestId("crop-overlay-view").getAttribute("data-crop-x");
+  const firstCropY = await page.getByTestId("crop-overlay-view").getAttribute("data-crop-y");
+  await expect(app.visibleResults("ocr-results-panel").first()).toBeVisible({ timeout: 30_000 });
+
+  // @inv Each new crop replaces the previous one.
+  await performCrop(page, { startX: 0.3, startY: 0.3, endX: 0.8, endY: 0.8 });
+  await expect(page.getByTestId("crop-overlay-view")).toHaveCount(1);
+  const secondCropX = await page.getByTestId("crop-overlay-view").getAttribute("data-crop-x");
+  const secondCropY = await page.getByTestId("crop-overlay-view").getAttribute("data-crop-y");
+  expect(secondCropX).not.toBe(firstCropX);
+  expect(secondCropY).not.toBe(firstCropY);
+
+  // @post Classification runs using the new crop as input.
+  const results = app.visibleResults("ocr-results-panel");
+  await expect(results.first()).toBeVisible({ timeout: 5_000 });
+  await expect.poll(() => results.count()).toBeGreaterThan(0);
+});
+
+test("[R25][E2E] InferenceInterface executes exactly one inference per valid input", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R25 - InferenceInterface
+  // @pre A valid input exists and OCR mode is active.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+
+  // @inv No duplicate inferences for the same input.
+  const results = app.visibleResults("ocr-results-panel");
+  await expect(results.first()).toBeVisible({ timeout: 5_000 });
+
+  const firstResultIds = await results.evaluateAll(
+    els => els.map(el => el.getAttribute("data-testid"))
+  );
+  await expect.poll(async () => {
+    const currentIds = await results.evaluateAll(
+      els => els.map(el => el.getAttribute("data-testid"))
+    );
+    return JSON.stringify(currentIds);
+  }).toBe(JSON.stringify(firstResultIds));
+
+  // @post Exactly one inference per new input.
+  await performCrop(page);
+  await expect(page.getByTestId("ocr-spinner")).toBeHidden({ timeout: 5_000 });
+  await expect.poll(() => results.count()).toBeGreaterThan(0);
+});
+
+test("[R26][E2E] InferenceInterface classifies the full image when no crop is active", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R26 - InferenceInterface
+  // @pre A valid image is loaded without an active crop in image OCR mode.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+
+  // @inv No crop is active during classification.
+  await expect(page.getByTestId("crop-overlay-view")).toBeHidden();
+  await expect(page.getByTestId("active-crop-box")).toBeHidden();
+
+  // @post The full image is classified and results appear.
+  const results = app.visibleResults("ocr-results-panel");
+  await expect(results.first()).toBeVisible({ timeout: 5_000 });
+  await expect.poll(() => results.count()).toBeGreaterThan(0);
+});
+
 test("[R36][E2E] ToggleClassificationModeInterface clears previous mode state without changing preferences", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 

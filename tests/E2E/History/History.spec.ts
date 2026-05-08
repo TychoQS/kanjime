@@ -132,6 +132,76 @@ test.describe("With History Setup", () => {
     await page.getByTestId("history-segment-search").click();
     await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-search-']")).not.toHaveCount(0);
   });
+
+  test("[R2][E2E] HistoryProps entries are interactive and open the complete kanji entry", async ({ page }) => {
+    const app = new E2EApplicationPage(page);
+
+    // Requirement: FUNCIONALES R2 - HistoryProps
+    // @pre The History component is rendered with at least one entry.
+    await app.goto("/history");
+    await page.getByTestId("history-segment-search").click();
+    const historyEntries = page.getByTestId("history-view").locator("[data-testid^='history-entry-search-']");
+    await expect(historyEntries).toHaveCount(2);
+    const entriesBeforeSelection = await historyEntries.evaluateAll(nodes =>
+      nodes.map(node => ({
+        testId: node.getAttribute("data-testid"),
+        text: node.textContent
+      }))
+    );
+
+    await page.getByTestId(`history-entry-search-${TEST_KANJI_MOON}`).click();
+
+    // @post The complete corresponding kanji entry is rendered.
+    await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+    await expect(page.getByTestId("kanji-detail-header")).toContainText(TEST_KANJI_MOON);
+    await expect(page.getByTestId("kanji-meanings-section")).toBeVisible();
+    await expect(page.getByTestId("kanji-readings-section")).toBeVisible();
+    await expect(page.getByTestId("kanji-information-section")).toBeVisible();
+    await expect(page.getByTestId("kanji-stroke-order-section")).toBeVisible();
+
+    // @inv Selecting one entry does not alter the rest of the entries.
+    await page.getByTestId("kanji-back-button").click();
+    await expect(page.getByTestId("history-screen")).toBeVisible();
+    await page.getByTestId("history-segment-search").click();
+    const entriesAfterSelection = await page.getByTestId("history-view")
+      .locator("[data-testid^='history-entry-search-']")
+      .evaluateAll(nodes =>
+        nodes.map(node => ({
+          testId: node.getAttribute("data-testid"),
+          text: node.textContent
+        }))
+      );
+
+    expect(entriesAfterSelection).toEqual(entriesBeforeSelection);
+  });
+
+  test("[R3][E2E] HistoryProps renders entries from newest to oldest without reordering", async ({ page }) => {
+    const app = new E2EApplicationPage(page);
+
+    // Requirement: FUNCIONALES R3 - HistoryProps
+    // @pre Multiple entries exist in the selected history category.
+    await app.goto("/history");
+    await page.getByTestId("history-segment-search").click();
+    const searchEntryCharacters = page.getByTestId("history-view")
+      .locator("[data-testid^='history-entry-search-'] .result-kanji");
+    await expect(searchEntryCharacters).toHaveCount(2);
+
+    // @post Entries are shown in descending date order.
+    await expect(searchEntryCharacters).toHaveText([
+      TEST_KANJI_MOON,
+      TEST_KANJI_DAY.character
+    ]);
+
+    // @inv The temporal order remains unchanged when no new records are inserted.
+    const orderBeforeReload = await searchEntryCharacters.allTextContents();
+    await app.goto("/history");
+    await page.getByTestId("history-segment-search").click();
+    const orderAfterReload = await page.getByTestId("history-view")
+      .locator("[data-testid^='history-entry-search-'] .result-kanji")
+      .allTextContents();
+
+    expect(orderAfterReload).toEqual(orderBeforeReload);
+  });
 });
 
 test("[R41][E2E] HistoryInterface updates immediately after a new history entry is created", async ({ page }) => {

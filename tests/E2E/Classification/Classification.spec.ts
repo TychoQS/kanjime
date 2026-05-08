@@ -297,14 +297,18 @@ test("[R36][E2E] ToggleClassificationModeInterface clears previous mode state wi
   // Requirement: FUNCIONALES R36 - ToggleClassificationModeInterface
   // @pre Drawing mode contains active canvas state.
   await app.goto("/classification");
-  const themeBefore = await page.locator("html").getAttribute("data-theme");
+  const themeButton = page.getByTestId("theme-cycle-button");
+  const langSelect = page.locator(".language-select");
+  const themeBefore = await themeButton.getAttribute("aria-label") ?? "light";
+  const langBefore = await langSelect.getAttribute("value") ?? "en";
   await page.getByTestId("ocr-drawing-segment").click();
   await drawSingleStroke(page, page.getByTestId("drawing-canvas"));
   await expect(page.getByTestId("clear-drawing-button")).toBeEnabled();
 
   // @inv Preferences are not modified by mode changes.
   await page.getByTestId("ocr-image-segment").click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", themeBefore ?? "light");
+  await expect(themeButton).toHaveAttribute("aria-label", themeBefore);
+  await expect(langSelect).toHaveAttribute("value", langBefore);
 
   // @post Returning to drawing mode shows cleared drawing state.
   await page.getByTestId("ocr-drawing-segment").click();

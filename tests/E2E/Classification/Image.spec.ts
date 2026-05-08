@@ -8,6 +8,44 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
+test("[R19][E2E] ImageInterface clears the loaded image", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R19 - ImageInterface
+  // @pre A valid image is loaded.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+  await page.getByTestId("clear-image-button").click();
+
+  // @post The image is removed from the interface.
+  await expect(page.getByTestId("image-preview")).toBeHidden();
+
+  // @inv Clearing does not create additional visible results.
+  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
+
+});
+
+test("[R20][E2E] ImageInterface uses crop selection as classification input", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: FUNCIONALES R20 - ImageInterface
+  // @pre A valid image is loaded and crop is within image bounds.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+  await expect(page.getByTestId("image-preview")).toBeVisible();
+
+  // @inv Only one crop is active and original image remains intact.
+  await performCrop(page);
+  await expect(page.getByTestId("crop-overlay-view")).toHaveCount(1);
+  await expect(page.getByTestId("active-crop-box")).toBeVisible();
+  await expect(page.getByTestId("image-preview")).toBeVisible();
+
+  // @post The crop is used as input and results appear in the panel.
+  const results = app.visibleResults("ocr-results-panel");
+  await expect(results.first()).toBeVisible({ timeout: 30_000 });
+  await expect.poll(() => results.count()).toBeGreaterThan(0);
+});
+
 test("[R21][E2E] ImageInterface sets a selected image as OCR input", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
@@ -21,6 +59,8 @@ test("[R21][E2E] ImageInterface sets a selected image as OCR input", async ({ pa
 
   // @post Selecting an image stores it in visible OCR state.
   await loadImageFromStorage(page);
+  await expect(page.getByTestId("image-preview")).toBeVisible();
+  await expect(page.getByTestId("image-preview")).toHaveAttribute("src", /^blob:/);
 });
 
 test("[R30][E2E] PhotoInterface selects an image from storage", async ({ page }) => {
@@ -52,21 +92,6 @@ test("[R13][E2E] ImageProps keeps the image visible during OCR processing", asyn
   await expect(page.getByTestId("image-preview")).toBeVisible({ timeout: 30_000 });
 });
 
-test("[R19][E2E] ImageInterface clears the loaded image", async ({ page }) => {
-  const app = new E2EApplicationPage(page);
-
-  // Requirement: FUNCIONALES R19 - ImageInterface
-  // @pre A valid image is loaded.
-  await app.goto("/classification");
-  await loadImageFromStorage(page);
-
-  // @inv Clearing does not create additional visible results.
-  await page.getByTestId("clear-image-button").click();
-  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
-
-  // @post The image is removed from the interface.
-  await expect(page.getByTestId("image-preview")).toBeHidden();
-});
 
 test("[R14][E2E] CropProps renders one active crop overlay", async ({ page }) => {
   const app = new E2EApplicationPage(page);

@@ -208,6 +208,10 @@ export function useClassificationScreenViewModel(
     sourceUri: string,
     crop: CropRegion | null
   ): Promise<void> => {
+    if (imageState.image === null) {
+      return;
+    }
+
     setIsProcessing(true);
     setErrorMessage(null);
 
@@ -215,6 +219,10 @@ export function useClassificationScreenViewModel(
       const predictions = crop
         ? await dependencies.inferenceController.classifyCrop({ sourceId, sourceUri, crop })
         : await dependencies.inferenceController.classifyFullImage({ sourceId, sourceUri });
+
+      if (imageState.image === null) {
+        return;
+      }
 
       await Promise.resolve(dependencies.displayInferencesController.updateResultsFromImageSource(sourceId, predictions));
       lastImageSourceIdRef.current = sourceId;
@@ -224,7 +232,7 @@ export function useClassificationScreenViewModel(
     } finally {
       setIsProcessing(false);
     }
-  }, [dependencies.displayInferencesController, dependencies.inferenceController, refreshResults]);
+  }, [dependencies.displayInferencesController, dependencies.inferenceController, refreshResults, imageState.image]);
 
   useEffect(() => {
     if (!isEnabled || mode !== "image" || imageState.image === null) {

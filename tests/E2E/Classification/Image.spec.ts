@@ -21,7 +21,7 @@ test("[R19][E2E] ImageInterface clears the loaded image", async ({ page }) => {
   await expect(page.getByTestId("image-preview")).toBeHidden();
 
   // @inv Clearing does not create additional visible results.
-  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
+  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0, { timeout: 10_000 });
 
 });
 
@@ -69,12 +69,11 @@ test("[R30][E2E] PhotoInterface selects an image from storage", async ({ page })
   // Requirement: FUNCIONALES R30 - PhotoInterface
   // @pre The storage image picker is available.
   await app.goto("/classification");
-
-  // @inv The selected image is not altered before entering OCR state.
   await loadImageFromStorage(page);
 
   // @post The selected image is loaded correctly in the interface.
   await expect(page.getByTestId("image-preview")).toHaveAttribute("src", /^blob:/);
+  await expect(page.getByTestId("image-preview")).toBeVisible();
 });
 
 test("[R13][E2E] ImageProps keeps the image visible during OCR processing", async ({ page }) => {

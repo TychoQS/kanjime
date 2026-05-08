@@ -21,6 +21,7 @@ export function createE2EImageFile(): E2EImageFile {
 
 export async function loadImageFromStorage(page: Page): Promise<void> {
   const fileChooserPromise = page.waitForEvent("filechooser");
+  await page.getByTestId("choose-image-button").waitFor({ state: "visible" });
   await page.getByTestId("choose-image-button").click();
   const chooser = await fileChooserPromise;
   await chooser.setFiles(createE2EImageFile());

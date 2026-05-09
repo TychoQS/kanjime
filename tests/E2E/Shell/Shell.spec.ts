@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { getContrast } from "polished";
 
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
-import { TEST_KANJI_DAY } from "../../Support/TestData";
+import { TEST_KANJI_DAY, WCAG_AAA_CONTRAST_THRESHOLD } from "../../Support/TestData";
+import { TRANSLATIONS } from "../../../src/Shared/I18n";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });

@@ -287,19 +287,36 @@ ion-action-sheet .action-sheet-button-inner {
   width: 100%;
 }
 
-.drawing-canvas {
-  align-self: center;
+.drawing-canvas-stage {
   aspect-ratio: 1 / 1;
   background: var(--ion-color-secondary);
   border: 1px solid var(--app-border-strong);
   border-radius: var(--app-radius);
-  color: var(--ion-color-primary);
-  display: block;
   margin-inline: auto;
   max-height: min(48vh, 420px);
   max-width: 100%;
+  overflow: hidden;
+  position: relative;
   touch-action: none;
   width: min(100%, 420px);
+}
+
+.drawing-strokes-view,
+.drawing-canvas {
+  height: 100%;
+  inset: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.drawing-strokes-view {
+  pointer-events: none;
+}
+
+.drawing-canvas {
+  display: block;
+  opacity: 0;
+  touch-action: none;
 }
 
 .center-actions {

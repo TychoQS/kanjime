@@ -4,7 +4,7 @@ import { installE2ENativeMocks } from "../../Support/E2ECapacitorMocks";
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
 import { TEST_KANJI_DAY } from "../../Support/TestData";
 import { loadImageFromStorage, performCrop, DEFAULT_CROP_AREA } from "../../Support/ImageHelper";
-import { drawSingleStroke, canvasHasVisibleStroke } from "../../Support/E2ECanvasHelpers";
+import { drawSingleStroke, visiblePageCanvasHasStroke } from "../../Support/E2ECanvasHelpers";
 
 test.beforeEach(async ({ page }) => {
   await installE2ENativeMocks(page);
@@ -151,16 +151,27 @@ test("[R6][E2E] KanjiEntryProps returns to previous screen preserving state", as
   await drawSingleStroke(page, page.getByTestId("drawing-canvas"));
   const drawingResults = app.visibleResults("ocr-results-panel");
   await expect(drawingResults.first()).toBeVisible({ timeout: 30_000 });
+  const drawnCanvas = page.getByTestId("drawing-canvas");
+  await expect.poll(() => visiblePageCanvasHasStroke(page, drawnCanvas)).toBe(true);
   await drawingResults.first().click();
   await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+  await drawnCanvas.evaluate(element => {
+    const canvasElement = element as HTMLCanvasElement;
+    const context = canvasElement.getContext("2d");
+
+    if (context) {
+      context.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    }
+  });
   // @post Returns to the previous screen.
   await page.getByTestId("kanji-back-button").click();
-  await expect(page.getByTestId("classification-screen")).toBeVisible();
   // @inv Previous drawing state intact after returning.
   const canvas = page.getByTestId("drawing-canvas");
+  expect(await visiblePageCanvasHasStroke(page, canvas)).toBe(true);
+  await expect(page.getByTestId("classification-screen")).toBeVisible();
+  await expect(canvas).toBeVisible();
   await expect(page.getByTestId("clear-drawing-button")).not.toBeDisabled();
-  const hasStroke = await canvasHasVisibleStroke(canvas);
-  expect(hasStroke).toBe(true);
+  expect(await visiblePageCanvasHasStroke(page, canvas)).toBe(true);
   await expect(drawingResults.first()).toBeVisible();
 
   // --- From image classification with crop ---

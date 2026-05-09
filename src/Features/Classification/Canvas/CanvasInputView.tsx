@@ -27,25 +27,61 @@ export const CanvasInputView: React.FC<CanvasInputProps> = props => {
       data-stroke={props.strokeColor}
       data-testid="canvas-container"
     >
-      <canvas
-        ref={canvasRef}
-        aria-label="Drawing area"
-        className="drawing-canvas"
+      <div
+        className="drawing-canvas-stage"
         data-background={props.backgroundColor}
-        data-stroke={props.strokeColor}
         data-stroke-color={props.strokeColor}
-        data-testid="drawing-canvas"
-        height={CANVAS_SIZE}
-        role="presentation"
-        width={CANVAS_SIZE}
-        onPointerDown={props.onPointerDown}
-        onPointerMove={props.onPointerMove}
-        onPointerUp={props.onPointerUp}
-        onPointerCancel={props.onPointerCancel}
-      />
+      >
+        <svg
+          aria-hidden="true"
+          className="drawing-strokes-view"
+          data-testid="drawing-strokes-view"
+          viewBox={`0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`}
+        >
+          {[...props.strokes, ...(props.activeStroke ? [props.activeStroke] : [])].map((stroke, index) => (
+            <path
+              d={strokeToPath(stroke)}
+              fill="none"
+              key={`${stroke.startedAt}-${index}`}
+              stroke={props.strokeColor}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={Math.max(7, CANVAS_SIZE * 0.035)}
+            />
+          ))}
+        </svg>
+        <canvas
+          ref={canvasRef}
+          aria-label="Drawing area"
+          className="drawing-canvas"
+          data-background={props.backgroundColor}
+          data-stroke={props.strokeColor}
+          data-stroke-color={props.strokeColor}
+          data-testid="drawing-canvas"
+          height={CANVAS_SIZE}
+          role="presentation"
+          width={CANVAS_SIZE}
+          onPointerDown={props.onPointerDown}
+          onPointerMove={props.onPointerMove}
+          onPointerUp={props.onPointerUp}
+          onPointerCancel={props.onPointerCancel}
+        />
+      </div>
     </div>
   );
 };
+
+function strokeToPath(stroke: Stroke): string {
+  if (stroke.points.length === 0) {
+    return "";
+  }
+
+  const [firstPoint, ...remainingPoints] = stroke.points;
+  return [
+    `M ${firstPoint.x} ${firstPoint.y}`,
+    ...remainingPoints.map(point => `L ${point.x} ${point.y}`)
+  ].join(" ");
+}
 
 function drawCanvas(
   canvas: HTMLCanvasElement | null,

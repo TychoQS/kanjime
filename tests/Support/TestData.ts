@@ -366,3 +366,38 @@ export const TEST_CANVAS_PROPS = {
   onStrokeCommitted: () => undefined,
   onClearRequested: () => undefined
 };
+
+/**
+ * Screen test data for R10 (GlobalProps language verification).
+ * Each entry defines route, title translation key, and checks to run.
+ */
+export const TEST_SCREENS_I18N = [
+  {
+    route: "/classification",
+    titleKey: "recognition",
+    checks: [
+      "ocr-mode-segment",
+      "ocr-image-segment",
+      "ocr-drawing-segment",
+      "image-ocr-zone",
+      "take-photo-button",
+      "choose-image-button",
+      "ocr-results-panel"
+    ]
+  },
+  {
+    route: "/search",
+    titleKey: "search",
+    checks: ["kanji-searchbar", "search-results-panel"]
+  },
+  {
+    route: "/history",
+    titleKey: "history",
+    checks: ["history-category-segment", "history-list-panel", "history-view"]
+  },
+  {
+    route: "/about",
+    titleKey: "about",
+    checks: ["about-list"]
+  }
+] as const;

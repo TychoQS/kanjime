@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { getContrast } from "polished";
 
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
+import { WCAG_AAA_CONTRAST_THRESHOLD } from "../../Support/TestData";
+import { TRANSLATIONS } from "../../../src/Shared/I18n";
 
 const TEST_KANJI = "日";
 
@@ -69,3 +72,69 @@ test("[R38][E2E] UserPreferenceInterface changes theme without losing functional
   await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue(TEST_KANJI);
   await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
 });
+
+import { TEST_SCREENS_I18N } from "../../Support/TestData";
+
+test("[R10][E2E] GlobalProps applies configured language to all screen texts", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: USABILIDAD R10 - GlobalProps
+  // @pre A supported language is configured before startup.
+  const testLang = "es-ES";
+  const es = TRANSLATIONS[testLang];
+
+  await page.addInitScript(lang => {
+    window.localStorage.setItem("tfg-app.preferences", JSON.stringify({ language: lang, theme: "light" }));
+  }, testLang);
+
+  for (const screen of TEST_SCREENS_I18N) {
+    await app.goto(screen.route);
+    await expect(page.locator("html")).toHaveAttribute("lang", testLang);
+    await expect(page.locator("ion-title").filter({ hasText: es[screen.titleKey] })).toBeVisible();
+    for (const testId of screen.checks) {
+      await expect(page.getByTestId(testId)).toBeVisible();
+    }
+  }
+
+  // Verify navigation menu
+  await app.openMenu();
+  await expect(page.getByTestId("nav-classification")).toContainText(es.recognition);
+  await expect(page.getByTestId("nav-search")).toContainText(es.search);
+  await expect(page.getByTestId("nav-history")).toContainText(es.history);
+  await expect(page.getByTestId("nav-about")).toContainText(es.about);
+  await app.closeMenu();
+});
+
+for (const theme of ["light", "dark"] as const) {
+  test(`[R15][E2E] GlobalProps maintains contrast with ${theme} theme on all screens`, async ({ page }) => {
+    const app = new E2EApplicationPage(page);
+
+    // Requirement: USABILIDAD R15 - GlobalProps
+    // @pre A valid theme is configured.
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.evaluate(t => {
+      window.localStorage.setItem("tfg-app.preferences", JSON.stringify({ language: "en-US", theme: t }));
+    }, theme);
+    await page.reload();
+
+    const screens = ["/classification", "/search", "/history", "/about"] as const;
+
+    for (const route of screens) {
+      await app.goto(route);
+
+      // @inv Contrast is maintained across all visual components.
+      const { backgroundColor, textColor, primaryColor, primaryContrast } = await page.evaluate(() => ({
+        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--ion-background-color").trim(),
+        textColor: getComputedStyle(document.documentElement).getPropertyValue("--ion-text-color").trim(),
+        primaryColor: getComputedStyle(document.documentElement).getPropertyValue("--ion-color-primary").trim(),
+        primaryContrast: getComputedStyle(document.documentElement).getPropertyValue("--ion-color-primary-contrast").trim()
+      }));
+
+      expect(getContrast(backgroundColor, textColor)).toBeGreaterThanOrEqual(WCAG_AAA_CONTRAST_THRESHOLD);
+      expect(getContrast(primaryColor, primaryContrast)).toBeGreaterThanOrEqual(WCAG_AAA_CONTRAST_THRESHOLD);
+
+      // @post Visual elements are rendered using the active theme palette.
+      await expect(page.locator("ion-app")).toHaveAttribute("data-theme", theme);
+    }
+  });
+}

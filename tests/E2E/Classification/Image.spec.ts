@@ -87,8 +87,9 @@ test("[R13][E2E] ImageProps keeps the image visible during OCR processing", asyn
   // @inv The image preview remains visible while inference may be processing.
   await expect(page.getByTestId("image-preview")).toBeVisible();
 
-  // @post The image remains visible after the processing feedback settles.
-  await expect(page.getByTestId("image-preview")).toBeVisible({ timeout: 30_000 });
+  // @post The image remains visible after the inference finishes.
+  await expect(page.getByTestId("ocr-spinner")).toBeHidden({ timeout: 5_000 });
+  await expect(page.getByTestId("image-preview")).toBeVisible({ timeout: 5_000 });
 });
 
 
@@ -106,4 +107,21 @@ test("[R14][E2E] CropProps renders one active crop overlay", async ({ page }) =>
 
   // @post The crop is represented visually over the image.
   await expect(page.getByTestId("active-crop-box")).toBeVisible();
+});
+
+test("[R16][E2E] ImageProps hides the image after it is cleared", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: USABILIDAD R16 - ImageProps
+  // @pre A valid image is loaded.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+  await expect(page.getByTestId("image-preview")).toBeVisible();
+  await expect(page.getByTestId("clear-image-button")).toBeVisible();
+
+  // @post The image is no longer visible after clearing.
+  await page.getByTestId("clear-image-button").click();
+  await expect(page.getByTestId("image-preview")).toBeHidden();
+  await expect(page.getByTestId("take-photo-button")).toBeVisible();
+  await expect(page.getByTestId("choose-image-button")).toBeVisible();
 });

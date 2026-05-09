@@ -28,6 +28,7 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
           {props.availablePages.map(page => (
             <li key={page.id} className={props.currentPage === page.id ? "menu-item-active" : ""}>
               <button
+                data-testid={`nav-${page.id}`}
                 aria-current={page.id === props.currentPage ? "page" : undefined}
                 aria-pressed={page.id === props.currentPage}
                 onClick={() => props.onNavigateRequested(page.id)}

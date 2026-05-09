@@ -21,6 +21,23 @@ test("[R8][E2E] NavigationInterface closes the menu with the visible control", a
 
   // @post Activating the control closes the menu.
   await app.closeMenu();
+  await expect(page.getByTestId("navigation-view")).toBeHidden();
+});
+
+test("[R9][E2E] NavigationInterface navigates to selected page from menu", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: USABILIDAD R9 - NavigationProps
+  // @pre The navigation menu is open on the classification screen.
+  await app.goto("/classification");
+  await app.openMenu();
+
+  // @inv The current page remains identified in the menu.
+  await expect(page.getByTestId("nav-classification")).toHaveAttribute("aria-current", "page");
+
+  // @post Selecting another page navigates correctly.
+  await page.getByTestId("nav-search").click();
+  await expect(page.getByTestId("search-screen")).toBeVisible();
 });
 
 test("[R27][E2E] NavigationInterface navigates clearly and resets page state", async ({ page }) => {
@@ -37,7 +54,7 @@ test("[R27][E2E] NavigationInterface navigates clearly and resets page state", a
   await expect(page.getByRole("menuitem", { name: /Search|Buscar/ })).toHaveAttribute("aria-current", "page");
 
   // @post Navigating away and back clears the previous page state.
-  await page.getByRole("menuitem", { name: /Recognition|Reconocimiento/ }).click();
+  await page.getByTestId("nav-classification").click();
   await expect(page.getByTestId("classification-screen")).toBeVisible();
   await app.goto("/search");
   await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue("");

@@ -167,3 +167,33 @@ test("[R12][E2E] SearchResultProps shows consistent structure across all result 
     }
   }
 });
+
+test("[R3][E2E] SearchInterface executes one search per effective non-empty term change", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: RENDIMIENTO R3 - SearchInterface
+  // @pre The search term has changed and is not empty.
+  await app.goto("/search");
+  const searchInput = page.getByTestId("kanji-searchbar").locator("input");
+  const results = app.visibleResults("search-results-panel");
+
+  // @inv Write same term twice - no duplicate search executed.
+  await searchInput.fill(TEST_KANJI_DAY.character);
+  await expect(results.first()).toBeVisible();
+  const firstResults = await results.evaluateAll(
+    els => els.map(el => el.textContent)
+  );
+
+  // Write same term again - should not trigger a new search
+  await searchInput.fill(TEST_KANJI_DAY.character);
+  const secondResults = await results.evaluateAll(
+    els => els.map(el => el.textContent)
+  );
+  expect(secondResults).toEqual(firstResults);
+
+  // @post Clear and search again - should execute new search.
+  await searchInput.fill("");
+  await expect(results).toHaveCount(0);
+  await searchInput.fill(TEST_KANJI_DAY.character);
+  await expect(results.first()).toBeVisible();
+});

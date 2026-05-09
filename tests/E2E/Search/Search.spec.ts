@@ -110,19 +110,60 @@ test("[R35][E2E] SearchInterface renders preview data for each result", async ({
   await expect(firstResult.locator(".result-levels")).toBeVisible();
 });
 
-test("[R12][E2E] SearchResultProps shows readings and levels in result rows", async ({ page }) => {
+test("[R11][E2E] SearchResultProps opens the full kanji entry on selection", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: USABILIDAD R11 - SearchResultProps
+  // @pre A valid search result is selected.
+  await app.goto("/search");
+  await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_KANJI_DAY.character);
+
+  const results = app.visibleResults("search-results-panel");
+  await expect(results.first()).toBeVisible();
+
+  const countBefore = await results.count();
+  const selectedKanji = await results.first().locator(".result-kanji").innerText();
+
+  // @post The corresponding full kanji entry is rendered.
+  await results.first().click();
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+  await expect(page.getByTestId("kanji-detail-header")).toContainText(selectedKanji);
+  await expect(page.getByTestId("kanji-meanings-section")).toBeVisible();
+  await expect(page.getByTestId("kanji-readings-section")).toBeVisible();
+
+  // @inv The result list remains unchanged after returning from the detail entry.
+  await page.getByTestId("kanji-back-button").click();
+  await expect(results).toHaveCount(countBefore);
+});
+
+test("[R12][E2E] SearchResultProps shows consistent structure across all result rows", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: USABILIDAD R12 - SearchResultProps
-  // @pre A valid term produces at least one search result.
+  // @pre A valid search term exists.
   await app.goto("/search");
-  await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_KANJI_DAY.character);
-  const firstResult = app.visibleResults("search-results-panel").first();
+  await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_READING_NICHI);
+  await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
 
-  // @inv Result rows keep the same visible structure.
-  await expect(firstResult.locator(".result-kanji")).toBeVisible();
-  await expect(firstResult.locator(".result-meta")).toBeVisible();
+  const results = app.visibleResults("search-results-panel");
+  const count = await results.count();
 
-  // @post The result row includes level metadata.
-  await expect(firstResult.locator(".result-levels")).toBeVisible();
+  for (let i = 0; i < count; i++) {
+    const result = results.nth(i);
+
+    // @inv Each result row maintains the same base visual structure.
+    await expect(result.locator(".result-kanji")).toBeVisible();
+    await expect(result.locator(".result-meta")).toBeVisible();
+    await expect(result.locator(".result-levels")).toBeAttached();
+
+    // @post Each result shows the required character and reading metadata.
+    await expect(result.locator(".result-kanji")).not.toHaveText("");
+    await expect(result.locator(".result-meta li").first()).toBeVisible();
+
+    // @post Levels are rendered when the result has associated level data if exists.
+    const levelItems = result.locator(".result-levels li");
+    if ((await levelItems.count()) > 0) {
+      await expect(levelItems.first()).toBeVisible();
+    }
+  }
 });

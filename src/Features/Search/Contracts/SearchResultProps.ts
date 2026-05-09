@@ -4,7 +4,7 @@
  * Requirement IDs: R12.
  * @pre A valid search term exists.
  * @inv All search results are displayed have the same visual structure.
- * @post The rendered item of a result exposes the character, main readings (kunyomi and onyomi), and associated levels (jlpt and joyo).
+ * @post The rendered item of a result exposes the character, main readings (kunyomi and onyomi), and associated levels (jlpt and joyo if they exist).
  */
 export interface SearchResultProps {
   readonly character: string;

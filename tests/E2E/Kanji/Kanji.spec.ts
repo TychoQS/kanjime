@@ -3,6 +3,8 @@ import { expect, test } from "@playwright/test";
 import { installE2ENativeMocks } from "../../Support/E2ECapacitorMocks";
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
 import { TEST_KANJI_DAY } from "../../Support/TestData";
+import { loadImageFromStorage, performCrop, DEFAULT_CROP_AREA } from "../../Support/ImageHelper";
+import { drawSingleStroke, canvasHasVisibleStroke } from "../../Support/E2ECanvasHelpers";
 
 test.beforeEach(async ({ page }) => {
   await installE2ENativeMocks(page);
@@ -102,4 +104,96 @@ test("[R14][E2E] DisplayKanjiInterface returns to the previous screen preserving
 
   // @inv Previous search state remains unchanged.
   await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue(TEST_KANJI_DAY.character);
+});
+
+test("[R5][E2E] KanjiEntryProps copies the kanji character to clipboard", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: USABILIDAD R5 - KanjiEntryProps
+  // @pre The kanji entry is visible.
+  await installE2ENativeMocks(page);
+  await app.goto(`/kanji/${TEST_KANJI_DAY.character}`);
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+
+  // @inv The application state remains intact after copying.
+  await page.getByTestId("kanji-copy-button").click();
+  await expect(page.getByTestId("kanji-detail-header")).toContainText(TEST_KANJI_DAY.character);
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+
+  // @post The kanji character is copied to the clipboard.
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(TEST_KANJI_DAY.character);
+});
+
+test("[R6][E2E] KanjiEntryProps returns to previous screen preserving state", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: USABILIDAD R6 - KanjiEntryProps
+
+  // --- From search ---
+  // @pre The kanji entry is visible from search.
+  await app.goto("/search");
+  await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_KANJI_DAY.character);
+  const searchResults = app.visibleResults("search-results-panel");
+  await expect(searchResults.first()).toBeVisible();
+  await searchResults.first().click();
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+  // @post Returns to the previous screen.
+  await page.getByTestId("kanji-back-button").click();
+  await expect(page.getByTestId("search-screen")).toBeVisible();
+  // @inv Previous search state intact after returning.
+  await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue(TEST_KANJI_DAY.character);
+  await expect(searchResults.first()).toBeVisible();
+
+  // --- From drawing classification ---
+  // @pre The kanji entry is visible from drawing classification.
+  await app.goto("/classification");
+  await page.getByTestId("ocr-drawing-segment").click();
+  await drawSingleStroke(page, page.getByTestId("drawing-canvas"));
+  const drawingResults = app.visibleResults("ocr-results-panel");
+  await expect(drawingResults.first()).toBeVisible({ timeout: 30_000 });
+  await drawingResults.first().click();
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+  // @post Returns to the previous screen.
+  await page.getByTestId("kanji-back-button").click();
+  await expect(page.getByTestId("classification-screen")).toBeVisible();
+  // @inv Previous drawing state intact after returning.
+  const canvas = page.getByTestId("drawing-canvas");
+  await expect(page.getByTestId("clear-drawing-button")).not.toBeDisabled();
+  const hasStroke = await canvasHasVisibleStroke(canvas);
+  expect(hasStroke).toBe(true);
+  await expect(drawingResults.first()).toBeVisible();
+
+  // --- From image classification with crop ---
+  // @pre The kanji entry is visible from image classification with crop.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+  await performCrop(page, DEFAULT_CROP_AREA);
+  const imageResults = app.visibleResults("ocr-results-panel");
+  await expect(imageResults.first()).toBeVisible({ timeout: 30_000 });
+  await imageResults.first().click();
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+  // @post Returns to the previous screen.
+  await page.getByTestId("kanji-back-button").click();
+  await expect(page.getByTestId("classification-screen")).toBeVisible();
+  // @inv Previous image state with crop intact after returning.
+  await expect(page.getByTestId("image-preview")).toBeVisible();
+  await expect(page.getByTestId("clear-image-button")).toBeVisible();
+  await expect(page.getByTestId("image-crop-frame")).toBeVisible();
+  await expect(imageResults.first()).toBeVisible();
+
+  // --- From image classification without crop ---
+  // @pre The kanji entry is visible from image classification without crop.
+  await app.goto("/classification");
+  await loadImageFromStorage(page);
+  const imageResultsNoCrop = app.visibleResults("ocr-results-panel");
+  await expect(imageResultsNoCrop.first()).toBeVisible({ timeout: 30_000 });
+  await imageResultsNoCrop.first().click();
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
+  // @post Returns to the previous screen.
+  await page.getByTestId("kanji-back-button").click();
+  await expect(page.getByTestId("classification-screen")).toBeVisible();
+  // @inv Previous image state intact after returning.
+  await expect(page.getByTestId("image-preview")).toBeVisible();
+  await expect(page.getByTestId("clear-image-button")).toBeVisible();
+  await expect(imageResultsNoCrop.first()).toBeVisible();
 });

@@ -361,3 +361,23 @@ test("[R39][E2E] ClassificationInterface keeps OCR modes mutually exclusive", as
   await expect(page.getByTestId("drawing-ocr-zone")).toBeVisible();
   await expect(page.getByTestId("image-ocr-zone")).toBeHidden();
 });
+
+test("[R1][E2E] ModelLoaderInterface loads the model once and keeps it available", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: RENDIMIENTO R1 - ModelLoaderInterface
+  // @pre The model is not yet loaded.
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  // @inv The model loads only once per session.
+  await expect(page.getByTestId("loading-screen-view")).toBeVisible();
+  await expect(page.getByTestId("loading-screen-view")).toBeHidden({ timeout: 30_000 });
+
+  // @post The model remains available throughout the session without reloading.
+  await app.goto("/search");
+  await expect(page.getByTestId("loading-screen-view")).toBeHidden();
+  await app.goto("/history");
+  await expect(page.getByTestId("loading-screen-view")).toBeHidden();
+  await app.goto("/about");
+  await expect(page.getByTestId("loading-screen-view")).toBeHidden();
+});

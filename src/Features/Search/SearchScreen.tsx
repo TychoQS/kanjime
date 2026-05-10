@@ -21,6 +21,7 @@ export function SearchScreen(): JSX.Element {
           <IonSearchbar
             data-testid="kanji-searchbar"
             debounce={0}
+            type="text"
             inputmode="search"
             placeholder={translate(preferences.preferences.language, "searchPlaceholder")}
             value={search.term}

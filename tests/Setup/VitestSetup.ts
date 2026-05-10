@@ -1,18 +1,35 @@
-if (typeof window === "undefined") {
-  (globalThis as any).window = globalThis;
-  (global as any).window = globalThis;
-}
-if (typeof self === "undefined") {
-  (globalThis as any).self = globalThis;
-  (global as any).self = globalThis;
-}
-
+import React from "react";
 import "@testing-library/jest-dom/vitest";
 
 import { cleanup } from "@testing-library/react";
 import { setupIonicReact } from "@ionic/react";
 import { afterEach, vi } from "vitest";
 import "../../src/Theme/Variables.css";
+
+vi.mock("@ionic/react", async importOriginal => {
+  const actual = await importOriginal<typeof import("@ionic/react")>();
+
+  return {
+    ...actual,
+
+    IonApp: ({ children, ...props }: any) =>
+      React.createElement(
+        "div",
+        {
+          ...props,
+          "data-testid": props["data-testid"] ?? "ion-app",
+        },
+        children
+      ),
+
+    IonIcon: ({ icon, name, "aria-label": ariaLabel, ...props }: any) =>
+      React.createElement("span", {
+        ...props,
+        "data-testid": props["data-testid"] ?? "ion-icon",
+        "aria-label": ariaLabel ?? name ?? icon ?? "icon",
+      }),
+  };
+});
 
 class ResizeObserverStub {
   observe(): void { }
@@ -51,11 +68,11 @@ setupIonicReact({ _testing: true });
 
 afterEach(() => {
   cleanup();
-  vi.clearAllTimers();
+  vi.clearAllMocks();
 });
 
 if (!("ResizeObserver" in globalThis)) {
-  globalThis.ResizeObserver = ResizeObserverStub;
+  globalThis.ResizeObserver = ResizeObserverStub as typeof ResizeObserver;
 }
 
 if (!("ImageData" in globalThis)) {
@@ -65,23 +82,20 @@ if (!("ImageData" in globalThis)) {
 if (!window.matchMedia) {
   Object.defineProperty(window, "matchMedia", {
     writable: true,
-    value: (query: string) => {
-      return {
-        matches: false,
-        media: query,
-        onchange: null,
-        addEventListener: () => undefined,
-        removeEventListener: () => undefined,
-        addListener: () => undefined,
-        removeListener: () => undefined,
-        dispatchEvent: () => false
-      };
-    }
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      dispatchEvent: () => false,
+    }),
   });
 }
 
-if (!HTMLCanvasElement.prototype.getContext) {
-  HTMLCanvasElement.prototype.getContext = function () {
-    return null;
-  };
-}
+Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+  configurable: true,
+  value: vi.fn(() => null),
+});

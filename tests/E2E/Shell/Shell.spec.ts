@@ -76,16 +76,20 @@ test("[R28][E2E] NavigationInterface starts the application on image OCR mode", 
 
 test("[R7][E2E] LoadingScreenProps shows a blocking loading indicator during startup", async ({ page }) => {
   // Requirement: USABILIDAD R7 - LoadingScreenProps
-  // @pre The application has just started and blocking startup work exists.
+
+  // @pre A blocking startup process exists.
   await page.goto("/classification", { waitUntil: "domcontentloaded" });
 
-  // @inv The startup loading screen marks interaction as blocked when visible.
+  // @post A visible loading indicator is rendered.
   const loading = page.getByTestId("loading-screen-view");
-  if (await loading.isVisible()) {
-    await expect(loading.locator("[data-blocks-interaction='true']")).toBeVisible();
-  }
+  await expect(loading).toBeVisible();
+  await expect(loading).toHaveAttribute("aria-busy", "true");
+  await expect(loading).toHaveAttribute("role", "status");
 
-  // @post Startup completes and the OCR screen is available.
+  // @inv User interaction is blocked while loading.
+  await expect(loading.locator("[data-blocks-interaction='true']")).toBeVisible();
+
+  // Startup completes and OCR screen is available.
   await expect(loading).toBeHidden({ timeout: 30_000 });
   await expect(page.getByTestId("classification-screen")).toBeVisible();
 });

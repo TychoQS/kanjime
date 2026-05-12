@@ -416,8 +416,8 @@ async function buildPackagedDatabase() {
       license TEXT NOT NULL,
       attribution TEXT NOT NULL,
       upstream_version TEXT,
-      downloaded_at TEXT NOT NULL,
-      expanded_sha256 TEXT NOT NULL
+      downloaded_at TEXT,
+      expanded_sha256 TEXT
     );
 
     CREATE TABLE kanji_entries (
@@ -497,14 +497,14 @@ async function buildPackagedDatabase() {
   for (const source of downloadedManifest.sources) {
     runStatement(insertSourceStatement, [
       source.id,
-      source.id === "kanjidic2" ? "KANJIDIC2" : source.id === "jmdict" ? "JMdict" : "KanjiVG",
+      source.id === "kanjidic2" ? "KANJIDIC2" : source.id === "jmdict" ? "JMdict" : source.id === "kanjivg" ? "KanjiVG" : "ETL9B",
       source.homepage,
       source.downloadUrl,
       source.license,
       source.attribution,
-      source.upstreamVersion,
-      source.downloadedAt,
-      source.expandedSha256
+      source.upstreamVersion ?? null,
+      source.downloadedAt ?? null,
+      source.expandedSha256 ?? null
     ]);
   }
 

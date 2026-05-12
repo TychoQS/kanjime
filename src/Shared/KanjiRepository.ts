@@ -16,7 +16,7 @@ export interface SourceAttribution {
   readonly homepage: string;
   readonly license: string;
   readonly downloadUrl: string;
-  readonly downloadedAt: string;
+  readonly downloadedAt: string | null;
   readonly upstreamVersion: string | null;
 }
 
@@ -458,7 +458,7 @@ function toAttribution(value: unknown): SourceAttribution | null {
     typeof homepage !== "string" ||
     typeof license !== "string" ||
     typeof downloadUrl !== "string" ||
-    typeof downloadedAt !== "string"
+    (typeof downloadedAt !== "string" && downloadedAt !== null)
   ) {
     return null;
   }

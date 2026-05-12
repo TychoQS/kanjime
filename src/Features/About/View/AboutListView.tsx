@@ -39,5 +39,13 @@ function localizeAboutValue(language: string, value: string): string {
     return translate(language, value as TranslationKey);
   }
 
+  if (value.includes("databaseSourceDetail")) {
+    return value.replace("databaseSourceDetail", translate(language, "databaseSourceDetail"));
+  }
+
+  if (value.includes("modelSourceDetail")) {
+    return value.replace("modelSourceDetail", translate(language, "modelSourceDetail"));
+  }
+
   return value;
 }

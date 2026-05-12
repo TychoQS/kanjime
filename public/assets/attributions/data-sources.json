@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-04T12:18:18.539Z",
+  "generatedAt": "2026-05-12T16:43:45.020Z",
   "sources": [
     {
       "id": "jmdict",
@@ -7,7 +7,7 @@
       "homepage": "https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project",
       "license": "EDRDG licence statement",
       "downloadUrl": "http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz",
-      "downloadedAt": "2026-05-04T12:17:55.491Z",
+      "downloadedAt": "2026-05-12T16:41:04.066Z",
       "upstreamVersion": null
     },
     {
@@ -16,7 +16,7 @@
       "homepage": "https://www.edrdg.org/wiki/index.php/KANJIDIC_Project",
       "license": "EDRDG licence statement",
       "downloadUrl": "https://www.edrdg.org/kanjidic/kanjidic2.xml.gz",
-      "downloadedAt": "2026-05-04T12:17:57.674Z",
+      "downloadedAt": "2026-05-12T16:41:05.547Z",
       "upstreamVersion": null
     },
     {
@@ -25,8 +25,17 @@
       "homepage": "https://kanjivg.tagaini.net/",
       "license": "Creative Commons Attribution-Share Alike 3.0",
       "downloadUrl": "https://github.com/KanjiVG/kanjivg/releases/download/r20250816/kanjivg-20250816.xml.gz",
-      "downloadedAt": "2026-05-04T12:17:59.038Z",
+      "downloadedAt": "2026-05-12T16:41:06.698Z",
       "upstreamVersion": "r20250816"
+    },
+    {
+      "id": "etl9b",
+      "attribution": "Electrotechnical Laboratory, Japanese Technical Committee for Optical Character Recognition",
+      "homepage": "https://etlcdb.db.aist.go.jp/?lang=en",
+      "license": "ETL Character Database Terms of Use",
+      "downloadUrl": "https://etlcdb.db.aist.go.jp/download2/",
+      "downloadedAt": null,
+      "upstreamVersion": "ETL9B"
     }
   ]
 }

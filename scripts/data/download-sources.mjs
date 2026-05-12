@@ -19,9 +19,6 @@ function writeStatus(message) {
  *
  * @param {typeof DATA_SOURCE_DEFINITIONS[number]} sourceDefinition Source definition.
  * @returns {Promise<{ downloadUrls: string[]; resolvedFileName: string; upstreamVersion: string | null }>}
- *
- * @pre sourceDefinition is a valid source definition.
- * @post The returned URL can be requested directly.
  */
 async function resolveDownloadTarget(sourceDefinition) {
   if (sourceDefinition.sourceType === "direct") {
@@ -61,6 +58,24 @@ async function resolveDownloadTarget(sourceDefinition) {
     resolvedFileName: matchingAsset.name,
     upstreamVersion: release.tag_name ?? null
   };
+}
+
+/**
+ * Resolves the effective download URL for a source entry.
+ *
+ * @param {typeof DATA_SOURCE_DEFINITIONS[number]} sourceDefinition Source definition.
+ * @returns {Promise<{ downloadUrls: string[]; resolvedFileName: string | null; upstreamVersion: string | null }>}
+ */
+async function resolveSourceTarget(sourceDefinition) {
+  if (sourceDefinition.sourceType === "manual") {
+    return {
+      downloadUrls: [sourceDefinition.url],
+      resolvedFileName: null,
+      upstreamVersion: sourceDefinition.upstreamVersion ?? null
+    };
+  }
+
+  return resolveDownloadTarget(sourceDefinition);
 }
 
 /**
@@ -124,36 +139,44 @@ await ensureDirectory(PATHS.expandedSourcesDirectory);
 const downloadManifestEntries = [];
 
 for (const sourceDefinition of DATA_SOURCE_DEFINITIONS) {
-  writeStatus(`Downloading ${sourceDefinition.displayName}...`);
+  writeStatus(`Processing ${sourceDefinition.displayName}...`);
 
-  const target = await resolveDownloadTarget(sourceDefinition);
-  const downloadedSource = await downloadBinary(target.downloadUrls);
-  const compressedContents = downloadedSource.contents;
-  const expandedContents = expandContents(compressedContents, sourceDefinition.compression);
+  const target = await resolveSourceTarget(sourceDefinition);
+  let downloadedSource = null;
+  let compressedContents = null;
+  let expandedContents = null;
+  let rawFilePath = null;
+  let expandedFilePath = null;
 
-  const rawFilePath = resolve(PATHS.rawSourcesDirectory, sourceDefinition.compressedFileName);
-  const expandedFilePath = resolve(PATHS.expandedSourcesDirectory, sourceDefinition.expandedFileName);
+  if (sourceDefinition.sourceType !== "manual") {
+    downloadedSource = await downloadBinary(target.downloadUrls);
+    compressedContents = downloadedSource.contents;
+    expandedContents = expandContents(compressedContents, sourceDefinition.compression);
 
-  await writeBinaryFile(rawFilePath, compressedContents);
-  await writeBinaryFile(expandedFilePath, expandedContents);
+    rawFilePath = resolve(PATHS.rawSourcesDirectory, sourceDefinition.compressedFileName);
+    expandedFilePath = resolve(PATHS.expandedSourcesDirectory, sourceDefinition.expandedFileName);
+
+    await writeBinaryFile(rawFilePath, compressedContents);
+    await writeBinaryFile(expandedFilePath, expandedContents);
+  }
 
   downloadManifestEntries.push({
     id: sourceDefinition.id,
     displayName: sourceDefinition.displayName,
     homepage: sourceDefinition.homepage,
     attribution: sourceDefinition.attribution,
-      license: sourceDefinition.license,
-      downloadUrl: downloadedSource.downloadUrl,
-    downloadedAt: new Date().toISOString(),
+    license: sourceDefinition.license,
+    downloadUrl: downloadedSource?.downloadUrl ?? target.downloadUrls[0],
+    downloadedAt: downloadedSource ? new Date().toISOString() : null,
     upstreamVersion: target.upstreamVersion,
-    compressedFileName: sourceDefinition.compressedFileName,
-    expandedFileName: sourceDefinition.expandedFileName,
-    rawFilePath,
-    expandedFilePath,
-    compressedSha256: calculateSha256(compressedContents),
-    expandedSha256: calculateSha256(expandedContents),
-    compressedSizeBytes: compressedContents.byteLength,
-    expandedSizeBytes: expandedContents.byteLength
+    ...(rawFilePath ? { compressedFileName: sourceDefinition.compressedFileName } : {}),
+    ...(expandedFilePath ? { expandedFileName: sourceDefinition.expandedFileName } : {}),
+    ...(rawFilePath ? { rawFilePath } : {}),
+    ...(expandedFilePath ? { expandedFilePath } : {}),
+    ...(compressedContents ? { compressedSha256: calculateSha256(compressedContents) } : {}),
+    ...(expandedContents ? { expandedSha256: calculateSha256(expandedContents) } : {}),
+    ...(compressedContents ? { compressedSizeBytes: compressedContents.byteLength } : {}),
+    ...(expandedContents ? { expandedSizeBytes: expandedContents.byteLength } : {})
   });
 }
 

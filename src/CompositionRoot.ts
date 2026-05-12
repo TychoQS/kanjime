@@ -380,7 +380,7 @@ function filterMeaningsByLanguage(
 function formatAttributions(attributions: ReadonlyArray<SourceAttribution>): ReadonlyArray<AboutInformationItem> {
   return attributions.map(source => ({
     label: source.id,
-    value: `${source.attribution}. ${source.license}.`
+    value: `${source.attribution}. ${source.license}. ${source.id === "etl9b" ? "modelSourceDetail" : "databaseSourceDetail"}`
   }));
 }
 

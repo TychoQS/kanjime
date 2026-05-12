@@ -1,7 +1,6 @@
 /**
  * Source metadata used by the automated data ingestion workflow.
  *
- * @inv Every source entry has a stable identifier and a deterministic local file name.
  */
 export const DATA_SOURCE_DEFINITIONS = [
   {
@@ -41,5 +40,15 @@ export const DATA_SOURCE_DEFINITIONS = [
     homepage: "https://kanjivg.tagaini.net/",
     attribution: "KanjiVG project contributors",
     license: "Creative Commons Attribution-Share Alike 3.0"
+  },
+  {
+    id: "etl9b",
+    displayName: "ETL9B",
+    sourceType: "manual",
+    url: "https://etlcdb.db.aist.go.jp/download2/",
+    homepage: "https://etlcdb.db.aist.go.jp/?lang=en",
+    attribution: "Electrotechnical Laboratory, Japanese Technical Committee for Optical Character Recognition",
+    license: "ETL Character Database Terms of Use",
+    upstreamVersion: "ETL9B"
   }
 ];

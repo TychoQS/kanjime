@@ -93,7 +93,13 @@ export const TRANSLATION_KEYS = [
   "interface",
   "interfaceValue",
   "licenseDetail",
-  "termsDetail"
+  "termsDetail",
+  "etl9b",
+  "jmdict",
+  "kanjidic2",
+  "kanjivg",
+  "databaseSourceDetail",
+  "modelSourceDetail"
 ] as const;
 
 export type TranslationKey = (typeof TRANSLATION_KEYS)[number];
@@ -167,7 +173,13 @@ export const ENGLISH_TRANSLATIONS: TranslationMap = {
   interface: "Interface",
   interfaceValue: "Ionic React and Capacitor",
   licenseDetail: "Academic project. Data source licenses apply.",
-  termsDetail: "Works offline and stores recognition history on this device."
+  termsDetail: "Works offline and stores recognition history on this device.",
+  etl9b: "ETL9B",
+  jmdict: "JMdict",
+  kanjidic2: "KANJIDIC2",
+  kanjivg: "KanjiVG",
+  databaseSourceDetail: "Used for database generation.",
+  modelSourceDetail: "Used for recognition model training."
 };
 
 export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
@@ -243,7 +255,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "Interfaz",
     interfaceValue: "Ionic React y Capacitor",
     licenseDetail: "Proyecto académico. Se aplican las licencias de las fuentes de datos.",
-    termsDetail: "Funciona sin conexión y guarda el historial de reconocimiento en este dispositivo."
+    termsDetail: "Funciona sin conexión y guarda el historial de reconocimiento en este dispositivo.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "Usado para la generación de la base de datos.",
+    modelSourceDetail: "Usado para el entrenamiento del modelo de reconocimiento."
   },
   "fr-FR": {
     appName: "KanjiMe",
@@ -312,7 +330,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "Interface",
     interfaceValue: "Ionic React et Capacitor",
     licenseDetail: "Projet universitaire. Les licences des sources de données s'appliquent.",
-    termsDetail: "Fonctionne hors ligne et conserve l'historique de reconnaissance sur cet appareil."
+    termsDetail: "Fonctionne hors ligne et conserve l'historique de reconnaissance sur cet appareil.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "Utilisé pour la génération de la base de données.",
+    modelSourceDetail: "Utilisé pour l'entraînement du modèle de reconnaissance."
   },
   "de-DE": {
     appName: "KanjiMe",
@@ -381,7 +405,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "Oberfläche",
     interfaceValue: "Ionic React und Capacitor",
     licenseDetail: "Akademisches Projekt. Es gelten die Lizenzen der Datenquellen.",
-    termsDetail: "Funktioniert offline und speichert den Erkennungsverlauf auf diesem Gerät."
+    termsDetail: "Funktioniert offline und speichert den Erkennungsverlauf auf diesem Gerät.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "Wird für die Generierung der Datenbank verwendet.",
+    modelSourceDetail: "Wird für das Training des Erkennungsmodells verwendet."
   },
   "it-IT": {
     appName: "KanjiMe",
@@ -450,7 +480,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "Interfaccia",
     interfaceValue: "Ionic React e Capacitor",
     licenseDetail: "Progetto accademico. Si applicano le licenze delle fonti dati.",
-    termsDetail: "Funziona offline e salva la cronologia del riconoscimento su questo dispositivo."
+    termsDetail: "Funziona offline e salva la cronologia del riconoscimento su questo dispositivo.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "Usato per la generazione del database.",
+    modelSourceDetail: "Usato per l'addestramento del modello di riconoscimento."
   },
   "pt-PT": {
     appName: "KanjiMe",
@@ -519,7 +555,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "Interface",
     interfaceValue: "Ionic React e Capacitor",
     licenseDetail: "Projeto académico. Aplicam-se as licenças das fontes de dados.",
-    termsDetail: "Funciona offline e guarda o histórico de reconhecimento neste dispositivo."
+    termsDetail: "Funciona offline e guarda o histórico de reconhecimento neste dispositivo.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "Usado para a geração da base de dados.",
+    modelSourceDetail: "Usado para o treinamento do modelo de reconhecimento."
   },
   "ja-JP": {
     appName: "KanjiMe",
@@ -588,7 +630,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "インターフェース",
     interfaceValue: "Ionic React と Capacitor",
     licenseDetail: "学術プロジェクトです。データソースのライセンスが適用されます。",
-    termsDetail: "オフラインで動作し、認識履歴をこの端末に保存します。"
+    termsDetail: "オフラインで動作し、認識履歴をこの端末に保存します。",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "データベースの生成に使用。",
+    modelSourceDetail: "認識モデルの学習に使用。"
   },
   "zh-CN": {
     appName: "KanjiMe",
@@ -657,7 +705,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "界面",
     interfaceValue: "Ionic React 和 Capacitor",
     licenseDetail: "学术项目。数据源许可证适用。",
-    termsDetail: "可离线使用，并将识别历史记录保存在此设备上。"
+    termsDetail: "可离线使用，并将识别历史记录保存在此设备上。",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "用于数据库生成。",
+    modelSourceDetail: "用于识别模型训练。"
   },
   "zh-TW": {
     appName: "KanjiMe",
@@ -726,7 +780,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "介面",
     interfaceValue: "Ionic React 和 Capacitor",
     licenseDetail: "學術專案。資料來源授權適用。",
-    termsDetail: "可離線運作，並將辨識歷史紀錄儲存在此裝置上。"
+    termsDetail: "可離線運作，並將辨識歷史紀錄儲存在此裝置上。",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "用於資料庫生成。",
+    modelSourceDetail: "用於辨識模型訓練。"
   },
   "ko-KR": {
     appName: "KanjiMe",
@@ -795,7 +855,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "인터페이스",
     interfaceValue: "Ionic React 및 Capacitor",
     licenseDetail: "학술 프로젝트입니다. 데이터 출처 라이선스가 적용됩니다.",
-    termsDetail: "오프라인으로 작동하며 인식 기록을 이 기기에 저장합니다."
+    termsDetail: "오프라인으로 작동하며 인식 기록을 이 기기에 저장합니다.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "데이터베이스 생성에 사용됨.",
+    modelSourceDetail: "인식 모델 학습에 사용됨."
   },
   "hi-IN": {
     appName: "KanjiMe",
@@ -864,7 +930,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "इंटरफ़ेस",
     interfaceValue: "Ionic React और Capacitor",
     licenseDetail: "शैक्षणिक परियोजना. डेटा स्रोत लाइसेंस लागू होते हैं.",
-    termsDetail: "ऑफ़लाइन काम करता है और पहचान इतिहास को इस डिवाइस पर सहेजता है."
+    termsDetail: "ऑफ़लाइन काम करता है और पहचान इतिहास को इस डिवाइस पर सहेजता है.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "डेटाबेस उत्पादन के लिए उपयोग किया जाता है।",
+    modelSourceDetail: "पहचान मॉडल प्रशिक्षण के लिए उपयोग किया जाता है।"
   },
   "ar-SA": {
     appName: "KanjiMe",
@@ -933,7 +1005,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "الواجهة",
     interfaceValue: "Ionic React و Capacitor",
     licenseDetail: "مشروع أكاديمي. تنطبق تراخيص مصادر البيانات.",
-    termsDetail: "يعمل دون اتصال ويحفظ سجل التعرّف على هذا الجهاز."
+    termsDetail: "يعمل دون اتصال ويحفظ سجل التعرّف على هذا الجهاز.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "يستخدم لإنشاء قاعدة البيانات.",
+    modelSourceDetail: "يستخدم لتدريب نموذج التعرف."
   },
   "sw-KE": {
     appName: "KanjiMe",
@@ -1002,7 +1080,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "Kiolesura",
     interfaceValue: "Ionic React na Capacitor",
     licenseDetail: "Mradi wa kitaaluma. Leseni za vyanzo vya data zinatumika.",
-    termsDetail: "Hufanya kazi nje ya mtandao na huhifadhi historia ya utambuzi kwenye kifaa hiki."
+    termsDetail: "Hufanya kazi nje ya mtandao na huhifadhi historia ya utambuzi kwenye kifaa hiki.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "Inatumiwa kwa uzalishaji wa hifadhidata.",
+    modelSourceDetail: "Inatumiwa kwa mafunzo ya mfano wa utambuzi."
   },
   "am-ET": {
     appName: "KanjiMe",
@@ -1071,7 +1155,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "በይነገጽ",
     interfaceValue: "Ionic React እና Capacitor",
     licenseDetail: "የትምህርት ፕሮጀክት. የውሂብ ምንጭ ፈቃዶች ይተገበራሉ.",
-    termsDetail: "ከመስመር ውጭ ይሰራል እና የመለያ ታሪክን በዚህ መሣሪያ ላይ ያስቀምጣል."
+    termsDetail: "ከመስመር ውጭ ይሰራል እና የመለያ ታሪክን በዚህ መሣሪያ ላይ ያስቀምጣል.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "ለውሂብ ጎታ አመራረት ጥቅም ላይ ይውላል።",
+    modelSourceDetail: "ለማወቂያ ሞዴል ስልጠና ጥቅም ላይ ይውላል።"
   },
   "ha-NG": {
     appName: "KanjiMe",
@@ -1140,7 +1230,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "Fuska",
     interfaceValue: "Ionic React da Capacitor",
     licenseDetail: "Aikin ilimi. Lasisin tushen bayanai suna aiki.",
-    termsDetail: "Yana aiki ba tare da intanet ba kuma yana adana tarihin ganewa a wannan na'ura."
+    termsDetail: "Yana aiki ba tare da intanet ba kuma yana adana tarihin ganewa a wannan na'ura.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "An yi amfani da shi don samar da rumbun adana bayanan.",
+    modelSourceDetail: "An yi amfani da shi don horar da samfurin ganewa."
   },
   "yo-NG": {
     appName: "KanjiMe",
@@ -1209,7 +1305,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "Oju wiwo",
     interfaceValue: "Ionic React ati Capacitor",
     licenseDetail: "Ise agbese ile-iwe. Awọn iwe-aṣẹ orisun data kan.",
-    termsDetail: "O ṣiṣẹ laisi intanẹẹti o si tọju itan idanimọ sori ẹrọ yii."
+    termsDetail: "O ṣiṣẹ laisi intanẹẹti o si tọju itan idanimọ sori ẹrọ yii.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "Ti a lo fun iran data data.",
+    modelSourceDetail: "Ti a lo fun ikẹkọ awoṣe idanimọ."
   },
   "zu-ZA": {
     appName: "KanjiMe",
@@ -1278,7 +1380,13 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     interface: "Isixhumi esibonakalayo",
     interfaceValue: "Ionic React ne-Capacitor",
     licenseDetail: "Iphrojekthi yezemfundo. Amalayisense emithombo yedatha ayasebenza.",
-    termsDetail: "Isebenza ingaxhunyiwe futhi igcina umlando wokubona kule divayisi."
+    termsDetail: "Isebenza ingaxhunyiwe futhi igcina umlando wokubona kule divayisi.",
+    etl9b: "ETL9B",
+    jmdict: "JMdict",
+    kanjidic2: "KANJIDIC2",
+    kanjivg: "KanjiVG",
+    databaseSourceDetail: "Kusetshenziselwa ukukhiqizwa kwdatabase.",
+    modelSourceDetail: "Kusetshenziselwa ukuqeqeshwa kwemodeli yokuqaphela."
   }
 };
 

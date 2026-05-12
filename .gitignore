@@ -2,4 +2,16 @@
 .env
 .agents
 .codex
-/data
+.cache
+/data/
+node_modules
+dist
+.DS_Store
+coverage
+.vite
+android
+ios
+public/assets/database/
+test-results/
+playwright-report/
+.idea

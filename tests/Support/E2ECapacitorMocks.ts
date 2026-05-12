@@ -22,6 +22,6 @@ export async function installE2ENativeMocks(page: Page): Promise<void> {
       }
     });
 
-    window.localStorage.setItem("tfg-app.e2e.image", imageDataUrl);
+    window.localStorage.setItem("kanjime.e2e.image", imageDataUrl);
   }, E2E_KANJI_IMAGE_DATA_URL);
 }

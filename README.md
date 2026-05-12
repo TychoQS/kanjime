@@ -1,6 +1,10 @@
+# KanjiMe
+
 ### Academic Context
 
 This project is part of my Final Degree Project (TFG).
+
+Project name: KanjiMe
 
 Author: Tycho Quintana Santana
 

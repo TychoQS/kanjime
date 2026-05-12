@@ -101,7 +101,7 @@ export type TranslationKey = (typeof TRANSLATION_KEYS)[number];
 export type TranslationMap = Record<TranslationKey, string>;
 
 export const ENGLISH_TRANSLATIONS: TranslationMap = {
-  appName: "Kanji Recognizer",
+  appName: "KanjiMe",
   about: "About",
   acknowledgments: "Acknowledgments",
   activeLanguage: "Language",
@@ -177,7 +177,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     searchPlaceholder: "Kanji or reading"
   },
   "es-ES": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "Acerca de",
     acknowledgments: "Agradecimientos",
     activeLanguage: "Idioma",
@@ -246,7 +246,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "Funciona sin conexión y guarda el historial de reconocimiento en este dispositivo."
   },
   "fr-FR": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "À propos",
     acknowledgments: "Remerciements",
     activeLanguage: "Langue",
@@ -315,7 +315,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "Fonctionne hors ligne et conserve l'historique de reconnaissance sur cet appareil."
   },
   "de-DE": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "Info",
     acknowledgments: "Danksagungen",
     activeLanguage: "Sprache",
@@ -384,7 +384,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "Funktioniert offline und speichert den Erkennungsverlauf auf diesem Gerät."
   },
   "it-IT": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "Informazioni",
     acknowledgments: "Ringraziamenti",
     activeLanguage: "Lingua",
@@ -453,7 +453,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "Funziona offline e salva la cronologia del riconoscimento su questo dispositivo."
   },
   "pt-PT": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "Sobre",
     acknowledgments: "Agradecimentos",
     activeLanguage: "Idioma",
@@ -522,7 +522,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "Funciona offline e guarda o histórico de reconhecimento neste dispositivo."
   },
   "ja-JP": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "情報",
     acknowledgments: "謝辞",
     activeLanguage: "言語",
@@ -591,7 +591,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "オフラインで動作し、認識履歴をこの端末に保存します。"
   },
   "zh-CN": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "关于",
     acknowledgments: "致谢",
     activeLanguage: "语言",
@@ -660,7 +660,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "可离线使用，并将识别历史记录保存在此设备上。"
   },
   "zh-TW": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "關於",
     acknowledgments: "致謝",
     activeLanguage: "語言",
@@ -729,7 +729,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "可離線運作，並將辨識歷史紀錄儲存在此裝置上。"
   },
   "ko-KR": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "정보",
     acknowledgments: "감사의 말",
     activeLanguage: "언어",
@@ -798,7 +798,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "오프라인으로 작동하며 인식 기록을 이 기기에 저장합니다."
   },
   "hi-IN": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "परिचय",
     acknowledgments: "आभार",
     activeLanguage: "भाषा",
@@ -867,7 +867,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "ऑफ़लाइन काम करता है और पहचान इतिहास को इस डिवाइस पर सहेजता है."
   },
   "ar-SA": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "حول",
     acknowledgments: "شكر وتقدير",
     activeLanguage: "اللغة",
@@ -936,7 +936,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "يعمل دون اتصال ويحفظ سجل التعرّف على هذا الجهاز."
   },
   "sw-KE": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "Kuhusu",
     acknowledgments: "Shukrani",
     activeLanguage: "Lugha",
@@ -1005,7 +1005,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "Hufanya kazi nje ya mtandao na huhifadhi historia ya utambuzi kwenye kifaa hiki."
   },
   "am-ET": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "ስለ",
     acknowledgments: "ምስጋናዎች",
     activeLanguage: "ቋንቋ",
@@ -1074,7 +1074,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "ከመስመር ውጭ ይሰራል እና የመለያ ታሪክን በዚህ መሣሪያ ላይ ያስቀምጣል."
   },
   "ha-NG": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "Game da",
     acknowledgments: "Godiya",
     activeLanguage: "Harshe",
@@ -1143,7 +1143,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "Yana aiki ba tare da intanet ba kuma yana adana tarihin ganewa a wannan na'ura."
   },
   "yo-NG": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "Nipa",
     acknowledgments: "Ọpẹ",
     activeLanguage: "Ede",
@@ -1212,7 +1212,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     termsDetail: "O ṣiṣẹ laisi intanẹẹti o si tọju itan idanimọ sori ẹrọ yii."
   },
   "zu-ZA": {
-    appName: "Kanji Recognizer",
+    appName: "KanjiMe",
     about: "Mayelana",
     acknowledgments: "Ukubonga",
     activeLanguage: "Ulimi",

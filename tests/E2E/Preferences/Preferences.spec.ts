@@ -84,7 +84,7 @@ test("[R10][E2E] GlobalProps applies configured language to all screen texts", a
   const es = TRANSLATIONS[testLang];
 
   await page.addInitScript(lang => {
-    window.localStorage.setItem("tfg-app.preferences", JSON.stringify({ language: lang, theme: "light" }));
+    window.localStorage.setItem("kanjime.preferences", JSON.stringify({ language: lang, theme: "light" }));
   }, testLang);
 
   for (const screen of TEST_SCREENS_I18N) {
@@ -113,7 +113,7 @@ for (const theme of ["light", "dark"] as const) {
     // @pre A valid theme is configured.
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.evaluate(t => {
-      window.localStorage.setItem("tfg-app.preferences", JSON.stringify({ language: "en-US", theme: t }));
+      window.localStorage.setItem("kanjime.preferences", JSON.stringify({ language: "en-US", theme: t }));
     }, theme);
     await page.reload();
 

@@ -17,8 +17,8 @@ interface PersistedHistoryEntry {
 }
 
 const DATABASE_NAME = "kanji_app_state";
-const PREFERENCES_STORAGE_KEY = "tfg-app.preferences";
-const HISTORY_STORAGE_KEY = "tfg-app.history";
+const PREFERENCES_STORAGE_KEY = "kanjime.preferences";
+const HISTORY_STORAGE_KEY = "kanjime.history";
 const DEFAULT_PREFERENCES: PersistedPreferences = {
   language: "en-US",
   theme: "system"

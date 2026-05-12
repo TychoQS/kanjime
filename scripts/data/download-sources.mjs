@@ -35,7 +35,7 @@ async function resolveDownloadTarget(sourceDefinition) {
   const releaseResponse = await fetch(sourceDefinition.releaseApiUrl, {
     headers: {
       Accept: "application/vnd.github+json",
-      "User-Agent": "TFG-APP-data-pipeline"
+      "User-Agent": "KanjiMe-data-pipeline"
     }
   });
 
@@ -79,7 +79,7 @@ async function downloadBinary(downloadUrls) {
     try {
       const response = await fetch(downloadUrl, {
         headers: {
-          "User-Agent": "TFG-APP-data-pipeline"
+          "User-Agent": "KanjiMe-data-pipeline"
         }
       });
 

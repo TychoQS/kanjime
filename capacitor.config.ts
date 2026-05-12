@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.tfg.app",
-  appName: "TFG-APP",
+  appId: "com.kanjime.app",
+  appName: "KanjiMe",
   webDir: "dist"
 };
 

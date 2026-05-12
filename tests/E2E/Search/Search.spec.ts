@@ -24,10 +24,8 @@ test("[R31][E2E] SearchInterface updates results while typing a kanji", async ({
   await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue(TEST_KANJI_DAY.character);
 
   await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_KANJI_MOON);
-  await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
-  const invariantResults = await app.visibleResults("search-results-panel").allInnerTexts();
-
-  expect(invariantResults).not.toEqual(postConditionResults);
+  await expect.poll(() => app.visibleResults("search-results-panel").allInnerTexts())
+    .not.toEqual(postConditionResults);
 });
 
 test("[R32][E2E] SearchInterface finds results by reading", async ({ page }) => {
@@ -51,10 +49,8 @@ test("[R32][E2E] SearchInterface finds results by reading", async ({ page }) => 
   await expect(page.getByTestId("kanji-searchbar").locator("input")).toHaveValue(TEST_READING_NICHI);
 
   await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_READING_HI);
-  await expect(app.visibleResults("search-results-panel").first()).toBeVisible();
-  const invariantResults = await app.visibleResults("search-results-panel").allInnerTexts();
-
-  expect(invariantResults).not.toEqual(postConditionResults);
+  await expect.poll(() => app.visibleResults("search-results-panel").allInnerTexts())
+    .not.toEqual(postConditionResults);
 });
 
 test("[R33][E2E] SearchInterface clears the search bar and results", async ({ page }) => {
@@ -89,7 +85,10 @@ test("[R34][E2E] SearchInterface opens a selected search result", async ({ page 
 
   // @inv Returning keeps the prior result list unchanged.
   await page.getByTestId("kanji-back-button").click();
-  await expect(results).toHaveCount(countBefore);
+  await expect(page.getByTestId("search-screen")).toBeVisible();
+  const resultsAfter = app.visibleResults("search-results-panel");
+  await expect(resultsAfter.first()).toBeVisible();
+  await expect(resultsAfter).toHaveCount(countBefore);
 });
 
 test("[R35][E2E] SearchInterface renders preview data for each result", async ({ page }) => {

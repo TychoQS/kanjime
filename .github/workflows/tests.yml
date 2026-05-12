@@ -28,5 +28,8 @@ jobs:
       - name: Prepare database
         run: npm run data:prepare
 
+      - name: Install Playwright browsers
+        run: npx playwright install
+
       - name: Run all tests
         run: npm run test:all

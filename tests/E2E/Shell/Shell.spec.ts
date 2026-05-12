@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("[R8][E2E] NavigationInterface closes the menu with the visible control", async ({ page }) => {
+test("[R8][E2E] NavigationProps closes the menu with the visible control", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: USABILIDAD R8 - NavigationProps
@@ -31,7 +31,7 @@ test("[R8][E2E] NavigationInterface closes the menu with the visible control", a
   });
 });
 
-test("[R9][E2E] NavigationInterface navigates to selected page from menu", async ({ page }) => {
+test("[R9][E2E] NavigationProps navigates to selected page from menu", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
   // Requirement: USABILIDAD R9 - NavigationProps

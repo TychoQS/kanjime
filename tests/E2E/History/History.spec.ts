@@ -136,7 +136,7 @@ test.describe("With History Setup", () => {
   test("[R2][E2E] HistoryProps entries are interactive and open the complete kanji entry", async ({ page }) => {
     const app = new E2EApplicationPage(page);
 
-    // Requirement: FUNCIONALES R2 - HistoryProps
+    // Requirement: USABILIDAD R2 - HistoryProps
     // @pre The History component is rendered with at least one entry.
     await app.goto("/history");
     await page.getByTestId("history-segment-search").click();
@@ -178,7 +178,7 @@ test.describe("With History Setup", () => {
   test("[R3][E2E] HistoryProps renders entries from newest to oldest without reordering", async ({ page }) => {
     const app = new E2EApplicationPage(page);
 
-    // Requirement: FUNCIONALES R3 - HistoryProps
+    // Requirement: USABILIDAD R3 - HistoryProps
     // @pre Multiple entries exist in the selected history category.
     await app.goto("/history");
     await page.getByTestId("history-segment-search").click();

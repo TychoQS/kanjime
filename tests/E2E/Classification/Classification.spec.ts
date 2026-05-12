@@ -218,7 +218,7 @@ test("[R11][E2E] DisplayInferencesInterface shows kanji detail and records histo
 test("[R4][E2E] InferenceListProps opens the complete selected kanji entry without changing results", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
-  // Requirement: FUNCIONALES R4 - InferenceListProps
+  // Requirement: USABILIDAD R4 - InferenceListProps
   // @pre Classification results are available.
   await app.goto("/classification");
   await page.getByTestId("ocr-drawing-segment").click();

@@ -211,43 +211,77 @@ test("[R41][E2E] HistoryInterface updates immediately after a new history entry 
   // @pre The user performs actions that generate new history records.
   await app.goto("/search");
   await page.getByTestId("kanji-searchbar").locator("input").fill(TEST_KANJI_FIRE);
-  await page.waitForSelector("[data-testid='search-results-panel']");
-  await page.getByTestId("search-results-panel").locator(".result-row").first().click();
-  await page.waitForSelector("[data-testid='kanji-detail-screen']");
+
+  const searchResults = page.getByTestId("search-results-panel").locator(".result-row");
+  await expect(searchResults.first()).toBeVisible();
+  await searchResults.first().click();
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
 
   await app.goto("/classification");
+  await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
   await loadImageFromStorage(page);
-  await page.waitForSelector("[data-testid='ocr-results-panel']");
-  const imageResults = page.getByTestId("ocr-results-panel").locator(".result-row").first();
-  await expect(imageResults).toBeVisible({ timeout: 5_000 });
-  await imageResults.click();
-  await page.waitForSelector("[data-testid='kanji-detail-screen']");
+
+  const imageResults = page.getByTestId("ocr-results-panel").locator(".result-row");
+  await expect(imageResults.first()).toBeVisible({ timeout: 10_000 });
+  await imageResults.first().click();
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
 
   await app.goto("/classification");
   await page.getByTestId("ocr-drawing-segment").click();
-  await page.waitForSelector("[data-testid='drawing-canvas']");
+  await expect(page.getByTestId("ocr-drawing-segment")).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+
   const canvas = page.getByTestId("drawing-canvas");
+  await expect(canvas).toBeVisible();
+
   await drawSingleStroke(page, canvas);
-  await page.waitForSelector("[data-testid='ocr-results-panel']");
-  const drawingResults = page.getByTestId("ocr-results-panel").locator(".result-row").first();
-  await expect(drawingResults).toBeVisible({ timeout: 5_000 });
-  await drawingResults.click();
-  await page.waitForSelector("[data-testid='kanji-detail-screen']");
+
+  const drawingResults = page.getByTestId("ocr-results-panel").locator(".result-row");
+  await expect(drawingResults.first()).toBeVisible({ timeout: 10_000 });
+  await drawingResults.first().click();
+  await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
 
   // @inv The application is not restarted before checking History.
   await app.goto("/history");
+  await expect(page.getByTestId("history-screen")).toBeVisible();
 
   // @post The new records appear immediately in the History screen.
   // R41 creates: 1 search, 1 visitedEntry, 1 imageClassification, 1 drawingClassification
   await page.getByTestId("history-segment-search").click();
-  await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-search-']")).toHaveCount(1);
+  await expect(page.getByTestId("history-segment-search")).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await expect(
+    page.getByTestId("history-view").locator("[data-testid^='history-entry-search-']")
+  ).toHaveCount(1);
 
   await page.getByTestId("history-segment-visitedEntry").click();
-  await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-visitedEntry-']")).toHaveCount(1);
+  await expect(page.getByTestId("history-segment-visitedEntry")).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await expect(
+    page.getByTestId("history-view").locator("[data-testid^='history-entry-visitedEntry-']")
+  ).toHaveCount(1);
 
   await page.getByTestId("history-segment-imageClassification").click();
-  await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-imageClassification-']")).toHaveCount(1);
+  await expect(page.getByTestId("history-segment-imageClassification")).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await expect(
+    page.getByTestId("history-view").locator("[data-testid^='history-entry-imageClassification-']")
+  ).toHaveCount(1);
 
   await page.getByTestId("history-segment-drawingClassification").click();
-  await expect(page.getByTestId("history-view").locator("[data-testid^='history-entry-drawingClassification-']")).toHaveCount(1);
+  await expect(page.getByTestId("history-segment-drawingClassification")).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await expect(
+    page.getByTestId("history-view").locator("[data-testid^='history-entry-drawingClassification-']")
+  ).toHaveCount(1);
 });

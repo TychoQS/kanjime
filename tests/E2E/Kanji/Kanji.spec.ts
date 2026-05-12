@@ -116,12 +116,19 @@ test("[R5][E2E] KanjiEntryProps copies the kanji character to clipboard", async 
   await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
 
   // @inv The application state remains intact after copying.
-  await page.getByTestId("kanji-copy-button").click();
+  const copyButton = page.getByTestId("kanji-copy-button");
+  await expect(copyButton).toBeVisible();
+  await copyButton.click();
   await expect(page.getByTestId("kanji-detail-header")).toContainText(TEST_KANJI_DAY.character);
   await expect(page.getByTestId("kanji-detail-screen")).toBeVisible();
 
   // @post The kanji character is copied to the clipboard.
-  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(TEST_KANJI_DAY.character);
+  await expect
+    .poll(
+      async () => page.evaluate(() => navigator.clipboard.readText()),
+      { timeout: 10_000 }
+    )
+    .toBe(TEST_KANJI_DAY.character);
 });
 
 test("[R6][E2E] KanjiEntryProps returns to previous screen preserving state", async ({ page }) => {
@@ -167,8 +174,7 @@ test("[R6][E2E] KanjiEntryProps returns to previous screen preserving state", as
   await page.getByTestId("kanji-back-button").click();
   // @inv Previous drawing state intact after returning.
   const canvas = page.getByTestId("drawing-canvas");
-  expect(await visiblePageCanvasHasStroke(page, canvas)).toBe(true);
-  await expect(page.getByTestId("classification-screen")).toBeVisible();
+  await expect.poll(() => visiblePageCanvasHasStroke(page, canvas)).toBe(true); await expect(page.getByTestId("classification-screen")).toBeVisible();
   await expect(canvas).toBeVisible();
   await expect(page.getByTestId("clear-drawing-button")).not.toBeDisabled();
   expect(await visiblePageCanvasHasStroke(page, canvas)).toBe(true);

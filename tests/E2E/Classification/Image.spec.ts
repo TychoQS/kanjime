@@ -15,9 +15,15 @@ test("[R19][E2E] ImageInterface clears the loaded image", async ({ page }) => {
   // @pre A valid image is loaded.
   await app.goto("/classification");
   await loadImageFromStorage(page);
+  await expect(app.visibleResults("ocr-results-panel").first()).toBeVisible({
+    timeout: 10_000,
+  });
+
   await page.getByTestId("clear-image-button").click();
 
   // @post The image is removed from the interface.
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  await page.evaluate(() => new Promise(requestAnimationFrame));
   await expect(page.getByTestId("image-preview")).toBeHidden();
 
   // @inv Clearing does not create additional visible results.

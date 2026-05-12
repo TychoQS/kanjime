@@ -393,7 +393,7 @@ test("[R39][E2E] ClassificationInterface keeps OCR modes mutually exclusive", as
 test("[R1][E2E] ModelLoaderInterface loads the model once and keeps it available", async ({ page }) => {
   const app = new E2EApplicationPage(page);
 
-  // Requirement: RENDIMIENTO R1 - ModelLoaderInterface
+  // Requirement: RENDIMIENTO/FIABILIDAD R1 - ModelLoaderInterface
   // @pre The model is not yet loaded.
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
@@ -409,3 +409,35 @@ test("[R1][E2E] ModelLoaderInterface loads the model once and keeps it available
   await app.goto("/about");
   await expect(page.getByTestId("loading-screen-view")).toBeHidden();
 });
+
+test("[R2][E2E] InferenceInterface keeps the UI responsive during OCR inference", async ({ page }) => {
+  const app = new E2EApplicationPage(page);
+
+  // Requirement: RENDIMIENTO/FIABILIDAD R2 - InferenceInterface
+  // @pre The application is in OCR mode and a valid inference is started.
+  await app.goto("/classification");
+
+  await loadImageFromStorage(page);
+
+  // @inv The UI remains responsive immediately after starting inference.
+  await app.openMenu();
+
+  await expect(page.getByTestId("navigation-view")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Close navigation" })).toBeVisible();
+
+  await app.closeMenu();
+
+  await expect(page.getByRole("button", { name: "Close navigation" })).toBeHidden({
+    timeout: 10_000,
+  });
+  await expect(page.getByTestId("navigation-view")).toBeHidden({
+    timeout: 10_000,
+  });
+
+  // @post The application remains operational and OCR results are eventually available.
+  await expect(page.getByTestId("classification-screen")).toBeVisible();
+  await expect(app.visibleResults("ocr-results-panel").first()).toBeVisible({
+    timeout: 15_000,
+  });
+});
+

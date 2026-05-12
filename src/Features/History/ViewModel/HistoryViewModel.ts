@@ -24,40 +24,18 @@ export interface HistoryScreenViewModel {
   openKanjiEntry(character: string): Promise<void>;
 }
 
-/**
- * Clears the registered History screen hook state, when available.
- *
- * @post The selected category and loaded groups return to their initial state.
- */
 export function clearRegisteredHistoryScreenState(): void {
   registeredHistoryScreenClear?.();
 }
 
-/**
- * Marks the History screen to clear its transient state the next time it becomes active.
- *
- * @post The next enabled History screen render resets its selected category and local groups.
- */
 export function markRegisteredHistoryScreenForReset(): void {
   shouldClearHistoryScreenOnEnable = true;
 }
 
-/**
- * Checks whether a value is a supported history category.
- *
- * @pre The value may originate from persistence or UI input.
- * @post The returned value is true only for the supported category set.
- */
 function isHistoryCategory(category: string): category is HistoryCategory {
   return HISTORY_CATEGORIES.includes(category as HistoryCategory);
 }
 
-/**
- * Copies and sorts history groups for display.
- *
- * @pre Groups come from persistent history storage.
- * @post Entries inside each group are ordered by descending creation time.
- */
 function normalizeGroups(groups: ReadonlyArray<HistoryGroup>): ReadonlyArray<HistoryGroup> {
   if (groups.length === 0) {
     return [];
@@ -189,13 +167,6 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
   };
 }
 
-/**
- * Creates the History screen hook view model.
- *
- * @pre The history controller is initialized and can load stored groups.
- * @inv The selected category always belongs to the supported history category set.
- * @post The returned state exposes loaded groups and the derived visible category slice.
- */
 export function useHistoryScreenViewModel(
   historyController: HistoryInterface,
   isEnabled: boolean

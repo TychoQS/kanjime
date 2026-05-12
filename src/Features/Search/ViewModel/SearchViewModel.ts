@@ -18,30 +18,15 @@ export interface SearchScreenViewModel {
   openKanjiEntry(character: string): Promise<void>;
 }
 
-/**
- * Clears the registered Search screen hook state, when available.
- *
- * @post The visible search term, results, and busy state are reset.
- */
 export function clearRegisteredSearchScreenState(): void {
   registeredSearchScreenClear?.();
 }
 
-/**
- * Marks the Search screen to clear its state the next time it becomes active.
- *
- * @post The next enabled Search screen render resets its visible state.
- */
 export function markRegisteredSearchScreenForReset(): void {
   shouldClearSearchScreenOnEnable = true;
 }
 
-/**
- * Creates a defensive copy of result summaries.
- *
- * @pre Results come from the kanji repository.
- * @post Mutating the returned array cannot alter controller state.
- */
+
 function copySummaries(results: ReadonlyArray<CharacterSummary>): ReadonlyArray<CharacterSummary> {
   return results.map(result => ({
     character: result.character,
@@ -50,13 +35,6 @@ function copySummaries(results: ReadonlyArray<CharacterSummary>): ReadonlyArray<
   }));
 }
 
-/**
- * Creates the search view model.
- *
- * @pre Query and navigation dependencies are wired to kanji data.
- * @inv Empty and repeated terms do not issue repository queries.
- * @post The returned controller stores visible results for navigation.
- */
 export function createSearchViewModel(dependencies: CreateSearchControllerDependencies): SearchInterface {
   let currentTerm = "";
   let visibleResults: ReadonlyArray<CharacterSummary> = [];
@@ -125,13 +103,6 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
   };
 }
 
-/**
- * Creates the Search screen hook view model.
- *
- * @pre The search controller is connected to the offline repository and navigation.
- * @inv The hook keeps input state and visible results synchronized through the controller.
- * @post The returned state reflects the debounced search term, result list, and busy indicator.
- */
 export function useSearchScreenViewModel(
   searchController: SearchInterface,
   isEnabled: boolean

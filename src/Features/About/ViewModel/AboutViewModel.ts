@@ -9,13 +9,6 @@ export interface AboutScreenViewModel {
   readonly items: ReadonlyArray<AboutInformationItem>;
 }
 
-/**
- * Creates the About view model.
- *
- * @pre About metadata and application version loaders are available.
- * @inv About information is not empty when valid metadata exists.
- * @post The returned controller exposes metadata through dependency results.
- */
 export function createAboutViewModel(dependencies: CreateAboutControllerDependencies): AboutInterface {
   return {
     async getAboutInformation(): Promise<ReadonlyArray<AboutInformationItem>> {
@@ -39,13 +32,6 @@ export function createAboutViewModel(dependencies: CreateAboutControllerDependen
   };
 }
 
-/**
- * Creates the About screen hook view model.
- *
- * @pre The about controller is initialized before the screen becomes interactive.
- * @inv The hook exposes immutable About items for rendering.
- * @post The returned state mirrors the latest successfully loaded About information.
- */
 export function useAboutScreenViewModel(
   aboutController: AboutInterface,
   language: string,

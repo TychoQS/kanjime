@@ -14,12 +14,6 @@ const HISTORY_CATEGORY_ICONS = {
   drawingClassification: createOutline
 } as const;
 
-/**
- * Categorized persistent history screen.
- *
- * @pre Persistence has been initialized by the composition root.
- * @post Entries render by category from newest to oldest.
- */
 export function HistoryScreen(): JSX.Element {
   const { history, preferences } = useAppViewModelContext();
 

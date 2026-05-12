@@ -5,21 +5,10 @@ import { ImageError } from "../../../../Shared/AppErrors";
 
 let registeredImageClear: (() => void) | null = null;
 
-/**
- * Clears the most recently created image state, when available.
- *
- * @post Registered image state is empty after this operation.
- */
 export function clearRegisteredImageState(): void {
   registeredImageClear?.();
 }
 
-/**
- * Validates image descriptors before they enter image classification state.
- *
- * @pre The descriptor is produced by camera, library, or a supported file input.
- * @post The operation completes only for non-empty image descriptors.
- */
 function assertValidImage(image: ImageDescriptor): void {
   if (
     image.uri.trim().length === 0 ||
@@ -31,12 +20,6 @@ function assertValidImage(image: ImageDescriptor): void {
   }
 }
 
-/**
- * Validates that a crop lies inside the loaded image.
- *
- * @pre A valid image is loaded.
- * @post The operation completes only when the crop is fully bounded by the image.
- */
 function assertValidCrop(crop: CropRegion, image: ImageDescriptor): void {
   const cropRight = crop.x + crop.width;
   const cropBottom = crop.y + crop.height;

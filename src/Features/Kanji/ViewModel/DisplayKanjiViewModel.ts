@@ -15,12 +15,6 @@ export interface KanjiDetailScreenViewModel {
   returnToPreviousScreen(): void;
 }
 
-/**
- * Removes absent optional fields from loaded kanji details.
- *
- * @pre The entry belongs to the requested character.
- * @post Missing fields are omitted from the returned object.
- */
 function copyEntry(entry: DetailedKanjiEntry): DetailedKanjiEntry {
   return {
     character: entry.character,
@@ -38,13 +32,6 @@ function copyEntry(entry: DetailedKanjiEntry): DetailedKanjiEntry {
   };
 }
 
-/**
- * Creates the kanji-detail view model.
- *
- * @pre Detail, clipboard, and back-navigation dependencies are available.
- * @inv Copy and back actions do not mutate loaded kanji details.
- * @post The returned controller exposes only fields loaded for the selected kanji.
- */
 export function createDisplayKanjiViewModel(
   dependencies: CreateDisplayKanjiControllerDependencies
 ): DisplayKanjiInterface {
@@ -87,13 +74,6 @@ export function createDisplayKanjiViewModel(
   };
 }
 
-/**
- * Creates the Kanji detail screen hook view model.
- *
- * @pre The route character, when present, identifies the requested kanji entry.
- * @inv Loaded details, loading state, and feedback messages remain owned by the view model.
- * @post The returned state reflects the currently requested kanji detail workflow.
- */
 export function useKanjiDetailScreenViewModel(
   displayKanjiController: DisplayKanjiInterface,
   character: string | null,

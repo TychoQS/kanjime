@@ -18,34 +18,16 @@ export interface CanvasInteractionViewModel {
   cancelStroke(): void;
 }
 
-/**
- * Clears the most recently created canvas state, when available.
- *
- * @post Registered canvas stroke history is empty after this operation.
- */
 export function clearRegisteredCanvasState(): void {
   registeredCanvasClear?.();
 }
 
-/**
- * Checks whether a stroke can be stored and classified.
- *
- * @pre The stroke is supplied by the drawing surface.
- * @post The operation completes only for strokes with at least one point and timestamps.
- */
 function assertValidStroke(stroke: Stroke): void {
   if (stroke.points.length === 0 || stroke.startedAt.trim().length === 0 || stroke.endedAt.trim().length === 0) {
     throw new StrokeError("Draw at least one stroke before identifying a character.");
   }
 }
 
-/**
- * Creates the canvas view model.
- *
- * @pre The inference dependency accepts completed strokes.
- * @inv Stroke history stores valid strokes in insertion order.
- * @post The returned controller records strokes and requests drawing inference once per stroke.
- */
 export function createCanvasViewModel(dependencies: CreateCanvasControllerDependencies): CanvasInterface {
   const strokes: Stroke[] = [];
   registeredCanvasClear = () => {
@@ -86,13 +68,6 @@ export function createCanvasViewModel(dependencies: CreateCanvasControllerDepend
   };
 }
 
-/**
- * Creates the transient drawing interaction hook view model.
- *
- * @pre Pointer events originate from the drawing canvas rendered in the classification screen.
- * @inv The active stroke is either null or a valid immutable snapshot in progress.
- * @post The returned actions keep transient pointer state out of the view component.
- */
 export function useCanvasInteractionViewModel(): CanvasInteractionViewModel {
   const [activeStroke, setActiveStroke] = useState<Stroke | null>(null);
 

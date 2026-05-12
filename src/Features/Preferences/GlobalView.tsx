@@ -9,12 +9,6 @@ const TITLE_TRANSLATIONS = new Map<string, string>([
   ["es-ES", "Historial"]
 ]);
 
-/**
- * Replaces testable localized placeholders with text for the active language.
- *
- * @pre The children tree may contain elements marked for localized title rendering.
- * @post Placeholder title text is replaced with the selected language value.
- */
 function localizeChildren(children: React.ReactNode, language: string): React.ReactNode {
   if (typeof children === "string") {
     return children === "__TITLE_PLACEHOLDER__"

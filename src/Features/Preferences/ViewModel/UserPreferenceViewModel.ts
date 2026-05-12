@@ -44,13 +44,6 @@ function isApplicationTheme(theme: string): theme is ApplicationTheme {
   return theme === "light" || theme === "dark" || theme === "system";
 }
 
-/**
- * Creates the user-preference view model.
- *
- * @pre Language and theme application dependencies are available.
- * @inv Functional application state is not modified by preference changes.
- * @post The returned controller exposes the current preference snapshot.
- */
 export function createUserPreferenceViewModel(
   dependencies: CreateUserPreferenceControllerDependencies
 ): UserPreferenceInterface {
@@ -83,13 +76,6 @@ export function createUserPreferenceViewModel(
   };
 }
 
-/**
- * Creates the application bootstrap and preference hook view model.
- *
- * @pre The composition root can initialize persistence and notify preference changes.
- * @inv Preference changes never bypass the existing preference controller.
- * @post The returned state exposes the current preferences together with the startup readiness flag.
- */
 export function useUserPreferenceAppViewModel(root: CompositionRoot): UserPreferenceAppViewModel {
   const [preferences, setPreferences] = useState<ApplicationPreferences>(DEFAULT_PREFERENCES);
   const [isReady, setIsReady] = useState(false);

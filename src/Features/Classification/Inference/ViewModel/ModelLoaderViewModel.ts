@@ -10,13 +10,6 @@ const EMPTY_MODEL_CONFIGURATION: ModelConfiguration = {
   isLoaded: false
 };
 
-/**
- * Creates the stateful model-loader view model used by the OCR flow.
- *
- * @pre The dependencies object provides an initialization function for the model runtime.
- * @inv The runtime initialization is requested at most once for this view-model instance.
- * @post The returned controller exposes model readiness and immutable configuration snapshots.
- */
 export function createModelLoaderViewModel(
   dependencies: CreateModelLoaderControllerDependencies
 ): ModelLoaderInterface {

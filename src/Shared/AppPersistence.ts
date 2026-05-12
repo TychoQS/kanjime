@@ -32,10 +32,6 @@ const HISTORY_CATEGORIES: ReadonlyArray<HistoryCategory> = [
 
 /**
  * Persists user preferences and history in native SQLite with a web fallback.
- *
- * @pre The app has access to browser storage or Capacitor SQLite.
- * @inv Stored history entries belong to one supported category.
- * @post Preferences and history remain available across app restarts.
  */
 export class AppPersistence {
   private connection: SQLiteDBConnection | null = null;

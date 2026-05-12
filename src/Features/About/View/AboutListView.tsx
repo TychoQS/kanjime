@@ -6,12 +6,7 @@ interface AboutListViewProps {
   readonly language: string;
 }
 
-/**
- * List of informational items for the about screen.
- *
- * @pre The information items and language are provided.
- * @post Renders a definition list with localized labels and values.
- */
+
 export function AboutListView(props: AboutListViewProps): JSX.Element {
   return (
     <dl className="about-list" data-testid="about-list">

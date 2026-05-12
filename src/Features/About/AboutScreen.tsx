@@ -3,12 +3,6 @@ import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
 import { MobilePage } from "../Shell/MobilePage";
 import { AboutView } from "./View/AboutView";
 
-/**
- * Application information screen using MVVM architecture.
- *
- * @pre The about controller is initialized in the composition root.
- * @post The About screen presents information obtained from the view model.
- */
 export function AboutScreen(): JSX.Element {
   const { about, preferences } = useAppViewModelContext();
 

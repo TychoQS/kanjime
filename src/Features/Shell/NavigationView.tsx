@@ -10,12 +10,6 @@ const PAGE_ICONS: Record<string, string> = {
   about: informationCircleOutline
 };
 
-/**
- * Application navigation menu.
- *
- * @pre Available pages and navigation callbacks are provided.
- * @post Renders the navigation list with active state identification and accessible roles.
- */
 export function NavigationView(props: NavigationProps): JSX.Element | null {
   if (!props.isMenuOpen) {
     return null;

@@ -14,13 +14,7 @@ const NATIVE_PACKAGED_METADATA_PATH = `${NATIVE_PACKAGED_DATABASE_DIRECTORY}/${P
 
 let cachedSqlJsRuntimePromise: Promise<SqlJsStatic> | null = null;
 
-/**
- * Determines whether the installed native database metadata matches the bundled asset metadata.
- *
- * @param installedMetadata Metadata stored in native app storage.
- * @param bundledMetadata Metadata bundled with the current application build.
- * @returns `true` when the installed copy can be reused safely.
- */
+
 export function isInstalledPackagedDatabaseCurrent(
   installedMetadata: PackagedDatabaseMetadata,
   bundledMetadata: PackagedDatabaseMetadata
@@ -30,38 +24,14 @@ export function isInstalledPackagedDatabaseCurrent(
     && installedMetadata.classCount === bundledMetadata.classCount;
 }
 
-/**
- * Resolves the asset URL used to serve the packaged database.
- *
- * @param fileName Packaged file name.
- * @returns Asset URL suitable for `fetch`.
- *
- * @pre fileName is the name of a file emitted under `public/assets/database`.
- * @post The returned URL is valid both for the Vite dev server and for the packaged web bundle.
- */
 export function resolvePackagedDatabaseAssetUrl(fileName = PACKAGED_DATABASE_FILE_NAME): string {
   return new URL(`assets/database/${fileName}`, window.location.origin).toString();
 }
 
-/**
- * Resolves whether the current runtime is the native packaged Capacitor shell.
- *
- * @returns `true` when the application runs inside a native Capacitor container.
- *
- * @post The return value reflects the current execution environment.
- */
 export function isNativePackagedRuntime(): boolean {
   return Capacitor.isNativePlatform();
 }
 
-/**
- * Encodes binary contents as base64.
- *
- * @param bytes Binary payload.
- * @returns Base64-encoded contents.
- *
- * @post The returned string can be written with Capacitor Filesystem using `Encoding.BASE64`.
- */
 function encodeBytesToBase64(bytes: Uint8Array): string {
   let binaryString = "";
   const chunkSize = 0x8000;
@@ -74,14 +44,6 @@ function encodeBytesToBase64(bytes: Uint8Array): string {
   return btoa(binaryString);
 }
 
-/**
- * Decodes a base64-encoded payload into bytes.
- *
- * @param base64Contents Base64 payload returned by Capacitor Filesystem.
- * @returns Decoded bytes.
- *
- * @post The returned bytes represent the original binary payload.
- */
 function decodeBase64ToBytes(base64Contents: string): Uint8Array {
   const binaryString = atob(base64Contents);
   const bytes = new Uint8Array(binaryString.length);
@@ -97,9 +59,6 @@ function decodeBase64ToBytes(base64Contents: string): Uint8Array {
  * Ensures the native packaged database directory exists without failing when it is already present.
  *
  * @returns {Promise<void>}
- *
- * @pre The application is running inside a native Capacitor container.
- * @post The packaged database directory exists in `Directory.Data`.
  */
 async function ensureNativePackagedDatabaseDirectory(): Promise<void> {
   try {
@@ -120,9 +79,6 @@ async function ensureNativePackagedDatabaseDirectory(): Promise<void> {
  * Ensures that the packaged database has been copied to native app storage.
  *
  * @returns Native path to the installed packaged database.
- *
- * @pre The application is running inside a native Capacitor container.
- * @post The packaged database exists in `Directory.Data` after the promise resolves.
  */
 export async function ensureInstalledPackagedDatabase(): Promise<string> {
   if (!isNativePackagedRuntime()) {
@@ -183,9 +139,6 @@ export async function ensureInstalledPackagedDatabase(): Promise<string> {
  * Reads the packaged database metadata emitted by the data pipeline.
  *
  * @returns Parsed database metadata.
- *
- * @pre The packaged metadata artifact exists under `public/assets/database`.
- * @post The returned metadata describes the same database asset served to the application.
  */
 export async function loadPackagedDatabaseMetadata(): Promise<PackagedDatabaseMetadata> {
   const response = await fetch(resolvePackagedDatabaseAssetUrl(PACKAGED_METADATA_FILE_NAME));
@@ -201,9 +154,6 @@ export async function loadPackagedDatabaseMetadata(): Promise<PackagedDatabaseMe
  * Reads the packaged database asset as raw bytes.
  *
  * @returns Database bytes.
- *
- * @pre The packaged database artifact exists under `public/assets/database`.
- * @post The returned bytes can be opened directly by SQL.js.
  */
 export async function loadPackagedDatabaseBinaryFromAsset(): Promise<Uint8Array> {
   const response = await fetch(resolvePackagedDatabaseAssetUrl());
@@ -219,8 +169,6 @@ export async function loadPackagedDatabaseBinaryFromAsset(): Promise<Uint8Array>
  * Reads the packaged database bytes from the appropriate runtime location.
  *
  * @returns Database bytes.
- *
- * @post In web it reads the bundled asset directly; in native it reads the installed local copy.
  */
 export async function loadPackagedDatabaseBinary(): Promise<Uint8Array> {
   if (!isNativePackagedRuntime()) {
@@ -244,8 +192,6 @@ export async function loadPackagedDatabaseBinary(): Promise<Uint8Array> {
  * Returns a cached SQL.js runtime instance.
  *
  * @returns SQL.js runtime.
- *
- * @post The same runtime promise is reused across calls during the same application session.
  */
 export async function loadSqlJsRuntime(): Promise<SqlJsStatic> {
   if (!cachedSqlJsRuntimePromise) {
@@ -261,9 +207,6 @@ export async function loadSqlJsRuntime(): Promise<SqlJsStatic> {
  * Opens the packaged SQLite database from bundled assets.
  *
  * @returns Read-only SQL.js database instance backed by the packaged asset bytes.
- *
- * @pre The packaged database has been generated and bundled with the current application build.
- * @post The returned database can be queried in both development and packaged runtimes.
  */
 export async function openPackagedDatabase(): Promise<Database> {
   const [sqlJsRuntime, databaseBytes] = await Promise.all([loadSqlJsRuntime(), loadPackagedDatabaseBinary()]);

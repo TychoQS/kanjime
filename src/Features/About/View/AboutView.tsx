@@ -9,12 +9,6 @@ interface AboutViewProps {
   readonly language: string;
 }
 
-/**
- * About screen content view.
- *
- * @pre The information items and language are provided.
- * @post Renders the about section with a list of items or a loading message.
- */
 export function AboutView(props: AboutViewProps): JSX.Element {
   return (
     <section className="detail-section">

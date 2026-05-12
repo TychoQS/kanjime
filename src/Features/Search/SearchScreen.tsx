@@ -5,12 +5,6 @@ import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
 import { MobilePage } from "../Shell/MobilePage";
 import { SearchResultView } from "./SearchResultView";
 
-/**
- * Manual Kanji search by character, reading, or meaning.
- *
- * @pre The offline dictionary repository is initialized.
- * @post Effective non-empty terms update the visible result list.
- */
 export function SearchScreen(): JSX.Element {
   const { preferences, search } = useAppViewModelContext();
 

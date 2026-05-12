@@ -28,13 +28,6 @@ function markCurrentPageStateForReset(page: NavigationPage): void {
   }
 }
 
-/**
- * Creates the navigation view model.
- *
- * @pre Navigation dependencies can clear page state and publish startup route.
- * @inv Preferences are not modified by navigation actions.
- * @post The returned controller publishes the initial OCR route and clears page state on navigation.
- */
 export function createNavigationViewModel(
   dependencies: CreateNavigationControllerDependencies
 ): NavigationInterface {

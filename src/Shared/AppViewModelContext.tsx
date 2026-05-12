@@ -34,10 +34,6 @@ interface AppViewModelProviderProps {
 
 /**
  * Shared application view-model slices exposed through the root context.
- *
- * @pre The provider is mounted inside the Ionic router and receives a composition root.
- * @inv Every screen reads view state from this single context tree instead of local component state.
- * @post Consumers receive stable feature slices backed by the existing controller layer.
  */
 export interface AppViewModelContextValue {
   readonly root: CompositionRoot;
@@ -54,10 +50,6 @@ const AppViewModelContext = createContext<AppViewModelContextValue | null>(null)
 
 /**
  * Provides the root application view-model context.
- *
- * @pre The composition root has been created once for the current app lifetime.
- * @inv Feature slices remain centralized and are consumed through `useContext`.
- * @post Descendants can read every view-model slice without keeping duplicate local screen state.
  */
 export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Element {
   const location = useLocation();
@@ -119,9 +111,6 @@ import { InfrastructureError } from "./AppErrors";
 
 /**
  * Reads the root application view-model context.
- *
- * @pre The caller is rendered under `AppViewModelProvider`.
- * @post The returned value exposes the centralized screen state and actions for all features.
  */
 export function useAppViewModelContext(): AppViewModelContextValue {
   const contextValue = useContext(AppViewModelContext);

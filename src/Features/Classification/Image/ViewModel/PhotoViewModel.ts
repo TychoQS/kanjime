@@ -6,12 +6,6 @@ import { ApplicationError, ImageError } from "../../../../Shared/AppErrors";
 let cameraDenialCount = 0;
 export const PHOTO_SELECTION_CANCELLED_MESSAGE = "PHOTO_SELECTION_CANCELLED";
 
-/**
- * Validates acquired image data.
- *
- * @pre The descriptor is returned by a device acquisition dependency.
- * @post The operation completes only when the image can enter classification state.
- */
 function assertValidAcquiredImage(image: ImageDescriptor): void {
   if (
     image.uri.trim().length === 0 ||
@@ -23,25 +17,12 @@ function assertValidAcquiredImage(image: ImageDescriptor): void {
   }
 }
 
-/**
- * Checks whether the acquisition failure was caused by a user cancellation.
- *
- * @pre The message is derived from a thrown device acquisition error.
- * @post The result is true only when the user explicitly cancelled the action.
- */
 function isCancelledAcquisitionError(message: string): boolean {
   const normalizedMessage = message.toLowerCase();
 
   return normalizedMessage.includes("cancel") || normalizedMessage.includes("canceled");
 }
 
-/**
- * Creates the photo acquisition view model.
- *
- * @pre Device image providers are available or can report access denial.
- * @inv Acquired images are returned without alteration.
- * @post The returned controller delegates camera and library access to dependencies.
- */
 export function createPhotoViewModel(dependencies: CreatePhotoControllerDependencies): PhotoInterface {
   async function acquireImage(acquire: () => Promise<ImageDescriptor>): Promise<ImageDescriptor> {
     try {

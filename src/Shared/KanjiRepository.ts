@@ -34,10 +34,6 @@ const MAX_SEARCH_RESULTS = 60;
 
 /**
  * Provides read-only access to the packaged kanji dictionary.
- *
- * @pre The packaged SQLite asset exists under public assets.
- * @inv Queries never mutate the packaged dictionary database.
- * @post Search, summary, and detail data are returned from the offline SQLite source.
  */
 export class KanjiRepository {
   private database: Database | null = null;

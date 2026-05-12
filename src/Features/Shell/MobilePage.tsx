@@ -17,12 +17,7 @@ interface MobilePageProps {
   readonly testId: string;
 }
 
-/**
- * Shared mobile page shell with a fixed header and non-scrolling page content.
- *
- * @pre Children render their own internal scroll containers when needed.
- * @post The full Ionic page remains stable while content areas manage overflow.
- */
+
 export function MobilePage(props: MobilePageProps): JSX.Element {
   return (
     <IonPage id={props.contentId}>

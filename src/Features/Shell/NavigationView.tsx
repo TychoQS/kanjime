@@ -1,6 +1,7 @@
 import { IonIcon } from "@ionic/react";
 import { close, informationCircleOutline, scanOutline, search, timeOutline } from "ionicons/icons";
 
+import { translate } from "../../Shared/I18n";
 import type { NavigationProps } from "./Contracts/NavigationProps";
 
 const PAGE_ICONS: Record<string, string> = {
@@ -11,6 +12,10 @@ const PAGE_ICONS: Record<string, string> = {
 };
 
 export function NavigationView(props: NavigationProps): JSX.Element | null {
+  const language = typeof document !== "undefined" && document.documentElement.lang 
+    ? document.documentElement.lang 
+    : "en-US";
+
   if (!props.isMenuOpen) {
     return null;
   }
@@ -44,7 +49,7 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
         type="button"
       >
         <IonIcon className="menu-item-icon" icon={close} />
-        Cerrar
+        {translate(language, "close")}
       </button>
     </div>
   );

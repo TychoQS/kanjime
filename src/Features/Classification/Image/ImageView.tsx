@@ -20,7 +20,6 @@ export function ImageView(props: ImageProps): JSX.Element | null {
         width={props.image.width}
       />
       <button aria-label="Clear image" onClick={props.onClearImage} type="button">
-        Clear
       </button>
     </>
   );

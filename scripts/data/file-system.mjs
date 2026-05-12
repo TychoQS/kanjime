@@ -17,7 +17,7 @@ export const PATHS = {
   expandedSourcesDirectory: resolve(projectRoot, ".cache", "data-sources", "expanded"),
   publicDatabaseDirectory: resolve(projectRoot, "public", "assets", "database"),
   publicAttributionDirectory: resolve(projectRoot, "public", "assets", "attributions"),
-  modelClassesFile: resolve(projectRoot, "data", "model", "classes.json"),
+  modelClassesFile: resolve(projectRoot, "public", "assets", "model", "classes.json"),
   downloadManifestFile: resolve(projectRoot, ".cache", "data-sources", "download-manifest.json"),
   packagedDatabaseFile: resolve(projectRoot, "public", "assets", "database", "kanji.sqlite"),
   packagedMetadataFile: resolve(projectRoot, "public", "assets", "database", "kanji.metadata.json"),

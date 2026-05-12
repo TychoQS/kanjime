@@ -365,27 +365,15 @@ test("[R39][E2E] ClassificationInterface keeps OCR modes mutually exclusive", as
   await app.goto("/classification");
 
   // @inv Only one mode can be visible before interaction.
-  await expect(page.getByTestId("ocr-image-segment")).toHaveAttribute(
-    "aria-selected",
-    "true"
-  );
-  await expect(page.getByTestId("ocr-drawing-segment")).toHaveAttribute(
-    "aria-selected",
-    "false"
-  );
+  await expect(page.getByTestId("ocr-image-segment")).toHaveClass(/segment-button-checked/);
+  await expect(page.getByTestId("ocr-drawing-segment")).not.toHaveClass(/segment-button-checked/);
   await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
   await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
 
   // @post Only the selected OCR mode remains active after switching.
   await page.getByTestId("ocr-drawing-segment").click();
-  await expect(page.getByTestId("ocr-drawing-segment")).toHaveAttribute(
-    "aria-selected",
-    "true"
-  );
-  await expect(page.getByTestId("ocr-image-segment")).toHaveAttribute(
-    "aria-selected",
-    "false"
-  );
+  await expect(page.getByTestId("ocr-drawing-segment")).toHaveClass(/segment-button-checked/);
+  await expect(page.getByTestId("ocr-image-segment")).not.toHaveClass(/segment-button-checked/);
   await expect(page.getByTestId("drawing-ocr-zone")).toBeVisible();
   await expect(page.getByTestId("image-ocr-zone")).toBeHidden();
 });

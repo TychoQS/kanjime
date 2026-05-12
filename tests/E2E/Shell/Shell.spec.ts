@@ -75,15 +75,9 @@ test("[R28][E2E] NavigationInterface starts the application on image OCR mode", 
   await app.goto("/");
 
   // @post The OCR screen is shown in image mode.
-  await expect(page.getByTestId("ocr-image-segment")).toHaveAttribute(
-    "aria-selected",
-    "true"
-  );
+  await expect(page.getByTestId("ocr-image-segment")).toHaveClass(/segment-button-checked/);
 
-  await expect(page.getByTestId("ocr-drawing-segment")).toHaveAttribute(
-    "aria-selected",
-    "false"
-  );
+  await expect(page.getByTestId("ocr-drawing-segment")).not.toHaveClass(/segment-button-checked/);
   await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
   await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
 });

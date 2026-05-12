@@ -228,10 +228,7 @@ test("[R41][E2E] HistoryInterface updates immediately after a new history entry 
 
   await app.goto("/classification");
   await page.getByTestId("ocr-drawing-segment").click();
-  await expect(page.getByTestId("ocr-drawing-segment")).toHaveAttribute(
-    "aria-selected",
-    "true"
-  );
+  await expect(page.getByTestId("ocr-drawing-segment")).toHaveClass(/segment-button-checked/);
 
   const canvas = page.getByTestId("drawing-canvas");
   await expect(canvas).toBeVisible();
@@ -250,37 +247,25 @@ test("[R41][E2E] HistoryInterface updates immediately after a new history entry 
   // @post The new records appear immediately in the History screen.
   // R41 creates: 1 search, 1 visitedEntry, 1 imageClassification, 1 drawingClassification
   await page.getByTestId("history-segment-search").click();
-  await expect(page.getByTestId("history-segment-search")).toHaveAttribute(
-    "aria-selected",
-    "true"
-  );
+  await expect(page.getByTestId("history-segment-search")).toHaveClass(/segment-button-checked/);
   await expect(
     page.getByTestId("history-view").locator("[data-testid^='history-entry-search-']")
   ).toHaveCount(1);
 
   await page.getByTestId("history-segment-visitedEntry").click();
-  await expect(page.getByTestId("history-segment-visitedEntry")).toHaveAttribute(
-    "aria-selected",
-    "true"
-  );
+  await expect(page.getByTestId("history-segment-visitedEntry")).toHaveClass(/segment-button-checked/);
   await expect(
     page.getByTestId("history-view").locator("[data-testid^='history-entry-visitedEntry-']")
   ).toHaveCount(1);
 
   await page.getByTestId("history-segment-imageClassification").click();
-  await expect(page.getByTestId("history-segment-imageClassification")).toHaveAttribute(
-    "aria-selected",
-    "true"
-  );
+  await expect(page.getByTestId("history-segment-imageClassification")).toHaveClass(/segment-button-checked/);
   await expect(
     page.getByTestId("history-view").locator("[data-testid^='history-entry-imageClassification-']")
   ).toHaveCount(1);
 
   await page.getByTestId("history-segment-drawingClassification").click();
-  await expect(page.getByTestId("history-segment-drawingClassification")).toHaveAttribute(
-    "aria-selected",
-    "true"
-  );
+  await expect(page.getByTestId("history-segment-drawingClassification")).toHaveClass(/segment-button-checked/);
   await expect(
     page.getByTestId("history-view").locator("[data-testid^='history-entry-drawingClassification-']")
   ).toHaveCount(1);

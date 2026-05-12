@@ -60,8 +60,6 @@ export interface ClassificationScreenViewModel {
 
 /**
  * Clears the registered OCR screen hook state, when available.
- *
- * @post The visible OCR mode, image, strokes, crop, results, and transient feedback are reset.
  */
 export function clearRegisteredClassificationScreenState(): void {
   registeredClassificationScreenClear?.();
@@ -69,8 +67,6 @@ export function clearRegisteredClassificationScreenState(): void {
 
 /**
  * Marks the OCR screen to clear its state the next time it becomes active.
- *
- * @post The next enabled OCR screen render resets controller-backed and local visual state.
  */
 export function markRegisteredClassificationScreenForReset(): void {
   shouldClearClassificationScreenOnEnable = true;
@@ -87,23 +83,10 @@ export interface ClassificationScreenViewModelDependencies {
   readonly canvasInteraction: CanvasInteractionViewModel;
 }
 
-/**
- * Checks whether a value is a supported OCR mode.
- *
- * @pre The value may originate from UI or restored state.
- * @post The returned value is true only for supported modes.
- */
 function isClassificationMode(mode: string): mode is ClassificationMode {
   return mode === "image" || mode === "drawing";
 }
 
-/**
- * Creates the active classification-mode view model.
- *
- * @pre Mode-change notifications are available for the surrounding workflow.
- * @inv Exactly one mode is active.
- * @post The returned controller exposes and updates the active mode.
- */
 export function createClassificationViewModel(
   dependencies: CreateClassificationControllerDependencies
 ): ClassificationInterface {
@@ -124,18 +107,12 @@ export function createClassificationViewModel(
   };
 }
 
-/**
- * Creates the OCR screen hook view model.
- *
- * @pre The classification dependencies are initialized and ready to classify images or drawings.
- * @inv All mutable OCR screen state is centralized in this hook and exposed immutably to the view.
- * @post The returned state preserves the current OCR workflow behavior for image and drawing modes.
- */
 export function useClassificationScreenViewModel(
   dependencies: ClassificationScreenViewModelDependencies,
   isEnabled: boolean
 ): ClassificationScreenViewModel {
   const lastImageSourceIdRef = useRef("");
+  const currentSourceIdRef = useRef(0);
   const [mode, setMode] = useState<ClassificationMode>(dependencies.classificationController.getActiveMode());
   const [imageState, setImageState] = useState<ImageState>(dependencies.imageController.getImageState());
   const [canvasStrokes, setCanvasStrokes] = useState(dependencies.canvasController.getStrokeHistory());
@@ -212,6 +189,12 @@ export function useClassificationScreenViewModel(
       return;
     }
 
+    const thisSourceId = currentSourceIdRef.current;
+
+    if (lastImageSourceIdRef.current.length > 0 && sourceId !== lastImageSourceIdRef.current) {
+      return;
+    }
+
     setIsProcessing(true);
     setErrorMessage(null);
 
@@ -219,6 +202,10 @@ export function useClassificationScreenViewModel(
       const predictions = crop
         ? await dependencies.inferenceController.classifyCrop({ sourceId, sourceUri, crop })
         : await dependencies.inferenceController.classifyFullImage({ sourceId, sourceUri });
+
+      if (thisSourceId !== currentSourceIdRef.current) {
+        return;
+      }
 
       if (imageState.image === null) {
         return;
@@ -245,8 +232,13 @@ export function useClassificationScreenViewModel(
       return;
     }
 
+    currentSourceIdRef.current += 1;
+    const thisSourceId = currentSourceIdRef.current;
+
     const timeout = window.setTimeout(() => {
-      void classifyImage(sourceId, imageState.image?.uri ?? "", imageState.crop);
+      if (thisSourceId === currentSourceIdRef.current) {
+        void classifyImage(sourceId, imageState.image?.uri ?? "", imageState.crop);
+      }
     }, IMAGE_INFERENCE_DELAY_MS);
 
     return () => window.clearTimeout(timeout);

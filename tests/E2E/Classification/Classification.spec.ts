@@ -43,10 +43,15 @@ test("[R4][E2E] CanvasInterface leaves results empty after clearing drawing stat
   await page.getByTestId("ocr-drawing-segment").click();
   await drawSingleStroke(page, page.getByTestId("drawing-canvas"));
   await expect(page.getByTestId("clear-drawing-button")).toBeEnabled();
+  await expect(app.visibleResults("ocr-results-panel").first()).toBeVisible({
+    timeout: 10_000,
+  });
 
   // @post Canvas suggestions are empty after the clear operation.
   await page.getByTestId("clear-drawing-button").click();
-  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0);
+  await expect(app.visibleResults("ocr-results-panel")).toHaveCount(0, {
+    timeout: 10_000,
+  });
 });
 
 test("[R6][E2E] CanvasInterface filters results by stroke count within one tolerance", async ({ page }) => {

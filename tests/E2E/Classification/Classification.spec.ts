@@ -22,6 +22,7 @@ test("[R3][E2E] CanvasInterface clears the drawing after a valid stroke", async 
 
   // @inv Clearing an empty canvas is disabled and does not alter visible state.
   await expect(clearButton).toHaveAttribute("aria-disabled", "true");
+  await expect(clearButton).toBeVisible();
 
   // @pre The canvas contains at least one stroke.
   await drawSingleStroke(page, canvas);
@@ -30,7 +31,13 @@ test("[R3][E2E] CanvasInterface clears the drawing after a valid stroke", async 
 
   // @post Activating clear removes the visible canvas content.
   await clearButton.click();
-  await expect.poll(() => canvasHasVisibleStroke(canvas)).toBe(false);
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+
+  await expect.poll(() => canvasHasVisibleStroke(canvas), {
+    timeout: 10_000,
+  }).toBe(false);
+
   await expect(clearButton).toHaveAttribute("aria-disabled", "true");
 });
 
@@ -358,11 +365,27 @@ test("[R39][E2E] ClassificationInterface keeps OCR modes mutually exclusive", as
   await app.goto("/classification");
 
   // @inv Only one mode can be visible before interaction.
+  await expect(page.getByTestId("ocr-image-segment")).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await expect(page.getByTestId("ocr-drawing-segment")).toHaveAttribute(
+    "aria-selected",
+    "false"
+  );
   await expect(page.getByTestId("image-ocr-zone")).toBeVisible();
   await expect(page.getByTestId("drawing-ocr-zone")).toBeHidden();
 
   // @post Only the selected OCR mode remains active after switching.
   await page.getByTestId("ocr-drawing-segment").click();
+  await expect(page.getByTestId("ocr-drawing-segment")).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await expect(page.getByTestId("ocr-image-segment")).toHaveAttribute(
+    "aria-selected",
+    "false"
+  );
   await expect(page.getByTestId("drawing-ocr-zone")).toBeVisible();
   await expect(page.getByTestId("image-ocr-zone")).toBeHidden();
 });

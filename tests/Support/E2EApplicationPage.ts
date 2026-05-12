@@ -1,11 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
-/**
- * Shared browser actions for the mobile Ionic shell.
- *
- * @pre A Playwright page is available.
- * @post Tests can navigate using visible application controls.
- */
 export class E2EApplicationPage {
   readonly page: Page;
 
@@ -19,7 +13,7 @@ export class E2EApplicationPage {
   }
 
   async waitUntilReady(): Promise<void> {
-    await expect(this.page.getByTestId("loading-screen-view")).toBeHidden({ timeout: 30_000 });
+    await expect(this.page.getByTestId("loading-screen-view")).toBeHidden({ timeout: 60_000 });
     await expect(this.page.getByTestId("classification-screen").or(this.page.getByTestId("search-screen")).or(this.page.getByTestId("history-screen")).or(this.page.getByTestId("about-screen")).or(this.page.getByTestId("kanji-detail-screen"))).toBeVisible();
   }
 

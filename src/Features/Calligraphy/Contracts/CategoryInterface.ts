@@ -14,6 +14,7 @@ export interface CategoryInterface {
    *
    * @pre The user is on the kanji list screen for a selected calligraphy category.
    * @post The application shows all kanji belonging to the selected category ordered by ascending stroke count.
+   * @post The application shows only one visual entry per each kanji of the category.
    */
   getKanjiByCategory(categoryId: string): Promise<ReadonlyArray<CalligraphyKanjiSummary>>;
 

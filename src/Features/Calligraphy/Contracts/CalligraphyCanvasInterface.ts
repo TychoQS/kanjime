@@ -23,17 +23,13 @@ export interface CalligraphyCanvasInterface {
    * Requirement IDs: R52.
    *
    * @pre The current writing attempt contains at least one registered stroke.
+   * @pre The user is in an active calligraphy practice.
    * @post All strokes are removed from the current writing attempt.
    */
   resetAttempt(): void;
 
   /**
    * Returns the current canvas stroke history.
-   *
-   * Requirement IDs: R51, R52.
-   *
-   * @pre The user is in an active calligraphy practice.
-   * @post The returned strokes represent the current writing attempt.
    */
   getStrokeHistory(): ReadonlyArray<Stroke>;
 }

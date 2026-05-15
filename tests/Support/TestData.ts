@@ -91,7 +91,6 @@ export const TEST_CALLIGRAPHY_JLPT_GROUPING = "jlpt";
 export const TEST_CALLIGRAPHY_INVALID_GROUPING = "hsk";
 export const TEST_CALLIGRAPHY_JLPT_GROUPING_LABEL = "JLPT";
 export const TEST_CALLIGRAPHY_JLPT_LABEL = "JLPT N5";
-export const TEST_CALLIGRAPHY_RESIDUAL_CATEGORY_ID = "joyo-unclassified";
 export const TEST_CALLIGRAPHY_RESIDUAL_LABEL = "Unclassified";
 export const TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS = [
   "jlpt-n5",
@@ -183,10 +182,6 @@ export const TEST_CALLIGRAPHY_VIEW_CATEGORY: CalligraphyCategory = {
   ...TEST_CALLIGRAPHY_CATEGORY,
   kanjiCount: 3
 };
-
-export const TEST_CALLIGRAPHY_RESIDUAL_CATEGORY: CalligraphyCategory =
-    TEST_CALLIGRAPHY_JOYO_RESIDUAL_CATEGORY;
-
 export const TEST_CALLIGRAPHY_FINALIZED_ATTEMPT: CalligraphyAttempt = {
   targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
   categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,

@@ -15,7 +15,9 @@ const PROPS: CalligraphyPracticeProps = {
 };
 
 /**
- * R19 Inv/Post: The writing canvas is the main visual element in practice.
+ * Requirement: R19
+ * Type: Unit
+ * Condition: Invariant and Postcondition
  */
 describe("CalligraphyPracticeProps", () => {
   it("renders the canvas as the primary practice element", () => {
@@ -25,7 +27,9 @@ describe("CalligraphyPracticeProps", () => {
   });
 
   /**
-   * R20 Inv/Post: No visual aid for the target kanji is shown during practice.
+   * Requirement: R20
+   * Type: Unit
+   * Condition: Invariant and Postcondition
    */
   it("does not render the target kanji as a visual aid", () => {
     render(<CalligraphyPracticeView {...PROPS} />);
@@ -34,7 +38,9 @@ describe("CalligraphyPracticeProps", () => {
   });
 
   /**
-   * R21/R23 Inv/Post: Only essential controls are visible and grouped at the top.
+   * Requirement: R21/R23
+   * Type: Unit
+   * Condition: Invariant and Postcondition
    */
   it("renders only back reset and validate controls in the top control group", () => {
     render(<CalligraphyPracticeView {...PROPS} />);

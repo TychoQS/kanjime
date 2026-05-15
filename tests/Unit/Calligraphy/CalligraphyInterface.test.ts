@@ -13,7 +13,9 @@ const JLPT_CATEGORY: CalligraphyCategory = {
 };
 
 /**
- * R42 Inv/Post: The active calligraphy grouping is constrained to JLPT or Joyo and changes to the selected value.
+ * Requirement: R42
+ * Type: Unit
+ * Condition: Invariant and Postcondition
  */
 describe("CalligraphyInterface", () => {
   it("keeps only one active grouping after selecting Joyo", () => {
@@ -25,7 +27,9 @@ describe("CalligraphyInterface", () => {
   });
 
   /**
-   * R43 Inv/Post: Visible categories belong exclusively to the active grouping.
+   * Requirement: R43
+   * Type: Unit
+   * Condition: Invariant and Postcondition
    */
   it("returns only categories that belong to the active grouping", () => {
     const controller = CreateCalligraphyController({});
@@ -36,7 +40,9 @@ describe("CalligraphyInterface", () => {
   });
 
   /**
-   * R44 Inv/Post: The residual category appears when unclassified kanji exist.
+   * Requirement: R44
+   * Type: Unit
+   * Condition: Invariant and Postcondition
    */
   it("includes a residual category together with regular categories when required", () => {
     const controller = CreateCalligraphyController({});
@@ -54,7 +60,9 @@ describe("CalligraphyInterface", () => {
   });
 
   /**
-   * R46 Post: Selecting a category opens the kanji list for that same category.
+   * Requirement: R46
+   * Type: Unit
+   * Condition: Postcondition
    */
   it("opens the selected category without replacing it with another category", async () => {
     const controller = CreateCalligraphyController({});

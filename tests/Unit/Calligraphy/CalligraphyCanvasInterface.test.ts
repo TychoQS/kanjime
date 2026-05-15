@@ -16,7 +16,9 @@ const SECOND_STROKE: Stroke = {
 };
 
 /**
- * R51 Inv/Post: Captured strokes are stored in the order drawn by the user.
+ * Requirement: R51
+ * Type: Unit
+ * Condition: Invariant and Postcondition
  */
 describe("CalligraphyCanvasInterface", () => {
   it("preserves stroke capture order in canvas history", () => {
@@ -29,7 +31,9 @@ describe("CalligraphyCanvasInterface", () => {
   });
 
   /**
-   * R52 Pre/Inv/Post: Reset requires strokes, clears them, and keeps the canvas operational.
+   * Requirement: R52
+   * Type: Unit
+   * Condition: Precondition, Invariant and Postcondition
    */
   it("resets the current writing attempt and remains operational", () => {
     const controller = CreateCalligraphyCanvasController({});

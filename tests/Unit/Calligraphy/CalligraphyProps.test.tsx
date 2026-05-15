@@ -21,7 +21,9 @@ const PROPS: CalligraphyProps = {
 };
 
 /**
- * R17 Inv/Post: The active JLPT or Joyo grouping is visually identified.
+ * Requirement: R17
+ * Type: Unit
+ * Condition: Invariant and Postcondition
  */
 describe("CalligraphyProps", () => {
   it("renders the active grouping as visible to the user", () => {
@@ -31,7 +33,9 @@ describe("CalligraphyProps", () => {
   });
 
   /**
-   * R18 Inv/Post: Categories are ordered, grouped, and navigable.
+   * Requirement: R18
+   * Type: Unit
+   * Condition: Invariant and Postcondition
    */
   it("renders ordered navigable categories for the selected grouping", () => {
     render(<CalligraphyView {...PROPS} />);

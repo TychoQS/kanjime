@@ -17,7 +17,9 @@ const ATTEMPT_WITH_STROKE: CalligraphyAttempt = {
 };
 
 /**
- * R50 Post: An active practice can return to the selected category list.
+ * Requirement: R50
+ * Type: Unit
+ * Condition: Postcondition
  */
 describe("KanjiPracticeInterface", () => {
   it("returns from active practice to the selected category list", async () => {
@@ -27,7 +29,9 @@ describe("KanjiPracticeInterface", () => {
   });
 
   /**
-   * R53 Pre/Inv/Post: Evaluation requires strokes and does not mutate the captured attempt.
+   * Requirement: R53
+   * Type: Unit
+   * Condition: Precondition, Invariant and Postcondition
    */
   it("requests evaluation for the current attempt without mutating its strokes", async () => {
     const controller = CreateKanjiPracticeController({});

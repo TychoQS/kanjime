@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import { CreateCategoryController } from "../../../src/Features/Calligraphy/CreateCategoryController";
 
 /**
- * R45 Inv/Post: Category kanji belong exclusively to the selected category and are ordered by ascending stroke count.
+ * Requirement: R45
+ * Type: Unit
+ * Condition: Invariant and Postcondition
  */
 describe("CategoryInterface", () => {
   it("returns selected category kanji ordered by ascending stroke count", async () => {
@@ -17,7 +19,9 @@ describe("CategoryInterface", () => {
   });
 
   /**
-   * R47 Inv/Post: Every kanji has exactly one visual entry associated with it.
+   * Requirement: R47
+   * Type: Unit
+   * Condition: Invariant and Postcondition
    */
   it("returns one category entry per kanji without duplicates", async () => {
     const controller = CreateCategoryController({});
@@ -29,7 +33,9 @@ describe("CategoryInterface", () => {
   });
 
   /**
-   * R48 Post: Selecting a kanji starts calligraphy practice for that kanji.
+   * Requirement: R48
+   * Type: Unit
+   * Condition: Postcondition
    */
   it("starts practice for the selected kanji", async () => {
     const controller = CreateCategoryController({});
@@ -42,7 +48,9 @@ describe("CategoryInterface", () => {
   });
 
   /**
-   * R49 Post: The category list can return to the main calligraphy screen.
+   * Requirement: R49
+   * Type: Unit
+   * Condition: Postcondition
    */
   it("returns from the category list to the calligraphy home", async () => {
     const controller = CreateCategoryController({});

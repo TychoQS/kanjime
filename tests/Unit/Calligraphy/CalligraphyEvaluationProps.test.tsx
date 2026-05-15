@@ -14,7 +14,9 @@ const PROPS: CalligraphyEvaluationProps = {
 };
 
 /**
- * R22 Inv/Post: Evaluation feedback is shown as an understandable overlay over practice.
+ * Requirement: R22
+ * Type: Unit
+ * Condition: Invariant and Postcondition
  */
 describe("CalligraphyEvaluationProps", () => {
   it("renders evaluation feedback as an overlay with score and summary", () => {

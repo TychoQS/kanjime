@@ -29,7 +29,9 @@ const EVALUATION_RESULT: CalligraphyEvaluationResult = {
 };
 
 /**
- * R54 Pre/Inv/Post: Evaluation only runs for finalized attempts and considers all required metrics.
+ * Requirement: R54
+ * Type: Unit
+ * Condition: Precondition, Invariant and Postcondition
  */
 describe("CalligraphyEvaluationInterface", () => {
   it("evaluates a finalized attempt with all required metrics", async () => {
@@ -46,7 +48,9 @@ describe("CalligraphyEvaluationInterface", () => {
   });
 
   /**
-   * R55 Pre/Inv/Post: A valid result produces a score inside the permitted range.
+   * Requirement: R55
+   * Type: Unit
+   * Condition: Precondition, Invariant and Postcondition
    */
   it("calculates a score inside the permitted range", () => {
     const controller = CreateCalligraphyEvaluationController({});
@@ -58,7 +62,9 @@ describe("CalligraphyEvaluationInterface", () => {
   });
 
   /**
-   * R56 Pre/Inv/Post: Feedback corresponds to the calculated evaluation result.
+   * Requirement: R56
+   * Type: Unit
+   * Condition: Precondition, Invariant and Postcondition
    */
   it("creates visual feedback that matches the evaluation result", () => {
     const controller = CreateCalligraphyEvaluationController({});

@@ -139,6 +139,13 @@ export const TEST_CALLIGRAPHY_FINALIZED_ATTEMPT: CalligraphyAttempt = {
   ]
 };
 
+export const TEST_CALLIGRAPHY_EMPTY_ATTEMPT: CalligraphyAttempt = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,
+  isFinalized: false,
+  strokes: []
+};
+
 export const TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE: CalligraphyAttempt = {
   targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
   categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,
@@ -161,6 +168,18 @@ export const TEST_CALLIGRAPHY_EVALUATION_RESULT: CalligraphyEvaluationResult = {
     strokeOrder: 1,
     approximateDirection: 1,
     generalSimilarity: 0.8
+  }
+};
+
+export const TEST_CALLIGRAPHY_INVALID_EVALUATION_RESULT: CalligraphyEvaluationResult = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  score: TEST_CALLIGRAPHY_EVALUATION_SCORE,
+  summary: TEST_CALLIGRAPHY_EVALUATION_SUMMARY,
+  metrics: {
+    strokeCount: NaN,
+    strokeOrder: NaN,
+    approximateDirection: NaN,
+    generalSimilarity: NaN
   }
 };
 

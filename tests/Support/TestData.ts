@@ -88,10 +88,30 @@ export const TEST_CALLIGRAPHY_TARGET_CHARACTER = "水";
 export const TEST_CALLIGRAPHY_CATEGORY_ID = "jlpt-n5";
 export const TEST_CALLIGRAPHY_JOYO_GROUPING = "joyo";
 export const TEST_CALLIGRAPHY_JLPT_GROUPING = "jlpt";
+export const TEST_CALLIGRAPHY_INVALID_GROUPING = "hsk";
 export const TEST_CALLIGRAPHY_JLPT_GROUPING_LABEL = "JLPT";
 export const TEST_CALLIGRAPHY_JLPT_LABEL = "JLPT N5";
 export const TEST_CALLIGRAPHY_RESIDUAL_CATEGORY_ID = "joyo-unclassified";
 export const TEST_CALLIGRAPHY_RESIDUAL_LABEL = "Unclassified";
+export const TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS = [
+  "jlpt-n5",
+  "jlpt-n4",
+  "jlpt-n3",
+  "jlpt-n2",
+  "jlpt-n1"
+] as const;
+
+export const TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES = [
+  10,
+  9,
+  8,
+  6,
+  5,
+  4,
+  3,
+  2,
+  1
+] as const;
 export const TEST_CALLIGRAPHY_EVALUATION_SUMMARY = "The attempt is recognizable.";
 export const TEST_CALLIGRAPHY_EVALUATION_SCORE = 82;
 export const TEST_CALLIGRAPHY_BACK_LABEL = "Back";
@@ -103,28 +123,69 @@ export const TEST_CALLIGRAPHY_CATEGORY_STROKE_COUNTS = [1, 2, 3];
 /**
  * Shared calligraphy domain objects.
  */
-export const TEST_CALLIGRAPHY_CATEGORY: CalligraphyCategory = {
-  id: TEST_CALLIGRAPHY_CATEGORY_ID,
+
+export const TEST_CALLIGRAPHY_JLPT_CATEGORIES: ReadonlyArray<CalligraphyCategory> =
+    TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS.map((id, index) => {
+      const level = 5 - index;
+
+      return {
+        id,
+        grouping: TEST_CALLIGRAPHY_JLPT_GROUPING,
+        label: `JLPT N${level}`,
+        order: index + 1,
+        isResidual: false,
+        kanjiCount: 1
+      };
+    });
+
+export const TEST_CALLIGRAPHY_JOYO_CATEGORIES: ReadonlyArray<CalligraphyCategory> =
+    TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES.map((grade, index) => ({
+      id: `joyo-grade-${grade}`,
+      grouping: TEST_CALLIGRAPHY_JOYO_GROUPING,
+      label: `Jōyō Grade ${grade}`,
+      order: index + 1,
+      isResidual: false,
+      kanjiCount: 1
+    }));
+
+export const TEST_CALLIGRAPHY_CATEGORY: CalligraphyCategory =
+    TEST_CALLIGRAPHY_JLPT_CATEGORIES[0];
+
+export const TEST_CALLIGRAPHY_JLPT_RESIDUAL_CATEGORY: CalligraphyCategory = {
+  id: "jlpt-unclassified",
   grouping: TEST_CALLIGRAPHY_JLPT_GROUPING,
-  label: TEST_CALLIGRAPHY_JLPT_LABEL,
-  order: 1,
-  isResidual: false,
-  kanjiCount: 2
+  label: TEST_CALLIGRAPHY_RESIDUAL_LABEL,
+  order: 6,
+  isResidual: true,
+  kanjiCount: 297
 };
+
+export const TEST_CALLIGRAPHY_JOYO_RESIDUAL_CATEGORY: CalligraphyCategory = {
+  id: "joyo-unclassified",
+  grouping: TEST_CALLIGRAPHY_JOYO_GROUPING,
+  label: TEST_CALLIGRAPHY_RESIDUAL_LABEL,
+  order: 10,
+  isResidual: true,
+  kanjiCount: 297
+};
+
+export const TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES: ReadonlyArray<CalligraphyCategory> = [
+  ...TEST_CALLIGRAPHY_JLPT_CATEGORIES,
+  TEST_CALLIGRAPHY_JLPT_RESIDUAL_CATEGORY
+];
+
+export const TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES: ReadonlyArray<CalligraphyCategory> = [
+  ...TEST_CALLIGRAPHY_JOYO_CATEGORIES,
+  TEST_CALLIGRAPHY_JOYO_RESIDUAL_CATEGORY
+];
 
 export const TEST_CALLIGRAPHY_VIEW_CATEGORY: CalligraphyCategory = {
   ...TEST_CALLIGRAPHY_CATEGORY,
   kanjiCount: 3
 };
 
-export const TEST_CALLIGRAPHY_RESIDUAL_CATEGORY: CalligraphyCategory = {
-  id: TEST_CALLIGRAPHY_RESIDUAL_CATEGORY_ID,
-  grouping: TEST_CALLIGRAPHY_JOYO_GROUPING,
-  label: TEST_CALLIGRAPHY_RESIDUAL_LABEL,
-  order: 999,
-  isResidual: true,
-  kanjiCount: 1
-};
+export const TEST_CALLIGRAPHY_RESIDUAL_CATEGORY: CalligraphyCategory =
+    TEST_CALLIGRAPHY_JOYO_RESIDUAL_CATEGORY;
 
 export const TEST_CALLIGRAPHY_FINALIZED_ATTEMPT: CalligraphyAttempt = {
   targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,

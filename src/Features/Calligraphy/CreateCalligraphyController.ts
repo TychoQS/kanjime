@@ -8,9 +8,7 @@ import {CalligraphyCategory} from "../../Shared/DomainTypes";
 export interface CreateCalligraphyControllerDependencies {
   readonly getCategories: () => Promise<ReadonlyArray<CalligraphyCategory>>;
 
-  readonly getCategoryCharacters: (
-      categoryId: string
-  ) => Promise<ReadonlyArray<string>>;
+  readonly navigateToCategory: (categoryId: string) => Promise<void>;
 }
 
 /**

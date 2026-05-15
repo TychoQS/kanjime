@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { CreateCalligraphyController } from "../../../src/Features/Calligraphy/CreateCalligraphyController";
 import {
-  TEST_CALLIGRAPHY_CATEGORY_CHARACTERS,
   TEST_CALLIGRAPHY_INVALID_GROUPING,
   TEST_CALLIGRAPHY_JLPT_GROUPING, TEST_CALLIGRAPHY_JOYO_GROUPING, TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES, TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
 } from "../../Support/TestData";
@@ -25,10 +24,7 @@ describe("CalligraphyInterface", () => {
           ...TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
         ];
       },
-
-      getCategoryCharacters: async () => {
-        return TEST_CALLIGRAPHY_CATEGORY_CHARACTERS;
-      }
+      navigateToCategory: async () => undefined
     });
     expect(() => {
       controller.selectGrouping(TEST_CALLIGRAPHY_INVALID_GROUPING as any);
@@ -48,10 +44,7 @@ describe("CalligraphyInterface", () => {
           ...TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
         ];
       },
-
-      getCategoryCharacters: async () => {
-        return TEST_CALLIGRAPHY_CATEGORY_CHARACTERS;
-      }
+      navigateToCategory: async () => undefined
     });
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
@@ -72,10 +65,7 @@ describe("CalligraphyInterface", () => {
         ...TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES,
         ...TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
       ],
-
-      getCategoryCharacters: async () => {
-        return TEST_CALLIGRAPHY_CATEGORY_CHARACTERS;
-      }
+      navigateToCategory: async () => undefined
     });
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
@@ -106,10 +96,7 @@ describe("CalligraphyInterface", () => {
         ...TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES,
         ...TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
       ],
-
-      getCategoryCharacters: async () => {
-        return TEST_CALLIGRAPHY_CATEGORY_CHARACTERS;
-      }
+      navigateToCategory: async () => undefined
     });
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
@@ -136,10 +123,7 @@ describe("CalligraphyInterface", () => {
         ...TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES.filter((category) => !category.isResidual),
         ...TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES.filter((category) => !category.isResidual)
       ],
-
-      getCategoryCharacters: async () => {
-        return TEST_CALLIGRAPHY_CATEGORY_CHARACTERS;
-      }
+      navigateToCategory: async () => undefined
     });
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
@@ -166,10 +150,7 @@ describe("CalligraphyInterface", () => {
         ...TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES,
         ...TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
       ],
-
-      getCategoryCharacters: async () => {
-        return TEST_CALLIGRAPHY_CATEGORY_CHARACTERS;
-      }
+      navigateToCategory: async () => undefined
     });
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
@@ -190,37 +171,31 @@ describe("CalligraphyInterface", () => {
    * Type: Unit
    * Condition: Postcondition
    */
-  it(buildRequirementTitle("R46", "Unit", "Postcondition", "requests kanjis for every selected category"), async () => {
+  it(buildRequirementTitle("R46", "Unit", "Postcondition", "navigates to every selected category"), async () => {
     const visibleCategories = [
       ...TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES,
       ...TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
     ];
 
-    const categoriesRecorder = createAsyncValueRecorder(
-        visibleCategories
-    );
-
-    const categoryCharactersRecorder = createAsyncValueRecorder(
-        TEST_CALLIGRAPHY_CATEGORY_CHARACTERS
-    );
+    const navigateToCategoryRecorder = createAsyncValueRecorder(undefined);
 
     const controller = CreateCalligraphyController({
-      getCategories: categoriesRecorder.handler,
-      getCategoryCharacters: categoryCharactersRecorder.handler
+      getCategories: async () => visibleCategories,
+      navigateToCategory: navigateToCategoryRecorder.handler
     });
 
     for (const category of visibleCategories) {
       await controller.openCategory(category.id);
     }
 
-    expect(categoryCharactersRecorder.calls.length).toBe(
+    expect(navigateToCategoryRecorder.calls.length).toBe(
         visibleCategories.length,
-        "CalligraphyInterface did not request kanjis for every selected category."
+        "CalligraphyInterface did not navigate for every selected category."
     );
 
-    expect(categoryCharactersRecorder.calls).toEqual(
+    expect(navigateToCategoryRecorder.calls).toEqual(
         visibleCategories.map((category) => category.id),
-        "CalligraphyInterface did not request kanjis using the expected category ids."
+        "CalligraphyInterface did not navigate using the expected category ids."
     );
   });
 });

@@ -1,47 +1,103 @@
 import { describe, expect, it } from "vitest";
 
 import { CreateCalligraphyCanvasController } from "../../../src/Features/Calligraphy/CreateCalligraphyCanvasController";
-import type { Stroke } from "../../../src/Shared/DomainTypes";
+import { TEST_SECOND_STROKE, TEST_STROKE } from "../../Support/TestData";
+import { buildRequirementTitle } from "../../Support/RequirementTest";
 
-const FIRST_STROKE: Stroke = {
-  points: [{ x: 1, y: 1 }],
-  startedAt: "2026-05-14T10:00:00.000Z",
-  endedAt: "2026-05-14T10:00:01.000Z"
-};
-
-const SECOND_STROKE: Stroke = {
-  points: [{ x: 2, y: 2 }],
-  startedAt: "2026-05-14T10:00:02.000Z",
-  endedAt: "2026-05-14T10:00:03.000Z"
-};
-
-/**
- * Requirement: R51
- * Type: Unit
- * Condition: Invariant and Postcondition
- */
 describe("CalligraphyCanvasInterface", () => {
-  it("preserves stroke capture order in canvas history", () => {
+  /**
+   * Requirement: R51
+   * Type: Unit
+   * Condition: Invariant
+   */
+  it(buildRequirementTitle("R51", "Unit", "Invariant", "strokes preserve capture order in canvas history"), () => {
     const controller = CreateCalligraphyCanvasController({});
 
-    controller.registerStroke(FIRST_STROKE);
-    controller.registerStroke(SECOND_STROKE);
+    controller.registerStroke(TEST_STROKE);
+    controller.registerStroke(TEST_SECOND_STROKE);
 
-    expect(controller.getStrokeHistory()).toEqual([FIRST_STROKE, SECOND_STROKE]);
+    expect(controller.getStrokeHistory()).toEqual(
+      [TEST_STROKE, TEST_SECOND_STROKE],
+      "CalligraphyCanvasInterface did not preserve stroke capture order."
+    );
+  });
+
+  /**
+   * Requirement: R51
+   * Type: Unit
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R51", "Unit", "Postcondition", "each new stroke is registered in canvas history"), () => {
+    const controller = CreateCalligraphyCanvasController({});
+
+    controller.registerStroke(TEST_STROKE);
+    controller.registerStroke(TEST_SECOND_STROKE);
+    controller.registerStroke(TEST_STROKE);
+
+    expect(controller.getStrokeHistory()).toHaveLength(
+      3,
+      "CalligraphyCanvasInterface did not register all strokes in history."
+    );
   });
 
   /**
    * Requirement: R52
    * Type: Unit
-   * Condition: Precondition, Invariant and Postcondition
+   * Condition: Precondition
    */
-  it("resets the current writing attempt and remains operational", () => {
+  it(buildRequirementTitle("R52", "Unit", "Precondition", "reset attempt throws when no strokes are registered"), () => {
     const controller = CreateCalligraphyCanvasController({});
 
-    controller.registerStroke(FIRST_STROKE);
-    controller.resetAttempt();
-    controller.registerStroke(SECOND_STROKE);
+    expect(() => {
+      controller.resetAttempt();
+    }).toThrow();
+  });
 
-    expect(controller.getStrokeHistory()).toEqual([SECOND_STROKE]);
+  /**
+   * Requirement: R52
+   * Type: Unit
+   * Condition: Precondition
+   */
+  it(buildRequirementTitle("R52", "Unit", "Precondition", "attempt can only be reset when strokes are registered"), () => {
+    const controller = CreateCalligraphyCanvasController({});
+
+    controller.registerStroke(TEST_STROKE);
+
+    expect(() => {
+      controller.resetAttempt();
+    }).not.toThrow();
+  });
+
+  /**
+   * Requirement: R52
+   * Type: Unit
+   * Condition: Invariant
+   */
+  it(buildRequirementTitle("R52", "Unit", "Invariant", "canvas remains operational after resetting attempt"), () => {
+    const controller = CreateCalligraphyCanvasController({});
+
+    controller.registerStroke(TEST_STROKE);
+    controller.resetAttempt();
+
+    expect(() => {
+      controller.registerStroke(TEST_SECOND_STROKE);
+    }).not.toThrow();
+  });
+
+  /**
+   * Requirement: R52
+   * Type: Unit
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R52", "Unit", "Postcondition", "all strokes are removed from current attempt after reset"), () => {
+    const controller = CreateCalligraphyCanvasController({});
+
+    controller.registerStroke(TEST_STROKE);
+    controller.resetAttempt();
+
+    expect(controller.getStrokeHistory()).toHaveLength(
+      0,
+      "CalligraphyCanvasInterface kept residual strokes after resetting attempt."
+    );
   });
 });

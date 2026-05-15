@@ -1,5 +1,8 @@
 import type {
   ApplicationTheme,
+  CalligraphyAttempt,
+  CalligraphyCategory,
+  CalligraphyEvaluationResult,
   CharacterSummary,
   CropRegion,
   DetailedKanjiEntry,
@@ -76,7 +79,90 @@ export const WCAG_AAA_CONTRAST_THRESHOLD = 7.0;
 /**
  * Inference model image size
  */
-export const MODEL_INPUT_SIZE = 128
+export const MODEL_INPUT_SIZE = 128;
+
+/**
+ * Shared calligraphy test identifiers and values.
+ */
+export const TEST_CALLIGRAPHY_TARGET_CHARACTER = "水";
+export const TEST_CALLIGRAPHY_CATEGORY_ID = "jlpt-n5";
+export const TEST_CALLIGRAPHY_JOYO_GROUPING = "joyo";
+export const TEST_CALLIGRAPHY_JLPT_GROUPING = "jlpt";
+export const TEST_CALLIGRAPHY_JLPT_GROUPING_LABEL = "JLPT";
+export const TEST_CALLIGRAPHY_JLPT_LABEL = "JLPT N5";
+export const TEST_CALLIGRAPHY_RESIDUAL_CATEGORY_ID = "joyo-unclassified";
+export const TEST_CALLIGRAPHY_RESIDUAL_LABEL = "Unclassified";
+export const TEST_CALLIGRAPHY_EVALUATION_SUMMARY = "The attempt is recognizable.";
+export const TEST_CALLIGRAPHY_EVALUATION_SCORE = 82;
+export const TEST_CALLIGRAPHY_BACK_LABEL = "Back";
+export const TEST_CALLIGRAPHY_CLEAR_LABEL = "Clear";
+export const TEST_CALLIGRAPHY_VALIDATE_LABEL = "Validate";
+export const TEST_CALLIGRAPHY_CATEGORY_CHARACTERS = ["一", "二", "三"];
+export const TEST_CALLIGRAPHY_CATEGORY_STROKE_COUNTS = [1, 2, 3];
+
+/**
+ * Shared calligraphy domain objects.
+ */
+export const TEST_CALLIGRAPHY_CATEGORY: CalligraphyCategory = {
+  id: TEST_CALLIGRAPHY_CATEGORY_ID,
+  grouping: TEST_CALLIGRAPHY_JLPT_GROUPING,
+  label: TEST_CALLIGRAPHY_JLPT_LABEL,
+  order: 1,
+  isResidual: false,
+  kanjiCount: 2
+};
+
+export const TEST_CALLIGRAPHY_VIEW_CATEGORY: CalligraphyCategory = {
+  ...TEST_CALLIGRAPHY_CATEGORY,
+  kanjiCount: 3
+};
+
+export const TEST_CALLIGRAPHY_RESIDUAL_CATEGORY: CalligraphyCategory = {
+  id: TEST_CALLIGRAPHY_RESIDUAL_CATEGORY_ID,
+  grouping: TEST_CALLIGRAPHY_JOYO_GROUPING,
+  label: TEST_CALLIGRAPHY_RESIDUAL_LABEL,
+  order: 999,
+  isResidual: true,
+  kanjiCount: 1
+};
+
+export const TEST_CALLIGRAPHY_FINALIZED_ATTEMPT: CalligraphyAttempt = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,
+  isFinalized: true,
+  strokes: [
+    {
+      points: [{ x: 1, y: 1 }],
+      startedAt: "2026-05-14T10:00:00.000Z",
+      endedAt: "2026-05-14T10:00:01.000Z"
+    }
+  ]
+};
+
+export const TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE: CalligraphyAttempt = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,
+  isFinalized: false,
+  strokes: [
+    {
+      points: [{ x: 1, y: 1 }, { x: 2, y: 2 }],
+      startedAt: "2026-05-14T10:00:00.000Z",
+      endedAt: "2026-05-14T10:00:01.000Z"
+    }
+  ]
+};
+
+export const TEST_CALLIGRAPHY_EVALUATION_RESULT: CalligraphyEvaluationResult = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  score: TEST_CALLIGRAPHY_EVALUATION_SCORE,
+  summary: TEST_CALLIGRAPHY_EVALUATION_SUMMARY,
+  metrics: {
+    strokeCount: 1,
+    strokeOrder: 1,
+    approximateDirection: 1,
+    generalSimilarity: 0.8
+  }
+};
 
 /**
  * Canonical image sample used by image-related tests.

@@ -1,20 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import { CreateKanjiPracticeController } from "../../../src/Features/Calligraphy/CreateKanjiPracticeController";
-import type { CalligraphyAttempt } from "../../../src/Shared/DomainTypes";
-
-const ATTEMPT_WITH_STROKE: CalligraphyAttempt = {
-  targetCharacter: "水",
-  categoryId: "jlpt-n5",
-  isFinalized: false,
-  strokes: [
-    {
-      points: [{ x: 1, y: 1 }, { x: 2, y: 2 }],
-      startedAt: "2026-05-14T10:00:00.000Z",
-      endedAt: "2026-05-14T10:00:01.000Z"
-    }
-  ]
-};
+import {
+  TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE,
+  TEST_CALLIGRAPHY_TARGET_CHARACTER
+} from "../../Support/TestData";
 
 /**
  * Requirement: R50
@@ -35,11 +25,11 @@ describe("KanjiPracticeInterface", () => {
    */
   it("requests evaluation for the current attempt without mutating its strokes", async () => {
     const controller = CreateKanjiPracticeController({});
-    const originalStrokeCount = ATTEMPT_WITH_STROKE.strokes.length;
+    const originalStrokeCount = TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE.strokes.length;
 
-    const result = await controller.requestEvaluation(ATTEMPT_WITH_STROKE);
+    const result = await controller.requestEvaluation(TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE);
 
-    expect(ATTEMPT_WITH_STROKE.strokes).toHaveLength(originalStrokeCount);
-    expect(result.targetCharacter).toBe("水");
+    expect(TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE.strokes).toHaveLength(originalStrokeCount);
+    expect(result.targetCharacter).toBe(TEST_CALLIGRAPHY_TARGET_CHARACTER);
   });
 });

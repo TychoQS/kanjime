@@ -1,32 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { CreateCalligraphyEvaluationController } from "../../../src/Features/Calligraphy/CreateCalligraphyEvaluationController";
-import type { CalligraphyAttempt, CalligraphyEvaluationResult } from "../../../src/Shared/DomainTypes";
-
-const FINALIZED_ATTEMPT: CalligraphyAttempt = {
-  targetCharacter: "水",
-  categoryId: "jlpt-n5",
-  isFinalized: true,
-  strokes: [
-    {
-      points: [{ x: 1, y: 1 }],
-      startedAt: "2026-05-14T10:00:00.000Z",
-      endedAt: "2026-05-14T10:00:01.000Z"
-    }
-  ]
-};
-
-const EVALUATION_RESULT: CalligraphyEvaluationResult = {
-  targetCharacter: "水",
-  score: 82,
-  summary: "The attempt is recognizable.",
-  metrics: {
-    strokeCount: 1,
-    strokeOrder: 1,
-    approximateDirection: 1,
-    generalSimilarity: 0.8
-  }
-};
+import {
+  TEST_CALLIGRAPHY_EVALUATION_SCORE,
+  TEST_CALLIGRAPHY_EVALUATION_RESULT,
+  TEST_CALLIGRAPHY_EVALUATION_SUMMARY,
+  TEST_CALLIGRAPHY_FINALIZED_ATTEMPT
+} from "../../Support/TestData";
 
 /**
  * Requirement: R54
@@ -37,7 +17,7 @@ describe("CalligraphyEvaluationInterface", () => {
   it("evaluates a finalized attempt with all required metrics", async () => {
     const controller = CreateCalligraphyEvaluationController({});
 
-    const result = await controller.evaluateAttempt(FINALIZED_ATTEMPT);
+    const result = await controller.evaluateAttempt(TEST_CALLIGRAPHY_FINALIZED_ATTEMPT);
 
     expect(result.metrics).toEqual(expect.objectContaining({
       strokeCount: expect.any(Number),
@@ -55,7 +35,7 @@ describe("CalligraphyEvaluationInterface", () => {
   it("calculates a score inside the permitted range", () => {
     const controller = CreateCalligraphyEvaluationController({});
 
-    const score = controller.calculateScore(EVALUATION_RESULT);
+    const score = controller.calculateScore(TEST_CALLIGRAPHY_EVALUATION_RESULT);
 
     expect(score).toBeGreaterThanOrEqual(0);
     expect(score).toBeLessThanOrEqual(100);
@@ -69,11 +49,11 @@ describe("CalligraphyEvaluationInterface", () => {
   it("creates visual feedback that matches the evaluation result", () => {
     const controller = CreateCalligraphyEvaluationController({});
 
-    const feedback = controller.createFeedback(EVALUATION_RESULT);
+    const feedback = controller.createFeedback(TEST_CALLIGRAPHY_EVALUATION_RESULT);
 
     expect(feedback).toEqual({
-      score: 82,
-      summary: "The attempt is recognizable.",
+      score: TEST_CALLIGRAPHY_EVALUATION_SCORE,
+      summary: TEST_CALLIGRAPHY_EVALUATION_SUMMARY,
       isOverlayVisible: true
     });
   });

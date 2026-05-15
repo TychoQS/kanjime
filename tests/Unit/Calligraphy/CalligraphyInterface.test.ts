@@ -1,16 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { CreateCalligraphyController } from "../../../src/Features/Calligraphy/CreateCalligraphyController";
-import type { CalligraphyCategory } from "../../../src/Shared/DomainTypes";
-
-const JLPT_CATEGORY: CalligraphyCategory = {
-  id: "jlpt-n5",
-  grouping: "jlpt",
-  label: "JLPT N5",
-  order: 1,
-  isResidual: false,
-  kanjiCount: 2
-};
+import {
+  TEST_CALLIGRAPHY_CATEGORY,
+  TEST_CALLIGRAPHY_CATEGORY_ID,
+  TEST_CALLIGRAPHY_JLPT_GROUPING,
+  TEST_CALLIGRAPHY_JOYO_GROUPING,
+  TEST_CALLIGRAPHY_RESIDUAL_CATEGORY
+} from "../../Support/TestData";
 
 /**
  * Requirement: R42
@@ -21,9 +18,9 @@ describe("CalligraphyInterface", () => {
   it("keeps only one active grouping after selecting Joyo", () => {
     const controller = CreateCalligraphyController({});
 
-    controller.selectGrouping("joyo");
+    controller.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
 
-    expect(controller.getActiveGrouping()).toBe("joyo");
+    expect(controller.getActiveGrouping()).toBe(TEST_CALLIGRAPHY_JOYO_GROUPING);
   });
 
   /**
@@ -34,9 +31,9 @@ describe("CalligraphyInterface", () => {
   it("returns only categories that belong to the active grouping", () => {
     const controller = CreateCalligraphyController({});
 
-    controller.selectGrouping("jlpt");
+    controller.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
 
-    expect(controller.getVisibleCategories()).toEqual([JLPT_CATEGORY]);
+    expect(controller.getVisibleCategories()).toEqual([TEST_CALLIGRAPHY_CATEGORY]);
   });
 
   /**
@@ -47,16 +44,9 @@ describe("CalligraphyInterface", () => {
   it("includes a residual category together with regular categories when required", () => {
     const controller = CreateCalligraphyController({});
 
-    controller.selectGrouping("joyo");
+    controller.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
 
-    expect(controller.getVisibleCategories()).toContainEqual({
-      id: "joyo-unclassified",
-      grouping: "joyo",
-      label: "Unclassified",
-      order: 999,
-      isResidual: true,
-      kanjiCount: 1
-    });
+    expect(controller.getVisibleCategories()).toContainEqual(TEST_CALLIGRAPHY_RESIDUAL_CATEGORY);
   });
 
   /**
@@ -67,8 +57,8 @@ describe("CalligraphyInterface", () => {
   it("opens the selected category without replacing it with another category", async () => {
     const controller = CreateCalligraphyController({});
 
-    await controller.openCategory("jlpt-n5");
+    await controller.openCategory(TEST_CALLIGRAPHY_CATEGORY_ID);
 
-    expect(controller.getActiveGrouping()).toBe("jlpt");
+    expect(controller.getActiveGrouping()).toBe(TEST_CALLIGRAPHY_JLPT_GROUPING);
   });
 });

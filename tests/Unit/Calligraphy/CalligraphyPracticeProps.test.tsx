@@ -3,9 +3,15 @@ import { describe, expect, it } from "vitest";
 
 import { CalligraphyPracticeView } from "../../../src/Features/Calligraphy/View/CalligraphyPracticeView";
 import type { CalligraphyPracticeProps } from "../../../src/Features/Calligraphy/Contracts/CalligraphyPracticeProps";
+import {
+  TEST_CALLIGRAPHY_BACK_LABEL,
+  TEST_CALLIGRAPHY_CLEAR_LABEL,
+  TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  TEST_CALLIGRAPHY_VALIDATE_LABEL
+} from "../../Support/TestData";
 
 const PROPS: CalligraphyPracticeProps = {
-  targetCharacter: "水",
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
   strokes: [],
   canReset: false,
   canValidate: false,
@@ -34,7 +40,7 @@ describe("CalligraphyPracticeProps", () => {
   it("does not render the target kanji as a visual aid", () => {
     render(<CalligraphyPracticeView {...PROPS} />);
 
-    expect(screen.queryByText("水")).not.toBeInTheDocument();
+    expect(screen.queryByText(TEST_CALLIGRAPHY_TARGET_CHARACTER)).not.toBeInTheDocument();
   });
 
   /**
@@ -46,8 +52,8 @@ describe("CalligraphyPracticeProps", () => {
     render(<CalligraphyPracticeView {...PROPS} />);
 
     expect(screen.getByTestId("calligraphy-practice-top-controls")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Back" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Clear" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Validate" })).toBeVisible();
+    expect(screen.getByRole("button", { name: TEST_CALLIGRAPHY_BACK_LABEL })).toBeVisible();
+    expect(screen.getByRole("button", { name: TEST_CALLIGRAPHY_CLEAR_LABEL })).toBeVisible();
+    expect(screen.getByRole("button", { name: TEST_CALLIGRAPHY_VALIDATE_LABEL })).toBeVisible();
   });
 });

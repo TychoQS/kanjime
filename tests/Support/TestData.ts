@@ -2,7 +2,7 @@ import type {
   ApplicationTheme,
   CalligraphyAttempt,
   CalligraphyCategory,
-  CalligraphyEvaluationResult,
+  CalligraphyEvaluationResult, CategoryKanjiEntry,
   CharacterSummary,
   CropRegion,
   DetailedKanjiEntry,
@@ -116,8 +116,6 @@ export const TEST_CALLIGRAPHY_EVALUATION_SCORE = 82;
 export const TEST_CALLIGRAPHY_BACK_LABEL = "Back";
 export const TEST_CALLIGRAPHY_CLEAR_LABEL = "Clear";
 export const TEST_CALLIGRAPHY_VALIDATE_LABEL = "Validate";
-export const TEST_CALLIGRAPHY_CATEGORY_CHARACTERS = ["一", "二", "三"];
-export const TEST_CALLIGRAPHY_CATEGORY_STROKE_COUNTS = [1, 2, 3];
 
 /**
  * Shared calligraphy domain objects.
@@ -238,6 +236,217 @@ export const TEST_CALLIGRAPHY_INVALID_EVALUATION_RESULT: CalligraphyEvaluationRe
     generalSimilarity: NaN
   }
 };
+
+export const TEST_CALLIGRAPHY_KANJI_BY_CATEGORY_CASES = [
+  {
+    categoryId: "jlpt-n5",
+    unsortedKanji: [
+      { character: "日", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 },
+      { character: "一", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 1 },
+      { character: "大", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 3 }
+    ],
+    sortedKanji: [
+      { character: "一", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 1 },
+      { character: "大", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 3 },
+      { character: "日", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 }
+    ]
+  },
+  {
+    categoryId: "jlpt-n4",
+    unsortedKanji: [
+      { character: "両", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 6 },
+      { character: "不", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 },
+      { character: "仕", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 5 }
+    ],
+    sortedKanji: [
+      { character: "不", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 },
+      { character: "仕", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 5 },
+      { character: "両", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 6 }
+    ]
+  },
+  {
+    categoryId: "jlpt-n3",
+    unsortedKanji: [
+      { character: "漢", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 },
+      { character: "森", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 12 },
+      { character: "想", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 }
+    ],
+    sortedKanji: [
+      { character: "森", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 12 },
+      { character: "漢", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 },
+      { character: "想", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 }
+    ]
+  },
+  {
+    categoryId: "jlpt-n2",
+    unsortedKanji: [
+      { character: "愛", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 },
+      { character: "器", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 15 },
+      { character: "緑", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 14 }
+    ],
+    sortedKanji: [
+      { character: "愛", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 },
+      { character: "緑", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 14 },
+      { character: "器", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 15 }
+    ]
+  },
+  {
+    categoryId: "jlpt-n1",
+    unsortedKanji: [
+      { character: "議", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 20 },
+      { character: "機", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 16 },
+      { character: "艦", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 21 }
+    ],
+    sortedKanji: [
+      { character: "機", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 16 },
+      { character: "議", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 20 },
+      { character: "艦", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 21 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-1",
+    unsortedKanji: [
+      { character: "日", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "一", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 1 },
+      { character: "人", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 2 }
+    ],
+    sortedKanji: [
+      { character: "一", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 1 },
+      { character: "人", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 2 },
+      { character: "日", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-2",
+    unsortedKanji: [
+      { character: "曜", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 },
+      { character: "光", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 6 },
+      { character: "雲", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 12 }
+    ],
+    sortedKanji: [
+      { character: "光", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 6 },
+      { character: "雲", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 12 },
+      { character: "曜", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-3",
+    unsortedKanji: [
+      { character: "漢", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 },
+      { character: "写", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 5 },
+      { character: "感", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 }
+    ],
+    sortedKanji: [
+      { character: "写", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 5 },
+      { character: "漢", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 },
+      { character: "感", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-4",
+    unsortedKanji: [
+      { character: "説", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 14 },
+      { character: "管", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 14 },
+      { character: "不", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 }
+    ],
+    sortedKanji: [
+      { character: "不", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "説", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 14 },
+      { character: "管", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 14 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-5",
+    unsortedKanji: [
+      { character: "興", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 },
+      { character: "圧", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 5 },
+      { character: "質", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 15 }
+    ],
+    sortedKanji: [
+      { character: "圧", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 5 },
+      { character: "質", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 15 },
+      { character: "興", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-6",
+    unsortedKanji: [
+      { character: "難", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 },
+      { character: "己", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 3 },
+      { character: "装", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 12 }
+    ],
+    sortedKanji: [
+      { character: "己", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 3 },
+      { character: "装", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 12 },
+      { character: "難", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-8",
+    unsortedKanji: [
+      { character: "彙", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 },
+      { character: "挨", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 10 },
+      { character: "曖", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 17 }
+    ],
+    sortedKanji: [
+      { character: "挨", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 10 },
+      { character: "彙", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 },
+      { character: "曖", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 17 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-9",
+    unsortedKanji: [
+      { character: "璽", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 19 },
+      { character: "釜", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 10 },
+      { character: "韓", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 }
+    ],
+    sortedKanji: [
+      { character: "釜", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 10 },
+      { character: "韓", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 },
+      { character: "璽", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 19 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-10",
+    unsortedKanji: [
+      { character: "鷹", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 24 },
+      { character: "丑", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "謎", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 }
+    ],
+    sortedKanji: [
+      { character: "丑", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "謎", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 },
+      { character: "鷹", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 24 }
+    ]
+  },
+  {
+    categoryId: "jlpt-unclassified",
+    unsortedKanji: [
+      { character: "曖", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 17 },
+      { character: "丑", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 },
+      { character: "彙", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 }
+    ],
+    sortedKanji: [
+      { character: "丑", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 },
+      { character: "彙", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 },
+      { character: "曖", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 17 }
+    ]
+  },
+  {
+    categoryId: "joyo-unclassified",
+    unsortedKanji: [
+      { character: "鴨", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 },
+      { character: "丑", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "曖", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 17 }
+    ],
+    sortedKanji: [
+      { character: "丑", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "鴨", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 },
+      { character: "曖", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 17 }
+    ]
+  }
+] as const;
 
 /**
  * Canonical image sample used by image-related tests.

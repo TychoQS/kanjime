@@ -210,3 +210,12 @@ export interface CalligraphyEvaluationFeedback {
   readonly summary: string;
   readonly isOverlayVisible: boolean;
 }
+
+/**
+ * Kanji entry displayed inside a selected calligraphy category.
+ */
+export interface CategoryKanjiEntry {
+  readonly character: string;
+  readonly categoryId: string;
+  readonly strokeCount: number;
+}

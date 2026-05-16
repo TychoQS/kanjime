@@ -8,10 +8,9 @@ import type { Stroke } from "../../../Shared/DomainTypes";
  * @pre The user is in an active calligraphy practice.
  * @inv The writing canvas keeps most of the available screen space.
  * @inv Only the required back, clear, and validate controls are visible.
- * @inv Practice controls remain grouped at the top of the screen.
  * @post The interface shows the writing canvas as the main visual element
  * @post Interface only display the necessary controls to return, retry or validate.
- * @post Controls are located at the top of the screen.
+ * @post Controls are located at the top of the screen as a group.
  */
 export interface CalligraphyPracticeProps {
 

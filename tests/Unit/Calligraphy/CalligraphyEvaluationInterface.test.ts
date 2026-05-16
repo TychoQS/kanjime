@@ -93,7 +93,7 @@ describe("CalligraphyEvaluationInterface", () => {
   /**
    * Requirement: R55
    * Type: Unit
-   * Condition: Precondition
+   * Condition: Precondition - invalid
    */
   it(buildRequirementTitle("R55", "Unit", "Precondition", "calculateScore throws when evaluation result is invalid"), () => {
     const controller = CreateCalligraphyEvaluationController({
@@ -109,7 +109,7 @@ describe("CalligraphyEvaluationInterface", () => {
   /**
    * Requirement: R55
    * Type: Unit
-   * Condition: Precondition
+   * Condition: Precondition - valid
    */
   it(buildRequirementTitle("R55", "Unit", "Precondition", "calculateScore does not throw when evaluation result is valid"), () => {
     const controller = CreateCalligraphyEvaluationController({
@@ -160,7 +160,7 @@ describe("CalligraphyEvaluationInterface", () => {
   /**
    * Requirement: R56
    * Type: Unit
-   * Condition: Precondition
+   * Condition: Precondition - invalid
    */
   it(buildRequirementTitle("R56", "Unit", "Precondition", "createFeedback throws when evaluation result is invalid"), () => {
     const createFeedback = vi.fn();
@@ -180,7 +180,7 @@ describe("CalligraphyEvaluationInterface", () => {
   /**
    * Requirement: R56
    * Type: Unit
-   * Condition: Precondition
+   * Condition: Precondition - valid
    */
   it(buildRequirementTitle("R56", "Unit", "Precondition", "createFeedback does not throw when evaluation result is valid"), () => {
     const createFeedback = vi.fn(() => ({

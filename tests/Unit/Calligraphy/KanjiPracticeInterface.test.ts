@@ -30,7 +30,7 @@ describe("KanjiPracticeInterface", () => {
   /**
    * Requirement: R53
    * Type: Unit
-   * Condition: Precondition
+   * Condition: Precondition - invalid
    */
   it(buildRequirementTitle("R53", "Unit", "Precondition", "request evaluation throws when attempt has no strokes"), async () => {
     const evaluationRecorder = createAsyncValueRecorder(TEST_CALLIGRAPHY_EVALUATION_RESULT);
@@ -53,7 +53,7 @@ describe("KanjiPracticeInterface", () => {
   /**
    * Requirement: R53
    * Type: Unit
-   * Condition: Precondition
+   * Condition: Precondition - valid
    */
   it(buildRequirementTitle("R53", "Unit", "Precondition", "request evaluation does not throw when attempt has strokes"), async () => {
     const evaluationRecorder = createAsyncValueRecorder(TEST_CALLIGRAPHY_EVALUATION_RESULT);

@@ -43,7 +43,7 @@ describe("CalligraphyCanvasInterface", () => {
   /**
    * Requirement: R52
    * Type: Unit
-   * Condition: Precondition
+   * Condition: Precondition - valid
    */
   it(buildRequirementTitle("R52", "Unit", "Precondition", "reset attempt throws when no strokes are registered"), () => {
     const controller = CreateCalligraphyCanvasController({});
@@ -56,7 +56,7 @@ describe("CalligraphyCanvasInterface", () => {
   /**
    * Requirement: R52
    * Type: Unit
-   * Condition: Precondition
+   * Condition: Precondition - invalid
    */
   it(buildRequirementTitle("R52", "Unit", "Precondition", "attempt can only be reset when strokes are registered"), () => {
     const controller = CreateCalligraphyCanvasController({});

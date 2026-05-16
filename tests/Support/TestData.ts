@@ -448,6 +448,8 @@ export const TEST_CALLIGRAPHY_KANJI_BY_CATEGORY_CASES = [
   }
 ] as const;
 
+export const TEST_CALLIGRAPHY_JOYO_GROUPING_LABEL = "Joyo";
+
 /**
  * Canonical image sample used by image-related tests.
  */

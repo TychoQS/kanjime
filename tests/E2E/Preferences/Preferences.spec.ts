@@ -102,6 +102,7 @@ test("[R10][E2E] GlobalProps applies configured language to all screen texts", a
   await expect(page.getByTestId("nav-search")).toContainText(es.search);
   await expect(page.getByTestId("nav-history")).toContainText(es.history);
   await expect(page.getByTestId("nav-about")).toContainText(es.about);
+  await expect(page.getByTestId("nav-calligraphy")).toContainText(es.calligraphy);
   await app.closeMenu();
 });
 

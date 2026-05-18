@@ -122,31 +122,31 @@ export const TEST_CALLIGRAPHY_VALIDATE_LABEL = "Validate";
  */
 
 export const TEST_CALLIGRAPHY_JLPT_CATEGORIES: ReadonlyArray<CalligraphyCategory> =
-    TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS.map((id, index) => {
-      const level = 5 - index;
+  TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS.map((id, index) => {
+    const level = 5 - index;
 
-      return {
-        id,
-        grouping: TEST_CALLIGRAPHY_JLPT_GROUPING,
-        label: `JLPT N${level}`,
-        order: index + 1,
-        isResidual: false,
-        kanjiCount: 1
-      };
-    });
-
-export const TEST_CALLIGRAPHY_JOYO_CATEGORIES: ReadonlyArray<CalligraphyCategory> =
-    TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES.map((grade, index) => ({
-      id: `joyo-grade-${grade}`,
-      grouping: TEST_CALLIGRAPHY_JOYO_GROUPING,
-      label: `Jōyō Grade ${grade}`,
+    return {
+      id,
+      grouping: TEST_CALLIGRAPHY_JLPT_GROUPING,
+      label: `JLPT N${level}`,
       order: index + 1,
       isResidual: false,
       kanjiCount: 1
-    }));
+    };
+  });
+
+export const TEST_CALLIGRAPHY_JOYO_CATEGORIES: ReadonlyArray<CalligraphyCategory> =
+  TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES.map((grade, index) => ({
+    id: `joyo-grade-${grade}`,
+    grouping: TEST_CALLIGRAPHY_JOYO_GROUPING,
+    label: `Jōyō Grade ${grade}`,
+    order: index + 1,
+    isResidual: false,
+    kanjiCount: 1
+  }));
 
 export const TEST_CALLIGRAPHY_CATEGORY: CalligraphyCategory =
-    TEST_CALLIGRAPHY_JLPT_CATEGORIES[0];
+  TEST_CALLIGRAPHY_JLPT_CATEGORIES[0];
 
 export const TEST_CALLIGRAPHY_JLPT_RESIDUAL_CATEGORY: CalligraphyCategory = {
   id: "jlpt-unclassified",
@@ -771,5 +771,10 @@ export const TEST_SCREENS_I18N = [
     route: "/about",
     titleKey: "about",
     checks: ["about-list"]
+  },
+  {
+    route: "/calligraphy",
+    titleKey: "calligraphy",
+    checks: ["calligraphy-screen"]
   }
 ] as const;

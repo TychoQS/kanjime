@@ -10,13 +10,13 @@
  */
 export interface NavigationProps {
   readonly isMenuOpen: boolean;
-  readonly currentPage: "classification" | "search" | "history" | "about" | "kanjiEntry";
+  readonly currentPage: "classification" | "search" | "history" | "about" | "kanjiEntry" | "calligraphy";
   readonly availablePages: ReadonlyArray<{
-    id: "classification" | "search" | "history" | "about" | "kanjiEntry";
+    id: "classification" | "search" | "history" | "about" | "kanjiEntry" | "calligraphy";
     label: string;
   }>;
   readonly onCloseRequested: () => void;
   readonly onNavigateRequested: (
-    page: "classification" | "search" | "history" | "about" | "kanjiEntry"
+    page: "classification" | "search" | "history" | "about" | "kanjiEntry" | "calligraphy"
   ) => void;
 }

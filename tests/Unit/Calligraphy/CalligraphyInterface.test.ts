@@ -6,8 +6,8 @@ import {
   TEST_CALLIGRAPHY_JLPT_GROUPING, TEST_CALLIGRAPHY_JOYO_GROUPING, TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES, TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
 } from "../../Support/TestData";
 
-import {buildRequirementTitle} from "../../Support/RequirementTest";
-import {createAsyncValueRecorder} from "../../Support/DependencyFactories";
+import { buildRequirementTitle } from "../../Support/RequirementTest";
+import { createAsyncValueRecorder } from "../../Support/DependencyFactories";
 
 describe("CalligraphyInterface", () => {
 
@@ -28,14 +28,14 @@ describe("CalligraphyInterface", () => {
     });
     expect(() => {
       controller.selectGrouping(TEST_CALLIGRAPHY_INVALID_GROUPING as any);
-    }).toThrow();
+    }, "CalligraphyInterface accepted an unsupported grouping.").toThrow();
   });
 
-/**
- * Requirement: R42
- * Type: Unit
- * Condition: Postcondition
- */
+  /**
+   * Requirement: R42
+   * Type: Unit
+   * Condition: Postcondition
+   */
   it(buildRequirementTitle("R42", "Unit", "Postcondition", "active grouping changes to the selected value"), () => {
     const controller = CreateCalligraphyController({
       getCategories: async () => {
@@ -48,10 +48,10 @@ describe("CalligraphyInterface", () => {
     });
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
-    expect(controller.getActiveGrouping()).toBe(TEST_CALLIGRAPHY_JOYO_GROUPING);
+    expect(controller.getActiveGrouping(), "CalligraphyInterface did not update the active grouping to Joyo.").toBe(TEST_CALLIGRAPHY_JOYO_GROUPING);
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
-    expect(controller.getActiveGrouping()).toBe(TEST_CALLIGRAPHY_JLPT_GROUPING);
+    expect(controller.getActiveGrouping(), "CalligraphyInterface did not update the active grouping to JLPT.").toBe(TEST_CALLIGRAPHY_JLPT_GROUPING);
   });
 
   /**
@@ -71,17 +71,19 @@ describe("CalligraphyInterface", () => {
     controller.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
 
     expect(
-        controller.getVisibleCategories().every(
-            (category) => category.grouping === TEST_CALLIGRAPHY_JLPT_GROUPING
-        )
+      controller.getVisibleCategories().every(
+        (category) => category.grouping === TEST_CALLIGRAPHY_JLPT_GROUPING,
+        "CalligraphyInterface did not show only JLPT categories for the selected grouping."
+      )
     ).toBe(true);
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
 
     expect(
-        controller.getVisibleCategories().every(
-            (category) => category.grouping === TEST_CALLIGRAPHY_JOYO_GROUPING
-        )
+      controller.getVisibleCategories().every(
+        (category) => category.grouping === TEST_CALLIGRAPHY_JOYO_GROUPING,
+        "CalligraphyInterface did not show only Joyo categories for the selected grouping."
+      )
     ).toBe(true);
   });
 
@@ -101,14 +103,14 @@ describe("CalligraphyInterface", () => {
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
 
-    expect(controller.getVisibleCategories()).toEqual(
-        TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES
+    expect(controller.getVisibleCategories(), "CalligraphyInterface did not show JLPT categories for the selected grouping.").toEqual(
+      TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES
     );
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
 
-    expect(controller.getVisibleCategories()).toEqual(
-        TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
+    expect(controller.getVisibleCategories(), "CalligraphyInterface did not show Joyo categories for the selected grouping.").toEqual(
+      TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
     );
   });
 
@@ -129,13 +131,15 @@ describe("CalligraphyInterface", () => {
     controller.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
 
     expect(
-        controller.getVisibleCategories().some((category) => category.isResidual)
+      controller.getVisibleCategories().some((category) => category.isResidual),
+      "CalligraphyInterface display residual category for JLPT grouping when no unclassified kanjis exist."
     ).toBe(false);
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
 
     expect(
-        controller.getVisibleCategories().some((category) => category.isResidual)
+      controller.getVisibleCategories().some((category) => category.isResidual),
+      "CalligraphyInterface display residual category for Joyo grouping when no unclassified kanjis exist."
     ).toBe(false);
   });
 
@@ -155,14 +159,14 @@ describe("CalligraphyInterface", () => {
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
 
-    expect(controller.getVisibleCategories()).toEqual(
-        TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
+    expect(controller.getVisibleCategories(), "CalligraphyInterface did not show Joyo categories for the selected grouping when unclassified kanjis exist.").toEqual(
+      TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
     );
 
     controller.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
 
-    expect(controller.getVisibleCategories()).toEqual(
-        TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES
+    expect(controller.getVisibleCategories(), "CalligraphyInterface did not show JLPT categories for the selected grouping when unclassified kanjis exist.").toEqual(
+      TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES
     );
   });
 
@@ -189,13 +193,13 @@ describe("CalligraphyInterface", () => {
     }
 
     expect(navigateToCategoryRecorder.calls.length).toBe(
-        visibleCategories.length,
-        "CalligraphyInterface did not navigate for every selected category."
+      visibleCategories.length,
+      "CalligraphyInterface did not navigate for every selected category."
     );
 
     expect(navigateToCategoryRecorder.calls).toEqual(
-        visibleCategories.map((category) => category.id),
-        "CalligraphyInterface did not navigate using the expected category ids."
+      visibleCategories.map((category) => category.id),
+      "CalligraphyInterface did not navigate using the expected category ids."
     );
   });
 });

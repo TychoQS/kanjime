@@ -1,4 +1,4 @@
-import {cleanup, screen} from "@testing-library/react";
+import { cleanup, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import userEvent from "@testing-library/user-event";
 import { CalligraphyView } from "../../../src/Features/Calligraphy/View/CalligraphyView";
@@ -10,7 +10,7 @@ import {
   TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES, TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
 } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import {renderWithIonic} from "../../Support/RenderWithIonic";
+import { renderWithIonic } from "../../Support/RenderWithIonic";
 
 
 const defaultProps: CalligraphyProps = {
@@ -28,18 +28,18 @@ describe("CalligraphyProps", () => {
    */
   it(buildRequirementTitle("R17", "Unit", "Precondition", "Violation: does not mark any grouping as active when active grouping is invalid"), () => {
     renderWithIonic(
-        <CalligraphyView
-            {...defaultProps}
-            activeGrouping={"invalid-grouping" as never}
-        />
+      <CalligraphyView
+        {...defaultProps}
+        activeGrouping={"invalid-grouping" as never}
+      />
     );
 
     expect(
-        screen.getByRole("button", { name: TEST_CALLIGRAPHY_JLPT_GROUPING_LABEL })
+      screen.getByRole("button", { name: TEST_CALLIGRAPHY_JLPT_GROUPING_LABEL }), "CalligraphyProps marked an active group when activeGrouping is invalid."
     ).not.toHaveAttribute("aria-current", "page");
 
     expect(
-        screen.getByRole("button", { name: TEST_CALLIGRAPHY_JOYO_GROUPING_LABEL })
+      screen.getByRole("button", { name: TEST_CALLIGRAPHY_JOYO_GROUPING_LABEL }), "CalligraphyProps marked an active group when activeGrouping is invalid."
     ).not.toHaveAttribute("aria-current", "page");
   });
 
@@ -52,11 +52,13 @@ describe("CalligraphyProps", () => {
     renderWithIonic(<CalligraphyView {...defaultProps} />);
 
     expect(
-        screen.getByRole("button", { name: TEST_CALLIGRAPHY_JLPT_GROUPING_LABEL })
+      screen.getByRole("button", { name: TEST_CALLIGRAPHY_JLPT_GROUPING_LABEL }),
+      "CalligraphyProps didn't render JLPT grouping selector."
     ).toBeVisible();
 
     expect(
-        screen.getByRole("button", { name: TEST_CALLIGRAPHY_JOYO_GROUPING_LABEL })
+      screen.getByRole("button", { name: TEST_CALLIGRAPHY_JOYO_GROUPING_LABEL }),
+      "CalligraphyProps didn't render Joyo grouping selector."
     ).toBeVisible();
   });
 
@@ -74,12 +76,12 @@ describe("CalligraphyProps", () => {
     ];
 
     const activeGroupingButtons = groupingButtons.filter(
-        (button) => button.getAttribute("aria-current") === "page"
+      (button) => button.getAttribute("aria-current") === "page"
     );
 
     expect(activeGroupingButtons).toHaveLength(
-        1,
-        "CalligraphyProps did not keep exactly one grouping visually active."
+      1,
+      "CalligraphyProps did not keep exactly one grouping visually active."
     );
   });
 
@@ -100,22 +102,22 @@ describe("CalligraphyProps", () => {
     });
 
     expect(
-        jlptButton,
-        "CalligraphyProps did not keep JLPT visually marked as active."
+      jlptButton,
+      "CalligraphyProps did not keep JLPT visually marked as active."
     ).toHaveAttribute("aria-current", "page");
 
     expect(
-        joyoButton,
-        "CalligraphyProps incorrectly marked Joyo as active."
+      joyoButton,
+      "CalligraphyProps incorrectly marked Joyo as active."
     ).not.toHaveAttribute("aria-current", "page");
 
     const activeGroupingButtons = [jlptButton, joyoButton].filter(
-        (button) => button.getAttribute("aria-current") === "page"
+      (button) => button.getAttribute("aria-current") === "page"
     );
 
     expect(
-        activeGroupingButtons,
-        "CalligraphyProps did not keep exactly one grouping visually active."
+      activeGroupingButtons,
+      "CalligraphyProps did not keep exactly one grouping visually active."
     ).toHaveLength(1);
   });
 
@@ -129,19 +131,19 @@ describe("CalligraphyProps", () => {
     const onGroupingSelected = vi.fn();
 
     renderWithIonic(
-        <CalligraphyView
-            {...defaultProps}
-            onGroupingSelected={onGroupingSelected}
-        />
+      <CalligraphyView
+        {...defaultProps}
+        onGroupingSelected={onGroupingSelected}
+      />
     );
 
     await user.click(
-        screen.getByRole("button", { name: TEST_CALLIGRAPHY_JOYO_GROUPING_LABEL })
+      screen.getByRole("button", { name: TEST_CALLIGRAPHY_JOYO_GROUPING_LABEL })
     );
 
-    expect(onGroupingSelected).toHaveBeenCalledTimes(1);
+    expect(onGroupingSelected, "CalligraphyProps did not trigger grouping selection exactly once.").toHaveBeenCalledTimes(1);
     expect(onGroupingSelected).toHaveBeenCalledWith(
-        TEST_CALLIGRAPHY_JOYO_GROUPING
+      TEST_CALLIGRAPHY_JOYO_GROUPING, "CalligraphyProps didn't trigger grouping selection with the correct grouping."
     );
   });
 
@@ -152,29 +154,29 @@ describe("CalligraphyProps", () => {
    */
   it(buildRequirementTitle("R18", "Unit", "Precondition", "renders all JLPT and Joyo categories including residual"), () => {
     renderWithIonic(
-        <CalligraphyView
-            {...defaultProps}
-            activeGrouping={TEST_CALLIGRAPHY_JLPT_GROUPING}
-            categories={TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES}
-        />
+      <CalligraphyView
+        {...defaultProps}
+        activeGrouping={TEST_CALLIGRAPHY_JLPT_GROUPING}
+        categories={TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES}
+      />
     );
 
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES) {
-      expect(screen.getByRole("button", { name: category.label })).toBeVisible();
+      expect(screen.getByRole("button", { name: category.label }), "CalligraphyView didn't render JLPT category selector.").toBeVisible();
     }
 
     cleanup();
 
     renderWithIonic(
-        <CalligraphyView
-            {...defaultProps}
-            activeGrouping={TEST_CALLIGRAPHY_JOYO_GROUPING}
-            categories={TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES}
-        />
+      <CalligraphyView
+        {...defaultProps}
+        activeGrouping={TEST_CALLIGRAPHY_JOYO_GROUPING}
+        categories={TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES}
+      />
     );
 
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES) {
-      expect(screen.getByRole("button", { name: category.label })).toBeVisible();
+      expect(screen.getByRole("button", { name: category.label }), "CalligraphyView didn't render Joyo category selector.").toBeVisible();
     }
   });
 
@@ -185,14 +187,14 @@ describe("CalligraphyProps", () => {
    */
   it(buildRequirementTitle("R18", "Unit", "Precondition", "Violation: renders no category buttons when categories list is empty"), () => {
     renderWithIonic(
-        <CalligraphyView {...defaultProps} categories={[]} />
+      <CalligraphyView {...defaultProps} categories={[]} />
     );
 
     for (const category of [
       ...TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES,
       ...TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES,
     ]) {
-      expect(screen.queryByRole("button", { name: category.label })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: category.label }), "CalligraphyView renders category buttons even when categories list is empty.").not.toBeInTheDocument();
     }
   });
 
@@ -203,37 +205,37 @@ describe("CalligraphyProps", () => {
    */
   it(buildRequirementTitle("R18", "Unit", "Invariant", "JLPT and Joyo categories remain grouped by their active grouping"), () => {
     renderWithIonic(
-        <CalligraphyView
-            {...defaultProps}
-            activeGrouping={TEST_CALLIGRAPHY_JLPT_GROUPING}
-            categories={TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES}
-        />
+      <CalligraphyView
+        {...defaultProps}
+        activeGrouping={TEST_CALLIGRAPHY_JLPT_GROUPING}
+        categories={TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES}
+      />
     );
 
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES) {
-      expect(screen.getByRole("button", { name: category.label })).toBeVisible();
+      expect(screen.getByRole("button", { name: category.label }), "CalligraphyView renders JLPT category selectors.").toBeVisible();
     }
 
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES) {
-      expect(screen.queryByRole("button", { name: category.label })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: category.label }), "CalligraphyView doesn't hide Joyo category selectors.").not.toBeInTheDocument();
     }
 
     cleanup();
 
     renderWithIonic(
-        <CalligraphyView
-            {...defaultProps}
-            activeGrouping={TEST_CALLIGRAPHY_JOYO_GROUPING}
-            categories={TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES}
-        />
+      <CalligraphyView
+        {...defaultProps}
+        activeGrouping={TEST_CALLIGRAPHY_JOYO_GROUPING}
+        categories={TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES}
+      />
     );
 
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES) {
-      expect(screen.getByRole("button", { name: category.label })).toBeVisible();
+      expect(screen.getByRole("button", { name: category.label }), "CalligraphyView renders Joyo category selectors.").toBeVisible();
     }
 
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES) {
-      expect(screen.queryByRole("button", { name: category.label })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: category.label }), "CalligraphyView doesn't hide JLPT category selectors.").not.toBeInTheDocument();
     }
   });
 
@@ -248,58 +250,59 @@ describe("CalligraphyProps", () => {
     const onCategorySelected = vi.fn();
 
     renderWithIonic(
-        <CalligraphyView
-            {...defaultProps}
-            activeGrouping={TEST_CALLIGRAPHY_JLPT_GROUPING}
-            categories={TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES}
-            onCategorySelected={onCategorySelected}
-        />
+      <CalligraphyView
+        {...defaultProps}
+        activeGrouping={TEST_CALLIGRAPHY_JLPT_GROUPING}
+        categories={TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES}
+        onCategorySelected={onCategorySelected}
+      />
     );
 
     const jlptButtons = [...TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES]
-        .sort((a, b) => a.order - b.order)
-        .map(c => screen.getByRole("button", { name: c.label }));
+      .sort((a, b) => a.order - b.order)
+      .map(c => screen.getByRole("button", { name: c.label }));
 
     for (let i = 0; i < jlptButtons.length - 1; i++) {
       expect(
-          jlptButtons[i].compareDocumentPosition(jlptButtons[i + 1]) & Node.DOCUMENT_POSITION_FOLLOWING
+        jlptButtons[i].compareDocumentPosition(jlptButtons[i + 1]) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
     }
 
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES) {
       await user.click(screen.getByRole("button", { name: category.label }));
-      expect(onCategorySelected).toHaveBeenLastCalledWith(category.id);
+      expect(onCategorySelected, "CalligraphyView didn't trigger onCategorySelected with the correct category.").toHaveBeenLastCalledWith(category.id);
     }
 
-    expect(onCategorySelected).toHaveBeenCalledTimes(TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES.length);
+    expect(onCategorySelected, "CalligraphyView didn't trigger onCategorySelected exactly once per category.").toHaveBeenCalledTimes(TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES.length);
 
     cleanup();
     onCategorySelected.mockClear();
 
     renderWithIonic(
-        <CalligraphyView
-            {...defaultProps}
-            activeGrouping={TEST_CALLIGRAPHY_JOYO_GROUPING}
-            categories={TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES}
-            onCategorySelected={onCategorySelected}
-        />
+      <CalligraphyView
+        {...defaultProps}
+        activeGrouping={TEST_CALLIGRAPHY_JOYO_GROUPING}
+        categories={TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES}
+        onCategorySelected={onCategorySelected}
+      />
     );
 
     const joyoButtons = [...TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES]
-        .sort((a, b) => a.order - b.order)
-        .map(c => screen.getByRole("button", { name: c.label }));
+      .sort((a, b) => a.order - b.order)
+      .map(c => screen.getByRole("button", { name: c.label }));
 
     for (let i = 0; i < joyoButtons.length - 1; i++) {
       expect(
-          joyoButtons[i].compareDocumentPosition(joyoButtons[i + 1]) & Node.DOCUMENT_POSITION_FOLLOWING
+        joyoButtons[i].compareDocumentPosition(joyoButtons[i + 1]) & Node.DOCUMENT_POSITION_FOLLOWING,
+        "CalligraphyView didn't render JLPT category selectors in order."
       ).toBeTruthy();
     }
 
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES) {
       await user.click(screen.getByRole("button", { name: category.label }));
-      expect(onCategorySelected).toHaveBeenLastCalledWith(category.id);
+      expect(onCategorySelected, "CalligraphyView didn't trigger onCategorySelected with the correct category.").toHaveBeenLastCalledWith(category.id);
     }
 
-    expect(onCategorySelected).toHaveBeenCalledTimes(TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES.length);
+    expect(onCategorySelected, "CalligraphyView didn't trigger onCategorySelected exactly once per category.").toHaveBeenCalledTimes(TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES.length);
   });
 });

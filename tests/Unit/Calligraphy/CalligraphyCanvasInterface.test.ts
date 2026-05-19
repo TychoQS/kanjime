@@ -50,7 +50,7 @@ describe("CalligraphyCanvasInterface", () => {
 
     expect(() => {
       controller.resetAttempt();
-    }).toThrow();
+    }, "CalligraphyCanvasInterface try to reset when no strokes were registered.").toThrow();
   });
 
   /**
@@ -65,7 +65,7 @@ describe("CalligraphyCanvasInterface", () => {
 
     expect(() => {
       controller.resetAttempt();
-    }).not.toThrow();
+    }, "CalligraphyCanvasInterface didn't reset when strokes were registered.").not.toThrow();
   });
 
   /**
@@ -81,7 +81,7 @@ describe("CalligraphyCanvasInterface", () => {
 
     expect(() => {
       controller.registerStroke(TEST_SECOND_STROKE);
-    }).not.toThrow();
+    }, "CalligraphyCanvasInterface didn't register strokes after resetting attempt.").not.toThrow();
   });
 
   /**

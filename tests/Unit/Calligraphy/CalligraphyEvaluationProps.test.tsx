@@ -7,8 +7,8 @@ import {
   TEST_CALLIGRAPHY_EVALUATION_SCORE,
   TEST_CALLIGRAPHY_EVALUATION_SUMMARY
 } from "../../Support/TestData";
-import {buildRequirementTitle} from "../../Support/RequirementTest";
-import {renderWithIonic} from "../../Support/RenderWithIonic";
+import { buildRequirementTitle } from "../../Support/RequirementTest";
+import { renderWithIonic } from "../../Support/RenderWithIonic";
 
 const defaultProps: CalligraphyEvaluationProps = {
   feedback: {
@@ -29,7 +29,7 @@ describe("CalligraphyEvaluationProps", () => {
   it(buildRequirementTitle("R22", "Unit", "Precondition", "renders evaluation overlay when feedback is available"), () => {
     renderWithIonic(<CalligraphyEvaluationView {...defaultProps} />);
 
-    expect(screen.getByTestId("calligraphy-evaluation-overlay")).toBeVisible();
+    expect(screen.getByTestId("calligraphy-evaluation-overlay"), "CalligraphyEvaluationView didn't render the evaluation overlay.").toBeVisible();
   });
 
   /**
@@ -39,13 +39,13 @@ describe("CalligraphyEvaluationProps", () => {
    */
   it(buildRequirementTitle("R22", "Unit", "Precondition", "Violation: does not render evaluation overlay when isOverlayVisible is false"), () => {
     renderWithIonic(
-        <CalligraphyEvaluationView
-            {...defaultProps}
-            feedback={{ ...defaultProps.feedback, isOverlayVisible: false }}
-        />
+      <CalligraphyEvaluationView
+        {...defaultProps}
+        feedback={{ ...defaultProps.feedback, isOverlayVisible: false }}
+      />
     );
 
-    expect(screen.queryByTestId("calligraphy-evaluation-overlay")).not.toBeVisible();
+    expect(screen.queryByTestId("calligraphy-evaluation-overlay"), "CalligraphyEvaluationView didn't hide the evaluation overlay.").not.toBeVisible();
   });
 
   /**
@@ -58,9 +58,9 @@ describe("CalligraphyEvaluationProps", () => {
 
     const overlay = screen.getByTestId("calligraphy-evaluation-overlay");
 
-    expect(overlay).toBeVisible();
-    expect(screen.getByTestId("calligraphy-practice-screen")).toBeInTheDocument();
-    expect(overlay).not.toEqual(screen.getByTestId("calligraphy-practice-screen"));
+    expect(overlay, "CalligraphyEvaluationView didn't render the evaluation overlay.").toBeVisible();
+    expect(screen.getByTestId("calligraphy-practice-screen"), "CalligraphyEvaluationView didn't render the evaluation overlay over the practice screen.").toBeInTheDocument();
+    expect(overlay, "CalligraphyEvaluationView didn't render the evaluation overlay over the practice screen.").not.toEqual(screen.getByTestId("calligraphy-practice-screen"));
   });
 
   /**
@@ -73,8 +73,8 @@ describe("CalligraphyEvaluationProps", () => {
 
     const overlay = screen.getByTestId("calligraphy-evaluation-overlay");
 
-    expect(overlay).toBeVisible();
-    expect(screen.getByText(String(TEST_CALLIGRAPHY_EVALUATION_SCORE))).toBeVisible();
-    expect(screen.getByText(TEST_CALLIGRAPHY_EVALUATION_SUMMARY)).toBeVisible();
+    expect(overlay, "CalligraphyEvaluationView didn't render the evaluation overlay.").toBeVisible();
+    expect(screen.getByText(String(TEST_CALLIGRAPHY_EVALUATION_SCORE)), "CalligraphyEvaluationView didn't show the evaluation score.").toBeVisible();
+    expect(screen.getByText(TEST_CALLIGRAPHY_EVALUATION_SUMMARY), "CalligraphyEvaluationView didn't show the evaluation summary.").toBeVisible();
   });
 });

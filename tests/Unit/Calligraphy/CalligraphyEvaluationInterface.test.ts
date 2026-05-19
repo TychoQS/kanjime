@@ -29,11 +29,11 @@ describe("CalligraphyEvaluationInterface", () => {
       createFeedback
     });
 
-    await expect(controller.evaluateAttempt(TEST_CALLIGRAPHY_EMPTY_ATTEMPT)).rejects.toThrow();
+    await expect(controller.evaluateAttempt(TEST_CALLIGRAPHY_EMPTY_ATTEMPT), "CalligraphyEvaluationInterface evaluated an attempt that did not satisfy the precondition.").rejects.toThrow();
 
     expect(evaluationRecorder.calls).toEqual(
-        [],
-        "CalligraphyEvaluationInterface evaluated an attempt that did not satisfy the precondition."
+      [],
+      "CalligraphyEvaluationInterface evaluated an attempt that did not satisfy the precondition."
     );
   });
 
@@ -58,11 +58,11 @@ describe("CalligraphyEvaluationInterface", () => {
       strokeOrder: expect.any(Number),
       approximateDirection: expect.any(Number),
       generalSimilarity: expect.any(Number)
-    }));
+    }), "CalligraphyEvaluationInterface evaluated an attempt that did not take into consideration all the required metrics.");
 
     expect(evaluationRecorder.calls).toEqual(
-        [TEST_CALLIGRAPHY_FINALIZED_ATTEMPT],
-        "CalligraphyEvaluationInterface did not evaluate the expected attempt."
+      [TEST_CALLIGRAPHY_FINALIZED_ATTEMPT],
+      "CalligraphyEvaluationInterface did not evaluate the expected attempt."
     );
   });
 
@@ -82,11 +82,11 @@ describe("CalligraphyEvaluationInterface", () => {
 
     const result = await controller.evaluateAttempt(TEST_CALLIGRAPHY_FINALIZED_ATTEMPT);
 
-    expect(result).toBeDefined();
+    expect(result, "CalligraphyEvaluationInterface did not generate a result for the finalized attempt.").toBeDefined();
 
     expect(evaluationRecorder.calls).toEqual(
-        [TEST_CALLIGRAPHY_FINALIZED_ATTEMPT],
-        "CalligraphyEvaluationInterface did not evaluate the expected attempt."
+      [TEST_CALLIGRAPHY_FINALIZED_ATTEMPT],
+      "CalligraphyEvaluationInterface did not evaluate the expected attempt."
     );
   });
 
@@ -103,7 +103,7 @@ describe("CalligraphyEvaluationInterface", () => {
 
     expect(() => {
       controller.calculateScore(TEST_CALLIGRAPHY_INVALID_EVALUATION_RESULT);
-    }).toThrow();
+    }, "CalligraphyEvaluationInterface calculated a score for an invalid evaluation result.").toThrow();
   });
 
   /**
@@ -119,7 +119,7 @@ describe("CalligraphyEvaluationInterface", () => {
 
     expect(() => {
       controller.calculateScore(TEST_CALLIGRAPHY_EVALUATION_RESULT);
-    }).not.toThrow();
+    }, "CalligraphyEvaluationInterface didn't calculate a score for a valid evaluation result.").not.toThrow();
   });
 
   /**
@@ -137,8 +137,8 @@ describe("CalligraphyEvaluationInterface", () => {
 
     const LOWEST_SCORE = 0;
     const HIGHEST_SCORE = 100;
-    expect(score).toBeGreaterThanOrEqual(LOWEST_SCORE);
-    expect(score).toBeLessThanOrEqual(HIGHEST_SCORE);
+    expect(score, "CalligraphyEvaluationInterface calculated a score that doesn't remain within the permitted range.").toBeGreaterThanOrEqual(LOWEST_SCORE);
+    expect(score, "CalligraphyEvaluationInterface calculated a score that doesn't remain within the permitted range.").toBeLessThanOrEqual(HIGHEST_SCORE);
   });
 
   /**
@@ -154,7 +154,7 @@ describe("CalligraphyEvaluationInterface", () => {
 
     const score = controller.calculateScore(TEST_CALLIGRAPHY_EVALUATION_RESULT);
 
-    expect(score).toBeDefined();
+    expect(score, "CalligraphyEvaluationInterface didn't return a global score for the attempt.").toBeDefined();
   });
 
   /**
@@ -172,9 +172,9 @@ describe("CalligraphyEvaluationInterface", () => {
 
     expect(() => {
       controller.createFeedback(TEST_CALLIGRAPHY_INVALID_EVALUATION_RESULT);
-    }).toThrow();
+    }, "CalligraphyEvaluationInterface returned a feedback for an invalid evaluation result.").toThrow();
 
-    expect(createFeedback).not.toHaveBeenCalled();
+    expect(createFeedback, "CalligraphyEvaluationInterface returned a feedback for an invalid evaluation result.").not.toHaveBeenCalled();
   });
 
   /**
@@ -196,9 +196,9 @@ describe("CalligraphyEvaluationInterface", () => {
 
     expect(() => {
       controller.createFeedback(TEST_CALLIGRAPHY_EVALUATION_RESULT);
-    }).not.toThrow();
+    }, "CalligraphyEvaluationInterface didn't create a feedback for a valid evaluation result.").not.toThrow();
 
-    expect(createFeedback).toHaveBeenCalledWith(TEST_CALLIGRAPHY_EVALUATION_RESULT);
+    expect(createFeedback, "CalligraphyEvaluationInterface didn't return the expected feedback.").toHaveBeenCalledWith(TEST_CALLIGRAPHY_EVALUATION_RESULT);
   });
 
   /**
@@ -220,13 +220,13 @@ describe("CalligraphyEvaluationInterface", () => {
 
     const feedback = controller.createFeedback(TEST_CALLIGRAPHY_EVALUATION_RESULT);
 
-    expect(feedback).toEqual({
+    expect(feedback, "CalligraphyEvaluationInterface didn't return a feedback matching the evaluation result.").toEqual({
       score: TEST_CALLIGRAPHY_EVALUATION_SCORE,
       summary: TEST_CALLIGRAPHY_EVALUATION_SUMMARY,
       isOverlayVisible: true
     });
 
-    expect(createFeedback).toHaveBeenCalledWith(TEST_CALLIGRAPHY_EVALUATION_RESULT);
+    expect(createFeedback, "CalligraphyEvaluationInterface didn't return the expected feedback.").toHaveBeenCalledWith(TEST_CALLIGRAPHY_EVALUATION_RESULT);
   });
 
   /**
@@ -248,9 +248,9 @@ describe("CalligraphyEvaluationInterface", () => {
 
     const feedback = controller.createFeedback(TEST_CALLIGRAPHY_EVALUATION_RESULT);
 
-    expect(feedback.score).toBeDefined();
-    expect(feedback.summary).toBeDefined();
+    expect(feedback.score, "CalligraphyEvaluationInterface didn't return a feedback score.").toBeDefined();
+    expect(feedback.summary, "CalligraphyEvaluationInterface didn't return a feedback summary.").toBeDefined();
 
-    expect(createFeedback).toHaveBeenCalledWith(TEST_CALLIGRAPHY_EVALUATION_RESULT);
+    expect(createFeedback, "CalligraphyEvaluationInterface didn't return the expected feedback.").toHaveBeenCalledWith(TEST_CALLIGRAPHY_EVALUATION_RESULT);
   });
 });

@@ -76,7 +76,17 @@ Allow the user to make practice session for a specific kanji drawing on a canvas
 - Usability: R22
 
 **Description**
-Evaluates the writing attempt considering stroke count, order, approximate direction, and overall similarity. Calculates a global accuracy score within the permitted range. Displays visual feedback with the score and a result summary overlaid on the practice screen.
+Evaluates the writing attempt considering stroke count, order, approximate direction, and overall similarity. Calculates a global accuracy score within the permitted range. Displays visual feedback with the score and a result summary overlaid on the practice screen. Calligraphy feedback must be structured and explainable. Always show the global score, the evaluated aspects, each aspect score, a short description of each aspect, a summary, and one main recommendation based on the weakest metric. The required aspects are stroke count, stroke order, approximate direction, and general similarity. All visible text must use i18n translation keys. No hardcoded UI text and no test messages in src. 
+
+The evaluation must use the KanjiVG vector data of the target kanji as the reference. The user attempt must be compared against the ordered KanjiVG strokes after normalising both the reference and the drawn strokes to the same coordinate space.
+
+The four evaluation metrics are defined as follows:
+- Stroke count: compares the number of drawn strokes with the number of KanjiVG reference strokes.
+- Stroke order: compares each drawn stroke with the reference stroke at the same position in the KanjiVG order.
+- Approximate direction: compares the start-to-end direction of each drawn stroke with the start-to-end direction of the corresponding reference stroke.
+- General similarity: compares the overall geometry of the attempt with the KanjiVG reference, considering point distance, stroke length, bounding box, and position.
+
+The global score must combine those metrics into a value from 0 to 100. Attempts with very poor stroke count, very short strokes, dots, or very low geometric similarity must be capped so they cannot receive a high score.
 
 **Dependencies**
 - Kanji Practice

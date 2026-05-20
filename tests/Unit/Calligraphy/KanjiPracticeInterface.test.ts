@@ -6,7 +6,7 @@ import {
   TEST_CALLIGRAPHY_TARGET_CHARACTER
 } from "../../Support/TestData";
 import {buildRequirementTitle} from "../../Support/RequirementTest";
-import {createAsyncValueRecorder} from "../../Support/DependencyFactories";
+import {createAsyncArgumentRecorder, createAsyncValueRecorder} from "../../Support/DependencyFactories";
 
 describe("KanjiPracticeInterface", () => {
 
@@ -33,7 +33,7 @@ describe("KanjiPracticeInterface", () => {
    * Condition: Precondition - invalid
    */
   it(buildRequirementTitle("R53", "Unit", "Precondition", "request evaluation throws when attempt has no strokes"), async () => {
-    const evaluationRecorder = createAsyncValueRecorder(TEST_CALLIGRAPHY_EVALUATION_RESULT);
+    const evaluationRecorder = createAsyncArgumentRecorder<typeof TEST_CALLIGRAPHY_EMPTY_ATTEMPT, typeof TEST_CALLIGRAPHY_EVALUATION_RESULT>(TEST_CALLIGRAPHY_EVALUATION_RESULT);
 
     const controller = CreateKanjiPracticeController({
       navigateBackToCategory: async () => undefined,
@@ -56,7 +56,7 @@ describe("KanjiPracticeInterface", () => {
    * Condition: Precondition - valid
    */
   it(buildRequirementTitle("R53", "Unit", "Precondition", "request evaluation does not throw when attempt has strokes"), async () => {
-    const evaluationRecorder = createAsyncValueRecorder(TEST_CALLIGRAPHY_EVALUATION_RESULT);
+    const evaluationRecorder = createAsyncArgumentRecorder<typeof TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE, typeof TEST_CALLIGRAPHY_EVALUATION_RESULT>(TEST_CALLIGRAPHY_EVALUATION_RESULT);
 
     const controller = CreateKanjiPracticeController({
       navigateBackToCategory: async () => undefined,
@@ -79,7 +79,7 @@ describe("KanjiPracticeInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R53", "Unit", "Invariant", "registered strokes are not modified during evaluation request"), async () => {
-    const evaluationRecorder = createAsyncValueRecorder(TEST_CALLIGRAPHY_EVALUATION_RESULT);
+    const evaluationRecorder = createAsyncArgumentRecorder<typeof TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE, typeof TEST_CALLIGRAPHY_EVALUATION_RESULT>(TEST_CALLIGRAPHY_EVALUATION_RESULT);
 
     const controller = CreateKanjiPracticeController({
       navigateBackToCategory: async () => undefined,
@@ -102,7 +102,7 @@ describe("KanjiPracticeInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R53", "Unit", "Postcondition", "requests evaluation for the current attempt"), async () => {
-    const evaluationRecorder = createAsyncValueRecorder(
+    const evaluationRecorder = createAsyncArgumentRecorder<typeof TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE, typeof TEST_CALLIGRAPHY_EVALUATION_RESULT>(
         TEST_CALLIGRAPHY_EVALUATION_RESULT
     );
 

@@ -7,7 +7,7 @@ import {
 } from "../../Support/TestData";
 
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createAsyncValueRecorder } from "../../Support/DependencyFactories";
+import { createAsyncArgumentRecorder } from "../../Support/DependencyFactories";
 
 describe("CalligraphyInterface", () => {
 
@@ -181,7 +181,7 @@ describe("CalligraphyInterface", () => {
       ...TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
     ];
 
-    const navigateToCategoryRecorder = createAsyncValueRecorder(undefined);
+    const navigateToCategoryRecorder = createAsyncArgumentRecorder<string, void>(undefined);
 
     const controller = CreateCalligraphyController({
       getCategories: async () => visibleCategories,

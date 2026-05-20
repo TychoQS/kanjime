@@ -6,7 +6,7 @@ import {
   TEST_CALLIGRAPHY_TARGET_CHARACTER
 } from "../../Support/TestData";
 import {buildRequirementTitle} from "../../Support/RequirementTest";
-import {createAsyncValueRecorder} from "../../Support/DependencyFactories";
+import {createAsyncArgumentRecorder, createAsyncValueRecorder} from "../../Support/DependencyFactories";
 
 
 describe("CategoryInterface", () => {
@@ -18,8 +18,8 @@ describe("CategoryInterface", () => {
    */
   it(buildRequirementTitle("R45", "Unit", "Invariant", "kanjis belong exclusively to the selected category"), async () => {
     for (const categoryCase of TEST_CALLIGRAPHY_KANJI_BY_CATEGORY_CASES) {
-      const kanjiRecorder = createAsyncValueRecorder(categoryCase.unsortedKanji);
-      const startCalligraphyPractice = createAsyncValueRecorder<void>(undefined);
+      const kanjiRecorder = createAsyncArgumentRecorder<string, typeof categoryCase.unsortedKanji>(categoryCase.unsortedKanji);
+      const startCalligraphyPractice = createAsyncArgumentRecorder<string, void>(undefined);
       const returnToCalligraphyRecorder = createAsyncValueRecorder(undefined);
 
       const controller = CreateCategoryController({
@@ -46,8 +46,8 @@ describe("CategoryInterface", () => {
    */
   it(buildRequirementTitle("R45", "Unit", "Postcondition", "kanjis are ordered by ascending stroke count"), async () => {
     for (const categoryCase of TEST_CALLIGRAPHY_KANJI_BY_CATEGORY_CASES) {
-      const kanjiRecorder = createAsyncValueRecorder(categoryCase.unsortedKanji);
-      const startCalligraphyPractice = createAsyncValueRecorder<void>(undefined);
+      const kanjiRecorder = createAsyncArgumentRecorder<string, typeof categoryCase.unsortedKanji>(categoryCase.unsortedKanji);
+      const startCalligraphyPractice = createAsyncArgumentRecorder<string, void>(undefined);
       const returnToCalligraphyRecorder = createAsyncValueRecorder(undefined);
 
       const controller = CreateCategoryController({
@@ -72,8 +72,8 @@ describe("CategoryInterface", () => {
    */
   it(buildRequirementTitle("R47", "Unit", "Invariant", "each kanji has exactly one visual entry"), async () => {
     for (const categoryCase of TEST_CALLIGRAPHY_KANJI_BY_CATEGORY_CASES) {
-      const kanjiRecorder = createAsyncValueRecorder(categoryCase.unsortedKanji);
-      const startCalligraphyPractice = createAsyncValueRecorder<void>(undefined);
+      const kanjiRecorder = createAsyncArgumentRecorder<string, typeof categoryCase.unsortedKanji>(categoryCase.unsortedKanji);
+      const startCalligraphyPractice = createAsyncArgumentRecorder<string, void>(undefined);
       const returnToCalligraphyRecorder = createAsyncValueRecorder(undefined);
 
       const controller = CreateCategoryController({
@@ -99,8 +99,8 @@ describe("CategoryInterface", () => {
    */
   it(buildRequirementTitle("R47", "Unit", "Postcondition", "visual entries are shown for all kanjis in the selected category"), async () => {
     for (const categoryCase of TEST_CALLIGRAPHY_KANJI_BY_CATEGORY_CASES) {
-      const kanjiRecorder = createAsyncValueRecorder(categoryCase.unsortedKanji);
-      const startCalligraphyPractice = createAsyncValueRecorder<void>(undefined);
+      const kanjiRecorder = createAsyncArgumentRecorder<string, typeof categoryCase.unsortedKanji>(categoryCase.unsortedKanji);
+      const startCalligraphyPractice = createAsyncArgumentRecorder<string, void>(undefined);
       const returnToCalligraphyRecorder = createAsyncValueRecorder(undefined);
 
       const controller = CreateCategoryController({
@@ -129,10 +129,10 @@ describe("CategoryInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R48", "Unit", "Postcondition", "selected kanji becomes the calligraphy practice target"), async () => {
-    const practiceRecorder = createAsyncValueRecorder<void>(undefined);
+    const practiceRecorder = createAsyncArgumentRecorder<string, void>(undefined);
     const returnToCalligraphyRecorder = createAsyncValueRecorder(undefined);
     const controller = CreateCategoryController({
-      getKanjiByCategory: createAsyncValueRecorder([]).handler,
+      getKanjiByCategory: createAsyncArgumentRecorder<string, []>([]).handler,
       startCalligraphyPractice: practiceRecorder.handler,
       returnToCalligraphy: returnToCalligraphyRecorder.handler
     });
@@ -151,8 +151,8 @@ describe("CategoryInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R49", "Unit", "Postcondition", "returns from the category list to the calligraphy home"), async () => {
-    const kanjiRecorder = createAsyncValueRecorder([]);
-    const practiceRecorder = createAsyncValueRecorder(undefined);
+    const kanjiRecorder = createAsyncArgumentRecorder<string, []>([]);
+    const practiceRecorder = createAsyncArgumentRecorder<string, void>(undefined);
     const returnToCalligraphyRecorder = createAsyncValueRecorder(undefined);
 
     const controller = CreateCategoryController({

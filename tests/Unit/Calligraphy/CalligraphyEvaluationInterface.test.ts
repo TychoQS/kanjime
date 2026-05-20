@@ -12,7 +12,7 @@ import {
 } from "../../Support/TestData";
 
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createAsyncValueRecorder } from "../../Support/DependencyFactories";
+import { createAsyncArgumentRecorder } from "../../Support/DependencyFactories";
 
 describe("CalligraphyEvaluationInterface", () => {
   /**
@@ -21,7 +21,7 @@ describe("CalligraphyEvaluationInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R54", "Unit", "Precondition", "evaluateAttempt throws when attempt has no strokes"), async () => {
-    const evaluationRecorder = createAsyncValueRecorder(TEST_CALLIGRAPHY_EVALUATION_RESULT);
+    const evaluationRecorder = createAsyncArgumentRecorder<typeof TEST_CALLIGRAPHY_EMPTY_ATTEMPT, typeof TEST_CALLIGRAPHY_EVALUATION_RESULT>(TEST_CALLIGRAPHY_EVALUATION_RESULT);
     const createFeedback = vi.fn();
 
     const controller = CreateCalligraphyEvaluationController({
@@ -43,7 +43,7 @@ describe("CalligraphyEvaluationInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R54", "Unit", "Invariant", "evaluation considers all required metrics"), async () => {
-    const evaluationRecorder = createAsyncValueRecorder(TEST_CALLIGRAPHY_EVALUATION_RESULT);
+    const evaluationRecorder = createAsyncArgumentRecorder<typeof TEST_CALLIGRAPHY_FINALIZED_ATTEMPT, typeof TEST_CALLIGRAPHY_EVALUATION_RESULT>(TEST_CALLIGRAPHY_EVALUATION_RESULT);
     const createFeedback = vi.fn();
 
     const controller = CreateCalligraphyEvaluationController({
@@ -72,7 +72,7 @@ describe("CalligraphyEvaluationInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R54", "Unit", "Postcondition", "evaluateAttempt generates a result for the finalized attempt"), async () => {
-    const evaluationRecorder = createAsyncValueRecorder(TEST_CALLIGRAPHY_EVALUATION_RESULT);
+    const evaluationRecorder = createAsyncArgumentRecorder<typeof TEST_CALLIGRAPHY_FINALIZED_ATTEMPT, typeof TEST_CALLIGRAPHY_EVALUATION_RESULT>(TEST_CALLIGRAPHY_EVALUATION_RESULT);
     const createFeedback = vi.fn();
 
     const controller = CreateCalligraphyEvaluationController({

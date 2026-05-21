@@ -199,10 +199,10 @@ describe("CalligraphyProps", () => {
   });
 
   /**
-   * Requirement: R18
-   * Type: Unit
-   * Condition: Invariant
-   */
+     * Requirement: R18
+     * Type: Unit
+     * Condition: Invariant
+     */
   it(buildRequirementTitle("R18", "Unit", "Invariant", "JLPT and Joyo categories remain grouped by their active grouping"), () => {
     renderWithIonic(
       <CalligraphyView
@@ -211,13 +211,17 @@ describe("CalligraphyProps", () => {
         categories={TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES}
       />
     );
-
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES) {
-      expect(screen.getByRole("button", { name: category.label }), "CalligraphyView renders JLPT category selectors.").toBeVisible();
+      expect(
+        screen.getByTestId(`calligraphy-category-${category.id}`),
+        "CalligraphyView renders JLPT category selectors."
+      ).toBeVisible();
     }
-
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES) {
-      expect(screen.queryByRole("button", { name: category.label }), "CalligraphyView doesn't hide Joyo category selectors.").not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId(`calligraphy-category-${category.id}`),
+        "CalligraphyView doesn't render Joyo category selectors under JLPT grouping."
+      ).not.toBeInTheDocument();
     }
 
     cleanup();
@@ -229,13 +233,17 @@ describe("CalligraphyProps", () => {
         categories={TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES}
       />
     );
-
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES) {
-      expect(screen.getByRole("button", { name: category.label }), "CalligraphyView renders Joyo category selectors.").toBeVisible();
+      expect(
+        screen.getByTestId(`calligraphy-category-${category.id}`),
+        "CalligraphyView renders Joyo category selectors."
+      ).toBeVisible();
     }
-
     for (const category of TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES) {
-      expect(screen.queryByRole("button", { name: category.label }), "CalligraphyView doesn't hide JLPT category selectors.").not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId(`calligraphy-category-${category.id}`),
+        "CalligraphyView doesn't render JLPT category selectors under Joyo grouping."
+      ).not.toBeInTheDocument();
     }
   });
 

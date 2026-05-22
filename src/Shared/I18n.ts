@@ -255,7 +255,7 @@ export const ENGLISH_TRANSLATIONS: TranslationMap = {
   calligraphyError: "An unexpected error has occurred and the practice could not be evaluated."
 };
 
-const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
+export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
   "en-US": ENGLISH_TRANSLATIONS,
   "en-GB": {
     ...ENGLISH_TRANSLATIONS,

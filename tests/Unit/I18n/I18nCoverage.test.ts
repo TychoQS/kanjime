@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ENGLISH_TRANSLATIONS,
+  LOCALIZED_TRANSLATIONS,
   SUPPORTED_LOCALES,
   TRANSLATIONS,
   TRANSLATION_KEYS,
@@ -10,8 +11,8 @@ import {
 describe("i18n locale coverage", () => {
   it("defines every translation key for every supported locale", () => {
     for (const locale of SUPPORTED_LOCALES) {
-      expect(Object.keys(TRANSLATIONS[locale]).sort()).toEqual([...TRANSLATION_KEYS].sort());
-      expect(Object.keys(TRANSLATIONS[locale])).toHaveLength(TRANSLATION_KEYS.length);
+      expect(Object.keys(LOCALIZED_TRANSLATIONS[locale]).sort()).toEqual([...TRANSLATION_KEYS].sort());
+      expect(Object.keys(LOCALIZED_TRANSLATIONS[locale])).toHaveLength(TRANSLATION_KEYS.length);
 
       for (const key of TRANSLATION_KEYS) {
         expect(translate(locale, key).trim().length).toBeGreaterThan(0);

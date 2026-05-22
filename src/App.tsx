@@ -136,7 +136,7 @@ function AppShell(): JSX.Element {
         <IonContent scrollY={false}>
           <div className="menu-shell">
             <NavigationView
-              availablePages={[...root.navigationController.availablePageIds, "calligraphy" as const].map(id => ({
+              availablePages={root.navigationController.availablePageIds.map(id => ({
                 id,
                 label: translate(preferences.preferences.language, getPageKey(id) as TranslationKey)
               }))}
@@ -149,11 +149,6 @@ function AppShell(): JSX.Element {
                 }
               }}
               onNavigateRequested={page => {
-                if (page === "calligraphy") {
-                  history.push("/calligraphy");
-                  return;
-                }
-
                 root.navigationController.navigateTo(page);
               }}
             />
@@ -168,7 +163,7 @@ function AppShell(): JSX.Element {
         <Route exact path="/classification">
           <ClassificationScreen />
         </Route>
-        <Route exact path="/calligraphy">
+        <Route path="/calligraphy">
           <CalligraphyScreen />
         </Route>
         <Route exact path="/search">

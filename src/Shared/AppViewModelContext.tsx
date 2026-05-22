@@ -72,7 +72,7 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
   const isClassificationActive = location.pathname === "/classification";
   const isSearchActive = location.pathname === "/search";
   const isHistoryActive = location.pathname === "/history";
-  const isCalligraphyActive = location.pathname === "/calligraphy";
+  const isCalligraphyActive = location.pathname.startsWith("/calligraphy");
 
   const about = useAboutScreenViewModel(props.root.aboutController, language, isReady);
   const search = useSearchScreenViewModel(props.root.searchController, isReady && isSearchActive);

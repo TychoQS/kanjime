@@ -15,7 +15,7 @@ export type ClassificationMode = "image" | "drawing";
 /**
  * Navigation targets available in the application shell.
  */
-export type NavigationPage = "classification" | "search" | "history" | "about" | "kanjiEntry";
+export type NavigationPage = "classification" | "search" | "history" | "about" | "kanjiEntry" | "calligraphy";
 
 /**
  * Persistent history categories defined by the contracts.

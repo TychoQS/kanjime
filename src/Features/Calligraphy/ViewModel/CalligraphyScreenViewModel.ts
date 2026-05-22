@@ -1,5 +1,6 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
+import { matchPath, useHistory, useLocation } from "react-router-dom";
 
 import type { CalligraphyCanvasInterface } from "../Contracts/CalligraphyCanvasInterface";
 import type { CalligraphyEvaluationInterface } from "../Contracts/CalligraphyEvaluationInterface";
@@ -56,6 +57,9 @@ export function useCalligraphyScreenViewModel(
   dependencies: CalligraphyScreenViewModelDependencies,
   isEnabled: boolean
 ): CalligraphyScreenViewModel {
+  const location = useLocation();
+  const history = useHistory();
+
   const [mode, setMode] = useState<CalligraphyScreenMode>("home");
   const [activeGrouping, setActiveGrouping] = useState(dependencies.calligraphyController.getActiveGrouping());
   const [categories, setCategories] = useState(dependencies.calligraphyController.getVisibleCategories());
@@ -65,6 +69,15 @@ export function useCalligraphyScreenViewModel(
   const [strokes, setStrokes] = useState(dependencies.calligraphyCanvasController.getStrokeHistory());
   const [feedback, setFeedback] = useState<CalligraphyEvaluationFeedback | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const categoryMatch = matchPath<{ categoryId: string }>(location.pathname, {
+    path: "/calligraphy/category/:categoryId",
+    exact: true
+  });
+  const practiceMatch = matchPath<{ character: string }>(location.pathname, {
+    path: "/calligraphy/practice/:character",
+    exact: true
+  });
 
   const refreshCategories = useCallback(() => {
     setActiveGrouping(dependencies.calligraphyController.getActiveGrouping());
@@ -81,6 +94,83 @@ export function useCalligraphyScreenViewModel(
     }
   }, [isEnabled, refreshCategories]);
 
+  useEffect(() => {
+    if (!isEnabled) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const syncRoute = async () => {
+      if (practiceMatch) {
+        const char = decodeURIComponent(practiceMatch.params.character);
+        if (targetCharacter !== char || mode !== "practice") {
+          try {
+            await dependencies.categoryController.startPractice(char);
+            if (isMounted) {
+              try {
+                dependencies.calligraphyCanvasController.resetAttempt();
+              } catch {
+                // no-op
+              }
+              dependencies.canvasInteraction.cancelStroke();
+              setTargetCharacter(char);
+              setFeedback(null);
+              setStrokes(dependencies.calligraphyCanvasController.getStrokeHistory());
+              setMode("practice");
+            }
+          } catch (e) {
+            if (isMounted) {
+              setErrorMessage("calligraphyError");
+            }
+          }
+        }
+      } else if (categoryMatch) {
+        const catId = decodeURIComponent(categoryMatch.params.categoryId);
+        if (selectedCategoryId !== catId || mode !== "category") {
+          try {
+            await dependencies.calligraphyController.openCategory(catId);
+            const kanji = await dependencies.categoryController.getKanjiByCategory(catId);
+            if (isMounted) {
+              setSelectedCategoryId(catId);
+              setCategoryKanji(kanji);
+              setTargetCharacter(null);
+              setFeedback(null);
+              setMode("category");
+            }
+          } catch (e) {
+            if (isMounted) {
+              setErrorMessage("calligraphyError");
+            }
+          }
+        }
+      } else {
+        if (mode !== "home") {
+          try {
+            await dependencies.categoryController.returnToCalligraphyHome();
+            if (isMounted) {
+              setMode("home");
+              setSelectedCategoryId(null);
+              setCategoryKanji([]);
+              setTargetCharacter(null);
+              setFeedback(null);
+              setActiveGrouping(dependencies.calligraphyController.getActiveGrouping());
+              setCategories(dependencies.calligraphyController.getVisibleCategories());
+            }
+          } catch (e) {
+            // no-op
+          }
+        }
+      }
+    };
+
+    void syncRoute();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [location.pathname, isEnabled, dependencies, targetCharacter, selectedCategoryId, mode]);
+
   return {
     mode,
     activeGrouping,
@@ -96,43 +186,25 @@ export function useCalligraphyScreenViewModel(
       dependencies.calligraphyController.selectGrouping(grouping);
       refreshCategories();
     },
-    async openCategory(categoryId: string): Promise<void> {
-      setErrorMessage(null);
-      await dependencies.calligraphyController.openCategory(categoryId);
-      setSelectedCategoryId(categoryId);
-      setCategoryKanji(await dependencies.categoryController.getKanjiByCategory(categoryId));
-      setMode("category");
+    openCategory(categoryId: string): Promise<void> {
+      history.push(`/calligraphy/category/${encodeURIComponent(categoryId)}`);
+      return Promise.resolve();
     },
-    async returnHome(): Promise<void> {
-      await dependencies.categoryController.returnToCalligraphyHome();
-      setMode("home");
-      setSelectedCategoryId(null);
-      setCategoryKanji([]);
-      setTargetCharacter(null);
-      setFeedback(null);
-      refreshCategories();
+    returnHome(): Promise<void> {
+      history.push("/calligraphy");
+      return Promise.resolve();
     },
-    async startPractice(character: string): Promise<void> {
-      setErrorMessage(null);
-      await dependencies.categoryController.startPractice(character);
-      try {
-        dependencies.calligraphyCanvasController.resetAttempt();
-      } catch {
-        // no-op: a new practice may start with an empty canvas.
+    startPractice(character: string): Promise<void> {
+      history.push(`/calligraphy/practice/${encodeURIComponent(character)}`);
+      return Promise.resolve();
+    },
+    returnToCategory(): Promise<void> {
+      if (selectedCategoryId) {
+        history.push(`/calligraphy/category/${encodeURIComponent(selectedCategoryId)}`);
+      } else {
+        history.push("/calligraphy");
       }
-      dependencies.canvasInteraction.cancelStroke();
-      setTargetCharacter(character);
-      setFeedback(null);
-      refreshStrokes();
-      setMode("practice");
-    },
-    async returnToCategory(): Promise<void> {
-      await dependencies.kanjiPracticeController.returnToCategory();
-      dependencies.canvasInteraction.cancelStroke();
-      setFeedback(null);
-      setTargetCharacter(null);
-      refreshStrokes();
-      setMode("category");
+      return Promise.resolve();
     },
     resetPractice(): void {
       dependencies.calligraphyCanvasController.resetAttempt();

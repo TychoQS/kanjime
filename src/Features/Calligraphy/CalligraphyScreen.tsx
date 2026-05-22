@@ -1,5 +1,6 @@
-import { IonAlert, IonButton, IonIcon, IonText } from "@ionic/react";
+import { IonAlert, IonButton, IonIcon, IonText, IonRouterOutlet } from "@ionic/react";
 import { arrowBack } from "ionicons/icons";
+import { Route } from "react-router-dom";
 
 import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
 import { translate, type TranslationKey } from "../../Shared/I18n";
@@ -29,88 +30,94 @@ export function CalligraphyScreen(): JSX.Element {
           onDidDismiss={() => calligraphy.dismissError()}
         />
 
-        {calligraphy.mode === "home" ? (
-          <CalligraphyView
-            activeGrouping={calligraphy.activeGrouping}
-            categories={calligraphy.categories}
-            onCategorySelected={categoryId => {
-              void calligraphy.openCategory(categoryId);
-            }}
-            onGroupingSelected={calligraphy.selectGrouping}
-          />
-        ) : null}
-
-        {calligraphy.mode === "category" ? (
-          <div className="calligraphy-category-screen" data-testid="calligraphy-category-view">
-            <IonButton
-              data-testid="calligraphy-category-back-button"
-              fill="clear"
-              onClick={() => {
-                void calligraphy.returnHome();
+        <IonRouterOutlet>
+          <Route exact path="/calligraphy">
+            <CalligraphyView
+              activeGrouping={calligraphy.activeGrouping}
+              categories={calligraphy.categories}
+              onCategorySelected={categoryId => {
+                void calligraphy.openCategory(categoryId);
               }}
-              aria-label={translate(language, "back")}
-            >
-              <IonIcon icon={arrowBack} slot="icon-only" />
-            </IonButton>
-            <section className="results-panel grow-panel">
-              <div className="section-heading">
-                <span>{translate(language, "kanji")}</span>
-              </div>
-              <div className="result-list scroll-list">
-                {calligraphy.categoryKanji.length === 0 ? (
-                  <IonText color="medium">
-                    <p className="empty-state-text">{translate(language, "emptyCategory")}</p>
-                  </IonText>
-                ) : calligraphy.categoryKanji.map(entry => (
-                  <button
-                    className="result-row"
-                    data-testid={`calligraphy-kanji-${entry.character}`}
-                    key={entry.character}
-                    onClick={() => {
-                      void calligraphy.startPractice(entry.character);
-                    }}
-                    type="button"
-                  >
-                    <span className="result-kanji">{entry.character}</span>
-                    <span className="result-meta">{translate(language, "practice")}</span>
-                    <span className="result-levels">
-                      {translate(language, "strokeCount")}: {entry.strokeCount}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          </div>
-        ) : null}
-
-        {calligraphy.mode === "practice" && calligraphy.targetCharacter !== null ? (
-          <div className="calligraphy-practice-shell">
-            <CalligraphyPracticeView
-              activeStroke={calligraphy.activeStroke}
-              canReset={calligraphy.strokes.length > 0}
-              canValidate={calligraphy.strokes.length > 0}
-              onBackRequested={() => {
-                void calligraphy.returnToCategory();
-              }}
-              onPointerCancel={() => calligraphy.cancelStroke()}
-              onPointerDown={(event) => calligraphy.beginStroke(event, event.currentTarget)}
-              onPointerMove={(event) => calligraphy.continueStroke(event, event.currentTarget)}
-              onPointerUp={() => calligraphy.completeStroke()}
-              onResetRequested={() => calligraphy.resetPractice()}
-              onValidateRequested={() => {
-                void calligraphy.validatePractice();
-              }}
-              strokes={calligraphy.strokes}
-              targetCharacter={calligraphy.targetCharacter}
+              onGroupingSelected={calligraphy.selectGrouping}
             />
-            {calligraphy.feedback ? (
-              <CalligraphyEvaluationView
-                feedback={calligraphy.feedback}
-                onDismissRequested={calligraphy.dismissFeedback}
-              />
-            ) : null}
-          </div>
-        ) : null}
+          </Route>
+
+          <Route exact path="/calligraphy/category/:categoryId">
+            <div className="calligraphy-category-screen" data-testid="calligraphy-category-view">
+              <IonButton
+                data-testid="calligraphy-category-back-button"
+                fill="clear"
+                onClick={() => {
+                  void calligraphy.returnHome();
+                }}
+                aria-label={translate(language, "back")}
+              >
+                <IonIcon icon={arrowBack} slot="icon-only" />
+              </IonButton>
+              <section className="results-panel grow-panel">
+                <div className="section-heading">
+                  <span>{translate(language, "kanji")}</span>
+                </div>
+                <div className="result-list scroll-list">
+                  {calligraphy.categoryKanji.length === 0 ? (
+                    <IonText color="medium">
+                      <p className="empty-state-text">{translate(language, "emptyCategory")}</p>
+                    </IonText>
+                  ) : calligraphy.categoryKanji.map(entry => (
+                    <button
+                      className="result-row"
+                      data-testid={`calligraphy-kanji-${entry.character}`}
+                      key={entry.character}
+                      onClick={() => {
+                        void calligraphy.startPractice(entry.character);
+                      }}
+                      type="button"
+                    >
+                      <span className="result-kanji">{entry.character}</span>
+                      <span className="result-meta">{translate(language, "practice")}</span>
+                      <span className="result-levels">
+                        {translate(language, "strokeCount")}: {entry.strokeCount}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            </div>
+          </Route>
+
+          <Route exact path="/calligraphy/practice/:character">
+            {calligraphy.targetCharacter !== null ? (
+              <div className="calligraphy-practice-shell">
+                <CalligraphyPracticeView
+                  activeStroke={calligraphy.activeStroke}
+                  canReset={calligraphy.strokes.length > 0}
+                  canValidate={calligraphy.strokes.length > 0}
+                  onBackRequested={() => {
+                    void calligraphy.returnToCategory();
+                  }}
+                  onPointerCancel={() => calligraphy.cancelStroke()}
+                  onPointerDown={(event) => calligraphy.beginStroke(event, event.currentTarget)}
+                  onPointerMove={(event) => calligraphy.continueStroke(event, event.currentTarget)}
+                  onPointerUp={() => calligraphy.completeStroke()}
+                  onResetRequested={() => calligraphy.resetPractice()}
+                  onValidateRequested={() => {
+                    void calligraphy.validatePractice();
+                  }}
+                  strokes={calligraphy.strokes}
+                  targetCharacter={calligraphy.targetCharacter}
+                />
+                {calligraphy.feedback ? (
+                  <CalligraphyEvaluationView
+                    feedback={calligraphy.feedback}
+                    onDismissRequested={calligraphy.dismissFeedback}
+                  />
+                ) : null}
+              </div>
+            ) : (
+              <div />
+            )}
+          </Route>
+        </IonRouterOutlet>
       </div>
     </MobilePage>
   );

@@ -1,24 +1,58 @@
 import type { CreateCategoryControllerDependencies } from "../CreateCategoryController";
 import type { CategoryInterface } from "../Contracts/CategoryInterface";
-import type { CalligraphyKanjiSummary } from "../../../Shared/DomainTypes";
-
-const NOT_IMPLEMENTED_MESSAGE = "Not implemented yet";
+import type { CalligraphyGrouping, CalligraphyKanjiSummary } from "../../../Shared/DomainTypes";
+import { ApplicationError } from "../../../Shared/AppErrors";
 
 /**
  * Creates the selected category view model.
  */
 export function createCategoryViewModel(
-  _dependencies: CreateCategoryControllerDependencies
+  dependencies: CreateCategoryControllerDependencies
 ): CategoryInterface {
   return {
-    getKanjiByCategory(_categoryId: string): Promise<ReadonlyArray<CalligraphyKanjiSummary>> {
-      throw new Error(NOT_IMPLEMENTED_MESSAGE);
+    async getKanjiByCategory(categoryId: string): Promise<ReadonlyArray<CalligraphyKanjiSummary>> {
+      const grouping = parseCategoryGrouping(categoryId);
+      const seenCharacters = new Set<string>();
+      const kanji = await dependencies.getKanjiByCategory(categoryId);
+
+      return kanji
+        .filter(entry => {
+          if (entry.categoryId !== categoryId || seenCharacters.has(entry.character)) {
+            return false;
+          }
+
+          seenCharacters.add(entry.character);
+          return true;
+        })
+        .map(entry => ({
+          character: entry.character,
+          categoryId: entry.categoryId,
+          grouping,
+          strokeCount: entry.strokeCount
+        }))
+        .sort((left, right) => left.strokeCount - right.strokeCount);
     },
-    startPractice(_character: string): Promise<void> {
-      throw new Error(NOT_IMPLEMENTED_MESSAGE);
+    async startPractice(character: string): Promise<void> {
+      if (character.trim().length === 0) {
+        throw new ApplicationError("Select a kanji before starting practice.");
+      }
+
+      await dependencies.startCalligraphyPractice(character);
     },
     returnToCalligraphyHome(): Promise<void> {
-      throw new Error(NOT_IMPLEMENTED_MESSAGE);
+      return dependencies.returnToCalligraphy();
     }
   };
+}
+
+function parseCategoryGrouping(categoryId: string): CalligraphyGrouping {
+  if (categoryId.startsWith("jlpt-")) {
+    return "jlpt";
+  }
+
+  if (categoryId.startsWith("joyo-")) {
+    return "joyo";
+  }
+
+  throw new ApplicationError("Select a valid calligraphy category.");
 }

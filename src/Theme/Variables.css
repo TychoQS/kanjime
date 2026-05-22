@@ -136,6 +136,24 @@ ion-segment {
   padding: 2px;
 }
 
+.calligraphy-home .mode-segment {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.calligraphy-grouping-button {
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--app-muted);
+  font-weight: 700;
+}
+
+.calligraphy-grouping-button[aria-pressed="true"] {
+  background: var(--app-surface);
+  color: var(--ion-color-primary);
+}
+
 ion-segment-button {
   --border-radius: 4px;
   --color: var(--app-muted);
@@ -198,6 +216,7 @@ ion-action-sheet .action-sheet-button-inner {
   height: 100%;
   overflow: hidden;
   padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  position: relative;
 }
 
 .screen-flow {
@@ -207,6 +226,15 @@ ion-action-sheet .action-sheet-button-inner {
   gap: var(--app-gap);
   min-height: 0;
   overflow: hidden;
+}
+
+.route-ready-sentinel {
+  height: 1px;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 1px;
 }
 
 .mode-segment {
@@ -604,6 +632,153 @@ ion-action-sheet .action-sheet-button-inner {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 3;
+}
+
+.calligraphy-home,
+.calligraphy-category-screen,
+.calligraphy-practice-shell {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--app-gap);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.calligraphy-category-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--app-border);
+  color: var(--ion-text-color);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  min-height: 64px;
+  padding-inline: 2px;
+  text-align: start;
+  width: 100%;
+}
+
+.calligraphy-category-label {
+  color: var(--ion-color-primary);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.calligraphy-category-count {
+  color: var(--app-muted);
+  font-size: 0.88rem;
+}
+
+.calligraphy-practice {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.calligraphy-practice-toolbar {
+  align-items: center;
+  border-bottom: 1px solid var(--app-border);
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  justify-content: space-between;
+  padding-bottom: 8px;
+}
+
+.calligraphy-control-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--app-radius);
+  color: var(--ion-color-primary);
+  display: inline-flex;
+  justify-content: center;
+  min-width: var(--app-hit-size);
+}
+
+.calligraphy-control-button:disabled {
+  color: var(--app-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.calligraphy-canvas-zone {
+  align-items: stretch;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.calligraphy-canvas-zone .canvas-container {
+  align-items: center;
+  flex: 1 1 auto;
+}
+
+.calligraphy-canvas-zone .drawing-canvas-stage {
+  max-height: min(70vh, 640px);
+  width: min(100%, 640px);
+}
+
+.calligraphy-evaluation-overlay {
+  align-items: end;
+  background: color-mix(in srgb, var(--ion-background-color) 72%, transparent);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 16px;
+  position: absolute;
+  z-index: 10;
+}
+
+.calligraphy-evaluation-panel {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 16px;
+  width: min(100%, 520px);
+}
+
+.calligraphy-evaluation-panel h2,
+.calligraphy-evaluation-panel p {
+  margin: 0;
+}
+
+.calligraphy-score {
+  color: var(--ion-color-primary);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.calligraphy-metric-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.calligraphy-metric-list li {
+  border-top: 1px solid var(--app-border);
+  display: grid;
+  gap: 4px 10px;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  padding-top: 8px;
+}
+
+.calligraphy-metric-list small {
+  color: var(--app-muted);
+  grid-column: 1 / -1;
 }
 
 @keyframes stroke-draw {

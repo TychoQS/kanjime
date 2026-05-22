@@ -6,7 +6,7 @@ import {CalligraphyCategory} from "../../Shared/DomainTypes";
  * External collaborators consumed by the calligraphy controller.
  */
 export interface CreateCalligraphyControllerDependencies {
-  readonly getCategories: () => Promise<ReadonlyArray<CalligraphyCategory>>;
+  readonly getCategories: () => Promise<ReadonlyArray<CalligraphyCategory>> | ReadonlyArray<CalligraphyCategory>;
 
   readonly navigateToCategory: (categoryId: string) => Promise<void>;
 }

@@ -26,7 +26,7 @@ export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 /**
  * Canonical list of translation keys required by every supported locale.
  */
-export const TRANSLATION_KEYS = [
+export const BASE_TRANSLATION_KEYS = [
   "appName",
   "about",
   "acknowledgments",
@@ -102,9 +102,51 @@ export const TRANSLATION_KEYS = [
   "modelSourceDetail"
 ] as const;
 
-export type TranslationKey = (typeof TRANSLATION_KEYS)[number];
+export const CALLIGRAPHY_TRANSLATION_KEYS = [
+  "calligraphy",
+  "jlpt",
+  "joyo",
+  "unclassified",
+  "kanji",
+  "practice",
+  "back",
+  "validate",
+  "evaluation",
+  "score",
+  "summary",
+  "recommendation",
+  "strokeOrderMetric",
+  "approximateDirection",
+  "generalSimilarity",
+  "strokeCountMetric",
+  "strokeCountFeedback",
+  "strokeOrderFeedback",
+  "directionFeedback",
+  "similarityFeedback",
+  "practiceAgain",
+  "emptyCategories",
+  "emptyCategory",
+  "evaluationSummaryStrong",
+  "evaluationSummaryGood",
+  "evaluationSummaryNeedsPractice",
+  "recommendStrokeCount",
+  "recommendStrokeOrder",
+  "recommendDirection",
+  "recommendSimilarity",
+  "calligraphyError"
+] as const;
 
-export type TranslationMap = Record<TranslationKey, string>;
+export const TRANSLATION_KEYS = [
+  ...BASE_TRANSLATION_KEYS,
+  ...CALLIGRAPHY_TRANSLATION_KEYS
+] as const;
+
+export type BaseTranslationKey = (typeof BASE_TRANSLATION_KEYS)[number];
+export type CalligraphyTranslationKey = (typeof CALLIGRAPHY_TRANSLATION_KEYS)[number];
+export type TranslationKey = BaseTranslationKey | CalligraphyTranslationKey;
+
+export type TranslationMap = Record<BaseTranslationKey, string> & Partial<Record<CalligraphyTranslationKey, string>>;
+export type CompleteTranslationMap = Record<TranslationKey, string>;
 
 export const ENGLISH_TRANSLATIONS: TranslationMap = {
   appName: "KanjiMe",
@@ -179,10 +221,41 @@ export const ENGLISH_TRANSLATIONS: TranslationMap = {
   kanjidic2: "KANJIDIC2",
   kanjivg: "KanjiVG",
   databaseSourceDetail: "Used for database generation.",
-  modelSourceDetail: "Used for recognition model training."
+  modelSourceDetail: "Used for recognition model training.",
+  calligraphy: "Calligraphy",
+  jlpt: "JLPT",
+  joyo: "Joyo",
+  unclassified: "Unclassified",
+  kanji: "Kanji",
+  practice: "Practice",
+  back: "Back",
+  validate: "Validate",
+  evaluation: "Evaluation",
+  score: "Score",
+  summary: "Summary",
+  recommendation: "Recommendation",
+  strokeOrderMetric: "Stroke order",
+  approximateDirection: "Direction",
+  generalSimilarity: "Similarity",
+  strokeCountMetric: "Stroke count",
+  strokeCountFeedback: "Compares the number of drawn strokes with the reference.",
+  strokeOrderFeedback: "Compares each drawn stroke with the reference order.",
+  directionFeedback: "Compares the direction of each drawn stroke.",
+  similarityFeedback: "Compares the overall shape with the reference.",
+  practiceAgain: "Practice again",
+  emptyCategories: "No calligraphy categories are available.",
+  emptyCategory: "No kanji are available in this category.",
+  evaluationSummaryStrong: "The attempt is close to the reference.",
+  evaluationSummaryGood: "The attempt follows the reference with some differences.",
+  evaluationSummaryNeedsPractice: "The attempt needs more practice before matching the reference.",
+  recommendStrokeCount: "Focus on drawing the same number of strokes as the reference.",
+  recommendStrokeOrder: "Focus on drawing the strokes in the reference order.",
+  recommendDirection: "Focus on the start and end direction of each stroke.",
+  recommendSimilarity: "Focus on the overall shape and position of the character.",
+  calligraphyError: "An unexpected error has occurred and the practice could not be evaluated."
 };
 
-export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
+const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
   "en-US": ENGLISH_TRANSLATIONS,
   "en-GB": {
     ...ENGLISH_TRANSLATIONS,
@@ -261,7 +334,8 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     kanjidic2: "KANJIDIC2",
     kanjivg: "KanjiVG",
     databaseSourceDetail: "Usado para la generación de la base de datos.",
-    modelSourceDetail: "Usado para el entrenamiento del modelo de reconocimiento."
+    modelSourceDetail: "Usado para el entrenamiento del modelo de reconocimiento.",
+    calligraphy: "Caligrafía"
   },
   "fr-FR": {
     appName: "KanjiMe",
@@ -1389,6 +1463,16 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     modelSourceDetail: "Kusetshenziselwa ukuqeqeshwa kwemodeli yokuqaphela."
   }
 };
+
+export const TRANSLATIONS: Record<SupportedLocale, CompleteTranslationMap> = Object.fromEntries(
+  SUPPORTED_LOCALES.map(locale => [
+    locale,
+    {
+      ...ENGLISH_TRANSLATIONS,
+      ...LOCALIZED_TRANSLATIONS[locale]
+    }
+  ])
+) as Record<SupportedLocale, CompleteTranslationMap>;
 
 export const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
   "en-US": "English (US)",

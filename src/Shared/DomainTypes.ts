@@ -193,13 +193,24 @@ export interface CalligraphyEvaluationMetrics {
 }
 
 /**
+ * Per-aspect explainable feedback for a calligraphy attempt.
+ */
+export interface CalligraphyEvaluationAspect {
+  readonly id: keyof CalligraphyEvaluationMetrics;
+  readonly score: number;
+  readonly description: string;
+}
+
+/**
  * Calculated calligraphy evaluation result.
  */
 export interface CalligraphyEvaluationResult {
   readonly targetCharacter: string;
   readonly score: number;
   readonly summary: string;
+  readonly recommendation?: string;
   readonly metrics: CalligraphyEvaluationMetrics;
+  readonly aspects?: ReadonlyArray<CalligraphyEvaluationAspect>;
 }
 
 /**
@@ -208,6 +219,8 @@ export interface CalligraphyEvaluationResult {
 export interface CalligraphyEvaluationFeedback {
   readonly score: number;
   readonly summary: string;
+  readonly recommendation?: string;
+  readonly aspects?: ReadonlyArray<CalligraphyEvaluationAspect>;
   readonly isOverlayVisible: boolean;
 }
 

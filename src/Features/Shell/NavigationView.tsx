@@ -1,11 +1,12 @@
 import { IonIcon } from "@ionic/react";
-import { close, informationCircleOutline, scanOutline, search, timeOutline } from "ionicons/icons";
+import { brushOutline, close, informationCircleOutline, scanOutline, search, timeOutline } from "ionicons/icons";
 
 import { translate } from "../../Shared/I18n";
 import type { NavigationProps } from "./Contracts/NavigationProps";
 
 const PAGE_ICONS: Record<string, string> = {
   classification: scanOutline,
+  calligraphy: brushOutline,
   search: search,
   history: timeOutline,
   about: informationCircleOutline

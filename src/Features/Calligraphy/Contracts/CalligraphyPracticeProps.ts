@@ -1,4 +1,5 @@
 import type { Stroke } from "../../../Shared/DomainTypes";
+import type { PointerEventHandler } from "react";
 
 /**
  * Props contract for the active calligraphy practice screen.
@@ -22,9 +23,14 @@ export interface CalligraphyPracticeProps {
    */
   readonly targetCharacter: string;
   readonly strokes: ReadonlyArray<Stroke>;
+  readonly activeStroke?: Stroke | null;
   readonly canReset: boolean;
   readonly canValidate: boolean;
   readonly onBackRequested: () => void;
   readonly onResetRequested: () => void;
   readonly onValidateRequested: () => void;
+  readonly onPointerDown?: PointerEventHandler<HTMLCanvasElement>;
+  readonly onPointerMove?: PointerEventHandler<HTMLCanvasElement>;
+  readonly onPointerUp?: PointerEventHandler<HTMLCanvasElement>;
+  readonly onPointerCancel?: PointerEventHandler<HTMLCanvasElement>;
 }

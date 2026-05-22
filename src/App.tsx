@@ -18,6 +18,7 @@ import { useEffect, useLayoutEffect, useMemo } from "react";
 import { Redirect, Route, useHistory, useLocation } from "react-router-dom";
 
 import { AboutScreen } from "./Features/About/AboutScreen";
+import { CalligraphyScreen } from "./Features/Calligraphy/CalligraphyScreen";
 import { ClassificationScreen } from "./Features/Classification/ClassificationScreen";
 import { HistoryScreen } from "./Features/History/HistoryScreen";
 import { KanjiDetailScreen } from "./Features/Kanji/KanjiDetailScreen";
@@ -26,7 +27,7 @@ import { SearchScreen } from "./Features/Search/SearchScreen";
 import { LoadingScreenView } from "./Features/Shell/LoadingScreenView";
 import { NavigationView } from "./Features/Shell/NavigationView";
 import { createCompositionRoot, type CompositionRoot } from "./CompositionRoot";
-import type { ApplicationTheme, NavigationPage } from "./Shared/DomainTypes";
+import type { ApplicationTheme } from "./Shared/DomainTypes";
 import { LANGUAGE_NAMES, SUPPORTED_LOCALES, normalizeLocale, translate, type TranslationKey } from "./Shared/I18n";
 
 /**
@@ -89,8 +90,9 @@ function AppShell(): JSX.Element {
         return;
       }
 
-      const paths: Record<NavigationPage, string> = {
+      const paths: Record<string, string> = {
         classification: "/classification",
+        calligraphy: "/calligraphy",
         search: "/search",
         history: "/history",
         about: "/about",
@@ -134,7 +136,7 @@ function AppShell(): JSX.Element {
         <IonContent scrollY={false}>
           <div className="menu-shell">
             <NavigationView
-              availablePages={root.navigationController.availablePageIds.map(id => ({
+              availablePages={[...root.navigationController.availablePageIds, "calligraphy" as const].map(id => ({
                 id,
                 label: translate(preferences.preferences.language, getPageKey(id) as TranslationKey)
               }))}
@@ -146,7 +148,14 @@ function AppShell(): JSX.Element {
                   void (menu as HTMLIonMenuElement).close();
                 }
               }}
-              onNavigateRequested={page => root.navigationController.navigateTo(page)}
+              onNavigateRequested={page => {
+                if (page === "calligraphy") {
+                  history.push("/calligraphy");
+                  return;
+                }
+
+                root.navigationController.navigateTo(page);
+              }}
             />
           </div>
         </IonContent>
@@ -158,6 +167,9 @@ function AppShell(): JSX.Element {
         </Route>
         <Route exact path="/classification">
           <ClassificationScreen />
+        </Route>
+        <Route exact path="/calligraphy">
+          <CalligraphyScreen />
         </Route>
         <Route exact path="/search">
           <SearchScreen />
@@ -176,10 +188,12 @@ function AppShell(): JSX.Element {
   );
 }
 
-function getPageKey(page: NavigationPage): string {
+function getPageKey(page: string): string {
   switch (page) {
     case "classification":
       return "recognition";
+    case "calligraphy":
+      return "calligraphy";
     case "search":
       return "search";
     case "history":
@@ -191,7 +205,13 @@ function getPageKey(page: NavigationPage): string {
   }
 }
 
-function getCurrentPage(pathname: string): NavigationPage {
+function getCurrentPage(
+  pathname: string
+): "classification" | "search" | "history" | "about" | "kanjiEntry" | "calligraphy" {
+  if (pathname.startsWith("/calligraphy")) {
+    return "calligraphy";
+  }
+
   if (pathname.startsWith("/search")) {
     return "search";
   }

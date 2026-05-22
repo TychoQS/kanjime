@@ -14,13 +14,17 @@ import { ApplicationError, StrokeError } from "../../../Shared/AppErrors";
 export function createCalligraphyEvaluationViewModel(
   dependencies: CreateCalligraphyEvaluationControllerDependencies
 ): CalligraphyEvaluationInterface {
-  return {
+  const viewModel: CalligraphyEvaluationInterface = {
     async evaluateAttempt(attempt: CalligraphyAttempt): Promise<CalligraphyEvaluationResult> {
       if (!attempt.isFinalized || attempt.strokes.length === 0) {
         throw new StrokeError("Draw at least one stroke before evaluating the practice.");
       }
 
-      return dependencies.evaluateAttempt(attempt);
+      const result = await dependencies.evaluateAttempt(attempt);
+      return {
+        ...result,
+        score: viewModel.calculateScore(result)
+      };
     },
     calculateScore(result: CalligraphyEvaluationResult): number {
       if (!isValidEvaluationResult(result)) {
@@ -37,6 +41,8 @@ export function createCalligraphyEvaluationViewModel(
       return dependencies.createFeedback(result);
     }
   };
+
+  return viewModel;
 }
 
 function isValidEvaluationResult(result: CalligraphyEvaluationResult): boolean {

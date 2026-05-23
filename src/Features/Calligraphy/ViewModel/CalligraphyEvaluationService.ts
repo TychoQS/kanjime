@@ -44,12 +44,19 @@ export async function evaluateCalligraphyAttempt(
 
   const normalizedAttempt = normalizeAttemptStrokes(attempt.strokes);
   const normalizedReference = normalizeReferenceStrokes(referenceStrokes);
+  const hasValidStrokeCount = normalizedAttempt.length === normalizedReference.length;
   const metrics = {
     strokeCount: calculateStrokeCountScore(normalizedAttempt.length, normalizedReference.length),
-    strokeOrder: calculateStrokeOrderScore(normalizedAttempt, normalizedReference),
-    approximateDirection: calculateDirectionScore(normalizedAttempt, normalizedReference),
-    generalSimilarity: calculateSimilarityScore(normalizedAttempt, normalizedReference)
-  };
+    strokeOrder: hasValidStrokeCount
+          ? calculateStrokeOrderScore(normalizedAttempt, normalizedReference)
+          : SCORE_MIN,
+    approximateDirection: hasValidStrokeCount
+          ? calculateDirectionScore(normalizedAttempt, normalizedReference)
+          : SCORE_MIN,
+    generalSimilarity: hasValidStrokeCount
+          ? calculateSimilarityScore(normalizedAttempt, normalizedReference)
+          : SCORE_MIN
+    };
   const score = calculateGlobalCalligraphyScore(metrics, normalizedAttempt);
   const aspects = createAspects(metrics);
 

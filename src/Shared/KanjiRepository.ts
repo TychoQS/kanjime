@@ -19,6 +19,7 @@ export interface KanjiSummary extends CharacterSummary {
 
 export interface SourceAttribution {
   readonly id: string;
+  readonly displayName: string;
   readonly attribution: string;
   readonly homepage: string;
   readonly license: string;
@@ -585,6 +586,7 @@ function toAttribution(value: unknown): SourceAttribution | null {
 
   const candidate = value as Record<string, unknown>;
   const id = candidate.id;
+  const displayName = candidate.displayName;
   const attribution = candidate.attribution;
   const homepage = candidate.homepage;
   const license = candidate.license;
@@ -594,6 +596,7 @@ function toAttribution(value: unknown): SourceAttribution | null {
 
   if (
     typeof id !== "string" ||
+    typeof displayName !== "string" ||
     typeof attribution !== "string" ||
     typeof homepage !== "string" ||
     typeof license !== "string" ||
@@ -605,6 +608,7 @@ function toAttribution(value: unknown): SourceAttribution | null {
 
   return {
     id,
+    displayName,
     attribution,
     homepage,
     license,

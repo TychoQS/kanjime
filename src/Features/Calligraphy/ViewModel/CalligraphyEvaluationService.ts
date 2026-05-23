@@ -352,6 +352,12 @@ function calculateDirectionScore(
 
   const toleranceRadians = 15 * (Math.PI / 180);
 
+  function getNormalizedAngularDifference(attemptAngle: number, referenceAngle: number) {
+    return Math.abs(
+        Math.atan2(Math.sin(attemptAngle - referenceAngle), Math.cos(attemptAngle - referenceAngle))
+    );
+  }
+
   const scores = Array.from({ length: comparedCount }, (_, index) => {
     const attemptSampled = sampleStroke(attemptStrokes[index]);
     const referenceSampled = sampleStroke(referenceStrokes[index]);
@@ -372,9 +378,7 @@ function calculateDirectionScore(
         referenceSampled[i + 1].y - referenceSampled[i].y,
         referenceSampled[i + 1].x - referenceSampled[i].x
       );
-      const difference = Math.abs(
-        Math.atan2(Math.sin(attemptAngle - referenceAngle), Math.cos(attemptAngle - referenceAngle))
-      );
+      const difference = getNormalizedAngularDifference(attemptAngle, referenceAngle);
 
       if (difference <= toleranceRadians) {
         pointScores.push(100);

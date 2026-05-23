@@ -343,12 +343,41 @@ function calculateDirectionScore(
     return SCORE_MIN;
   }
 
-  const scores = Array.from({ length: comparedCount }, (_, index) => {
-    const attemptAngle = strokeAngle(attemptStrokes[index]);
-    const referenceAngle = strokeAngle(referenceStrokes[index]);
-    const difference = Math.abs(Math.atan2(Math.sin(attemptAngle - referenceAngle), Math.cos(attemptAngle - referenceAngle)));
+  const toleranceRadians = 15 * (Math.PI / 180);
 
-    return clampScore(100 - (difference / Math.PI) * 100);
+  const scores = Array.from({ length: comparedCount }, (_, index) => {
+    const attemptSampled = sampleStroke(attemptStrokes[index]);
+    const referenceSampled = sampleStroke(referenceStrokes[index]);
+    const pointCount = Math.min(attemptSampled.length, referenceSampled.length);
+
+    if (pointCount < 2) {
+      return SCORE_MIN;
+    }
+
+    const pointScores: number[] = [];
+
+    for (let i = 0; i < pointCount - 1; i++) {
+      const attemptAngle = Math.atan2(
+        attemptSampled[i + 1].y - attemptSampled[i].y,
+        attemptSampled[i + 1].x - attemptSampled[i].x
+      );
+      const referenceAngle = Math.atan2(
+        referenceSampled[i + 1].y - referenceSampled[i].y,
+        referenceSampled[i + 1].x - referenceSampled[i].x
+      );
+      const difference = Math.abs(
+        Math.atan2(Math.sin(attemptAngle - referenceAngle), Math.cos(attemptAngle - referenceAngle))
+      );
+
+      if (difference <= toleranceRadians) {
+        pointScores.push(100);
+      } else {
+        const penaltyRatio = (difference - toleranceRadians) / (Math.PI - toleranceRadians);
+        pointScores.push(clampScore(100 - penaltyRatio * 100));
+      }
+    }
+
+    return average(pointScores);
   });
 
   return average(scores);
@@ -429,16 +458,6 @@ function sampleStroke(stroke: Stroke): ReadonlyArray<StrokePoint> {
   }
 
   return result;
-}
-
-function strokeAngle(stroke: Stroke): number {
-  if (stroke.points.length < 2) {
-    return 0;
-  }
-
-  const start = stroke.points[0];
-  const end = stroke.points[stroke.points.length - 1];
-  return Math.atan2(end.y - start.y, end.x - start.x);
 }
 
 function nearestDistance(point: StrokePoint, candidates: ReadonlyArray<StrokePoint>): number {

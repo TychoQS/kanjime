@@ -56,6 +56,6 @@ export function createNavigationViewModel(
 
       return INITIAL_ROUTE;
     },
-    availablePageIds: ["classification", "search", "history", "about", "calligraphy"] as const
+    availablePageIds: ["classification", "search", "history", "calligraphy", "about"] as const
   };
 }

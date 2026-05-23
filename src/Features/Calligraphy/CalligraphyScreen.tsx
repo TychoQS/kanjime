@@ -45,6 +45,7 @@ export function CalligraphyScreen(): JSX.Element {
           <Route exact path="/calligraphy/category/:categoryId">
             <div className="calligraphy-category-screen" data-testid="calligraphy-category-view">
               <IonButton
+                className="calligraphy-back-button"
                 data-testid="calligraphy-category-back-button"
                 fill="clear"
                 onClick={() => {

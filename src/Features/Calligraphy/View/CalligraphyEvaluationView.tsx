@@ -28,8 +28,8 @@ export function CalligraphyEvaluationView(props: CalligraphyEvaluationProps): JS
       <div className="calligraphy-evaluation-panel">
         <h2>{translate(language, "evaluation")}</h2>
         <p className="calligraphy-score" data-testid="calligraphy-score">
-          <span>{translate(language, "score")}</span>
-          <strong>{props.feedback.score}</strong>
+          <span className="calligraphy-score-label">{translate(language, "score")}</span>
+          <strong className="calligraphy-score-value">{props.feedback.score}</strong>
         </p>
         <p>{summary}</p>
         <ul className="calligraphy-metric-list">

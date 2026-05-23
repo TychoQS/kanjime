@@ -15,7 +15,9 @@ interface ReferenceStroke {
 const SCORE_MIN = 0;
 const SCORE_MAX = 100;
 const KANJIVG_SIZE = 109;
-const SAMPLE_POINTS_PER_STROKE = 12;
+const SAMPLE_POINTS_PER_STROKE = 48;
+const BEZIER_SUBDIVISIONS = 8;
+const ORDER_MATCH_THRESHOLD = 15;
 
 export interface CalligraphyEvaluationDataDependencies {
   readonly loadReferenceStrokeOrder: (character: string) => Promise<string>;
@@ -85,17 +87,147 @@ function parseReferenceStrokes(svg: string): ReadonlyArray<ReferenceStroke> {
 }
 
 function parsePathPoints(pathData: string): ReadonlyArray<StrokePoint> {
-  const numbers = [...pathData.matchAll(/-?\d+(?:\.\d+)?/g)].map(match => Number.parseFloat(match[0]));
+  const tokens = tokenizeSvgPath(pathData);
   const points: StrokePoint[] = [];
+  let cursorX = 0;
+  let cursorY = 0;
+  let lastControlX = 0;
+  let lastControlY = 0;
+  let lastCommand = "";
+  let index = 0;
 
-  for (let index = 0; index + 1 < numbers.length; index += 2) {
-    points.push({
-      x: numbers[index],
-      y: numbers[index + 1]
-    });
+  while (index < tokens.length) {
+    const token = tokens[index];
+
+    if (typeof token === "string") {
+      lastCommand = token;
+      index++;
+
+      if (lastCommand === "M") {
+        cursorX = tokens[index] as number;
+        cursorY = tokens[index + 1] as number;
+        index += 2;
+        points.push({ x: cursorX, y: cursorY });
+      } else if (lastCommand === "m") {
+        cursorX += tokens[index] as number;
+        cursorY += tokens[index + 1] as number;
+        index += 2;
+        points.push({ x: cursorX, y: cursorY });
+      }
+    } else {
+      if (lastCommand === "c") {
+        const cp1x = cursorX + (tokens[index] as number);
+        const cp1y = cursorY + (tokens[index + 1] as number);
+        const cp2x = cursorX + (tokens[index + 2] as number);
+        const cp2y = cursorY + (tokens[index + 3] as number);
+        const endX = cursorX + (tokens[index + 4] as number);
+        const endY = cursorY + (tokens[index + 5] as number);
+        sampleCubicBezier(cursorX, cursorY, cp1x, cp1y, cp2x, cp2y, endX, endY, points);
+        lastControlX = cp2x;
+        lastControlY = cp2y;
+        cursorX = endX;
+        cursorY = endY;
+        index += 6;
+      } else if (lastCommand === "C") {
+        const cp1x = tokens[index] as number;
+        const cp1y = tokens[index + 1] as number;
+        const cp2x = tokens[index + 2] as number;
+        const cp2y = tokens[index + 3] as number;
+        const endX = tokens[index + 4] as number;
+        const endY = tokens[index + 5] as number;
+        sampleCubicBezier(cursorX, cursorY, cp1x, cp1y, cp2x, cp2y, endX, endY, points);
+        lastControlX = cp2x;
+        lastControlY = cp2y;
+        cursorX = endX;
+        cursorY = endY;
+        index += 6;
+      } else if (lastCommand === "s") {
+        const reflectX = 2 * cursorX - lastControlX;
+        const reflectY = 2 * cursorY - lastControlY;
+        const cp2x = cursorX + (tokens[index] as number);
+        const cp2y = cursorY + (tokens[index + 1] as number);
+        const endX = cursorX + (tokens[index + 2] as number);
+        const endY = cursorY + (tokens[index + 3] as number);
+        sampleCubicBezier(cursorX, cursorY, reflectX, reflectY, cp2x, cp2y, endX, endY, points);
+        lastControlX = cp2x;
+        lastControlY = cp2y;
+        cursorX = endX;
+        cursorY = endY;
+        index += 4;
+      } else if (lastCommand === "S") {
+        const reflectX = 2 * cursorX - lastControlX;
+        const reflectY = 2 * cursorY - lastControlY;
+        const cp2x = tokens[index] as number;
+        const cp2y = tokens[index + 1] as number;
+        const endX = tokens[index + 2] as number;
+        const endY = tokens[index + 3] as number;
+        sampleCubicBezier(cursorX, cursorY, reflectX, reflectY, cp2x, cp2y, endX, endY, points);
+        lastControlX = cp2x;
+        lastControlY = cp2y;
+        cursorX = endX;
+        cursorY = endY;
+        index += 4;
+      } else if (lastCommand === "l") {
+        cursorX += tokens[index] as number;
+        cursorY += tokens[index + 1] as number;
+        points.push({ x: cursorX, y: cursorY });
+        index += 2;
+      } else if (lastCommand === "L") {
+        cursorX = tokens[index] as number;
+        cursorY = tokens[index + 1] as number;
+        points.push({ x: cursorX, y: cursorY });
+        index += 2;
+      } else {
+        index++;
+      }
+    }
   }
 
   return points;
+}
+
+/**
+ * Tokenizes an SVG path data string into commands and numeric values.
+ */
+function tokenizeSvgPath(pathData: string): ReadonlyArray<string | number> {
+  const tokenPattern = /([MCcSsLlHhVvZzQqTtAa])|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g;
+  const result: Array<string | number> = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = tokenPattern.exec(pathData)) !== null) {
+    if (match[1] !== undefined) {
+      result.push(match[1]);
+    } else {
+      result.push(Number.parseFloat(match[2]));
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Samples points along a cubic Bézier curve and appends them (excluding the start).
+ */
+function sampleCubicBezier(
+  startX: number, startY: number,
+  cp1x: number, cp1y: number,
+  cp2x: number, cp2y: number,
+  endX: number, endY: number,
+  output: StrokePoint[]
+): void {
+  for (let step = 1; step <= BEZIER_SUBDIVISIONS; step++) {
+    const t = step / BEZIER_SUBDIVISIONS;
+    const oneMinusT = 1 - t;
+    const oneMinusT2 = oneMinusT * oneMinusT;
+    const oneMinusT3 = oneMinusT2 * oneMinusT;
+    const t2 = t * t;
+    const t3 = t2 * t;
+
+    output.push({
+      x: oneMinusT3 * startX + 3 * oneMinusT2 * t * cp1x + 3 * oneMinusT * t2 * cp2x + t3 * endX,
+      y: oneMinusT3 * startY + 3 * oneMinusT2 * t * cp1y + 3 * oneMinusT * t2 * cp2y + t3 * endY
+    });
+  }
 }
 
 function normalizeReferenceStrokes(strokes: ReadonlyArray<ReferenceStroke>): ReadonlyArray<Stroke> {
@@ -168,11 +300,37 @@ function calculateStrokeOrderScore(
     return SCORE_MIN;
   }
 
-  const scores = Array.from({ length: comparedCount }, (_, index) => {
-    return strokeDistanceScore(attemptStrokes[index], referenceStrokes[index]);
-  });
+  let correctCount = 0;
 
-  return average(scores);
+  for (let attemptIndex = 0; attemptIndex < comparedCount; attemptIndex++) {
+    const attemptSampled = sampleStroke(attemptStrokes[attemptIndex]);
+    let bestRefIndex = -1;
+    let bestDistance = Infinity;
+
+    for (let refIndex = 0; refIndex < referenceStrokes.length; refIndex++) {
+      const refSampled = sampleStroke(referenceStrokes[refIndex]);
+      const count = Math.min(attemptSampled.length, refSampled.length);
+
+      if (count === 0) {
+        continue;
+      }
+
+      const avgDist = Array.from({ length: count }, (_, k) =>
+        distance(attemptSampled[k], refSampled[k])
+      ).reduce((sum, value) => sum + value, 0) / count;
+
+      if (avgDist < bestDistance) {
+        bestDistance = avgDist;
+        bestRefIndex = refIndex;
+      }
+    }
+
+    if (bestRefIndex === attemptIndex && bestDistance <= ORDER_MATCH_THRESHOLD) {
+      correctCount++;
+    }
+  }
+
+  return clampScore((correctCount / referenceStrokes.length) * SCORE_MAX);
 }
 
 function calculateDirectionScore(
@@ -216,35 +374,61 @@ function calculateSimilarityScore(
   return clampScore(distanceScore * 0.75 + lengthRatio * 25);
 }
 
-function strokeDistanceScore(attemptStroke: Stroke, referenceStroke: Stroke): number {
-  const attemptPoints = sampleStroke(attemptStroke);
-  const referencePoints = sampleStroke(referenceStroke);
-  const count = Math.min(attemptPoints.length, referencePoints.length);
-
-  if (count === 0) {
-    return SCORE_MIN;
-  }
-
-  const distances = Array.from({ length: count }, (_, index) => {
-    return distance(attemptPoints[index], referencePoints[index]);
-  });
-
-  return clampScore(100 - average(distances) * 1.8);
-}
 
 function sampleCollection(strokes: ReadonlyArray<Stroke>): ReadonlyArray<StrokePoint> {
   return strokes.flatMap(sampleStroke);
 }
 
 function sampleStroke(stroke: Stroke): ReadonlyArray<StrokePoint> {
-  if (stroke.points.length <= SAMPLE_POINTS_PER_STROKE) {
-    return stroke.points.map(point => ({ ...point }));
+  if (stroke.points.length === 0) {
+    return [];
   }
 
-  return Array.from({ length: SAMPLE_POINTS_PER_STROKE }, (_, index) => {
-    const sourceIndex = Math.round((index / (SAMPLE_POINTS_PER_STROKE - 1)) * (stroke.points.length - 1));
-    return { ...stroke.points[sourceIndex] };
-  });
+  if (stroke.points.length === 1) {
+    return Array.from({ length: SAMPLE_POINTS_PER_STROKE }, () => ({ ...stroke.points[0] }));
+  }
+
+  const cumulativeDistances: number[] = [0];
+
+  for (let index = 1; index < stroke.points.length; index++) {
+    cumulativeDistances.push(
+      cumulativeDistances[index - 1] + distance(stroke.points[index - 1], stroke.points[index])
+    );
+  }
+
+  const totalArcLength = cumulativeDistances[cumulativeDistances.length - 1];
+
+  if (totalArcLength === 0) {
+    return Array.from({ length: SAMPLE_POINTS_PER_STROKE }, () => ({ ...stroke.points[0] }));
+  }
+
+  const result: StrokePoint[] = [];
+
+  for (let sampleIndex = 0; sampleIndex < SAMPLE_POINTS_PER_STROKE; sampleIndex++) {
+    const targetDistance = (sampleIndex / (SAMPLE_POINTS_PER_STROKE - 1)) * totalArcLength;
+    let segmentIndex = 1;
+
+    while (
+      segmentIndex < cumulativeDistances.length - 1 &&
+      cumulativeDistances[segmentIndex] < targetDistance
+    ) {
+      segmentIndex++;
+    }
+
+    const segmentStart = cumulativeDistances[segmentIndex - 1];
+    const segmentEnd = cumulativeDistances[segmentIndex];
+    const segmentLength = segmentEnd - segmentStart;
+    const interpolation = segmentLength === 0 ? 0 : (targetDistance - segmentStart) / segmentLength;
+    const pointA = stroke.points[segmentIndex - 1];
+    const pointB = stroke.points[segmentIndex];
+
+    result.push({
+      x: pointA.x + (pointB.x - pointA.x) * interpolation,
+      y: pointA.y + (pointB.y - pointA.y) * interpolation
+    });
+  }
+
+  return result;
 }
 
 function strokeAngle(stroke: Stroke): number {

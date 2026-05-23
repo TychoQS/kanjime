@@ -75,10 +75,7 @@ export function CalligraphyScreen(): JSX.Element {
                       type="button"
                     >
                       <span className="result-kanji">{entry.character}</span>
-                      <span className="result-meta">{translate(language, "practice")}</span>
-                      <span className="result-levels">
-                        {translate(language, "strokeCount")}: {entry.strokeCount}
-                      </span>
+                      <span className="result-meta">{translate(language, "strokeCount")}: {entry.strokeCount}</span>
                     </button>
                   ))}
                 </div>

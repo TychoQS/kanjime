@@ -191,7 +191,7 @@ export function useCalligraphyScreenViewModel(
       return Promise.resolve();
     },
     returnHome(): Promise<void> {
-      history.push("/calligraphy");
+      history.goBack();
       return Promise.resolve();
     },
     startPractice(character: string): Promise<void> {
@@ -199,11 +199,7 @@ export function useCalligraphyScreenViewModel(
       return Promise.resolve();
     },
     returnToCategory(): Promise<void> {
-      if (selectedCategoryId) {
-        history.push(`/calligraphy/category/${encodeURIComponent(selectedCategoryId)}`);
-      } else {
-        history.push("/calligraphy");
-      }
+      history.goBack();
       return Promise.resolve();
     },
     resetPractice(): void {

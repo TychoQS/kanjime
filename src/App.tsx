@@ -18,7 +18,11 @@ import { useEffect, useLayoutEffect, useMemo } from "react";
 import { Redirect, Route, useHistory, useLocation } from "react-router-dom";
 
 import { AboutScreen } from "./Features/About/AboutScreen";
-import { CalligraphyScreen } from "./Features/Calligraphy/CalligraphyScreen";
+import {
+  CalligraphyScreen,
+  CalligraphyCategoryScreen,
+  CalligraphyPracticeScreen
+} from "./Features/Calligraphy/CalligraphyScreen";
 import { ClassificationScreen } from "./Features/Classification/ClassificationScreen";
 import { HistoryScreen } from "./Features/History/HistoryScreen";
 import { KanjiDetailScreen } from "./Features/Kanji/KanjiDetailScreen";
@@ -163,8 +167,14 @@ function AppShell(): JSX.Element {
         <Route exact path="/classification">
           <ClassificationScreen />
         </Route>
-        <Route path="/calligraphy">
+        <Route exact path="/calligraphy">
           <CalligraphyScreen />
+        </Route>
+        <Route exact path="/calligraphy/category/:categoryId">
+          <CalligraphyCategoryScreen />
+        </Route>
+        <Route exact path="/calligraphy/practice/:character">
+          <CalligraphyPracticeScreen />
         </Route>
         <Route exact path="/search">
           <SearchScreen />

@@ -32,8 +32,14 @@ jobs:
       - name: Prepare database
         run: npm run data:prepare
 
-      - name: Run unit and integration tests
-        run: rm -rf .vite && vitest run
+      - name: Clean Vite cache
+        run: rm -rf .vite
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run integration tests
+        run: npm run test:integration
 
       - name: Build application
         run: npm run build
@@ -42,6 +48,7 @@ jobs:
     name: e2e (${{ matrix.project }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    needs: unit-integration-build
 
     env:
       CI: true
@@ -88,4 +95,4 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: Run E2E tests for ${{ matrix.project }}
-        run: npx playwright test --project=${{ matrix.project }}
+        run: npm run test:e2e -- --project=${{ matrix.project }}

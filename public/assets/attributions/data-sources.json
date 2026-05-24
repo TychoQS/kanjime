@@ -1,41 +1,55 @@
 {
-  "generatedAt": "2026-05-12T16:43:45.020Z",
+  "generatedAt": "2026-05-23T13:54:47.289Z",
   "sources": [
     {
       "id": "jmdict",
+      "displayName": "JMdict",
       "attribution": "Electronic Dictionary Research and Development Group",
       "homepage": "https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project",
       "license": "EDRDG licence statement",
       "downloadUrl": "http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz",
-      "downloadedAt": "2026-05-12T16:41:04.066Z",
+      "downloadedAt": "2026-05-23T13:54:25.565Z",
       "upstreamVersion": null
     },
     {
       "id": "kanjidic2",
+      "displayName": "KANJIDIC2",
       "attribution": "Electronic Dictionary Research and Development Group",
       "homepage": "https://www.edrdg.org/wiki/index.php/KANJIDIC_Project",
       "license": "EDRDG licence statement",
       "downloadUrl": "https://www.edrdg.org/kanjidic/kanjidic2.xml.gz",
-      "downloadedAt": "2026-05-12T16:41:05.547Z",
+      "downloadedAt": "2026-05-23T13:54:27.027Z",
       "upstreamVersion": null
     },
     {
       "id": "kanjivg",
+      "displayName": "KanjiVG",
       "attribution": "KanjiVG project contributors",
       "homepage": "https://kanjivg.tagaini.net/",
       "license": "Creative Commons Attribution-Share Alike 3.0",
       "downloadUrl": "https://github.com/KanjiVG/kanjivg/releases/download/r20250816/kanjivg-20250816.xml.gz",
-      "downloadedAt": "2026-05-12T16:41:06.698Z",
+      "downloadedAt": "2026-05-23T13:54:28.446Z",
       "upstreamVersion": "r20250816"
     },
     {
       "id": "etl9b",
+      "displayName": "ETL9B",
       "attribution": "Electrotechnical Laboratory, Japanese Technical Committee for Optical Character Recognition",
       "homepage": "https://etlcdb.db.aist.go.jp/?lang=en",
       "license": "ETL Character Database Terms of Use",
       "downloadUrl": "https://etlcdb.db.aist.go.jp/download2/",
       "downloadedAt": null,
       "upstreamVersion": "ETL9B"
+    },
+    {
+      "id": "tanosjlpt",
+      "displayName": "Tanos JLPT Kanji Lists",
+      "attribution": "Jonathan Waller (Tanos)",
+      "homepage": "https://www.tanos.co.uk/jlpt/skills/kanji/",
+      "license": "Creative Commons Attribution (CC BY)",
+      "downloadUrl": "https://www.tanos.co.uk/jlpt/skills/kanji/",
+      "downloadedAt": "2026-05-23T13:54:28.482Z",
+      "upstreamVersion": null
     }
   ]
 }

@@ -40,7 +40,7 @@ test("[R1][E2E] AboutInterface renders non-empty application information", async
   await expect(page.getByTestId("about-list")).toBeVisible();
 
   // @post Application information is visible to the user.
-  await expect(page.getByTestId("about-list").locator("dd")).toHaveCount(7);
+  await expect(page.getByTestId("about-list").locator("dd")).toHaveCount(8);
   await expect(page.getByTestId("about-row-version").locator("dd")).toContainText(packageMetadata.version);
   await expect(page.getByTestId("about-row-authorship").locator("dd")).toContainText(ENGLISH_TRANSLATIONS.authorshipName);
   await expect(page.getByTestId("about-row-textConversion").locator("dd")).toContainText(ENGLISH_TRANSLATIONS.textConversionValue);
@@ -48,6 +48,7 @@ test("[R1][E2E] AboutInterface renders non-empty application information", async
   await expect(page.getByTestId("about-row-kanjidic2").locator("dd")).toContainText(expectedAttributions[1]);
   await expect(page.getByTestId("about-row-kanjivg").locator("dd")).toContainText(expectedAttributions[2]);
   await expect(page.getByTestId("about-row-etl9b").locator("dd")).toContainText(expectedAttributions[3]);
+  await expect(page.getByTestId("about-row-tanosjlpt").locator("dd")).toContainText(expectedAttributions[4]);
 });
 
 test("[R2][E2E] AboutInterface renders the project version", async ({ page }) => {

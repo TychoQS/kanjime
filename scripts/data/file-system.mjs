@@ -64,6 +64,19 @@ export async function readTextFile(filePath) {
 }
 
 /**
+ * Reads a binary file.
+ *
+ * @param {string} filePath Absolute file path.
+ * @returns {Promise<Uint8Array>}
+ *
+ * @pre filePath exists and is readable.
+ * @post The returned bytes contain the full file contents.
+ */
+export async function readBinaryFile(filePath) {
+  return new Uint8Array(await readFile(filePath));
+}
+
+/**
  * Writes UTF-8 text to a file.
  *
  * @param {string} filePath Absolute file path.
@@ -132,4 +145,3 @@ export async function writeJsonFile(filePath, contents) {
 export function calculateSha256(contents) {
   return createHash("sha256").update(contents).digest("hex");
 }
-

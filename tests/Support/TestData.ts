@@ -1,5 +1,8 @@
 import type {
   ApplicationTheme,
+  CalligraphyAttempt,
+  CalligraphyCategory,
+  CalligraphyEvaluationResult, CategoryKanjiEntry,
   CharacterSummary,
   CropRegion,
   DetailedKanjiEntry,
@@ -76,7 +79,376 @@ export const WCAG_AAA_CONTRAST_THRESHOLD = 7.0;
 /**
  * Inference model image size
  */
-export const MODEL_INPUT_SIZE = 128
+export const MODEL_INPUT_SIZE = 128;
+
+/**
+ * Shared calligraphy test identifiers and values.
+ */
+export const TEST_CALLIGRAPHY_TARGET_CHARACTER = "水";
+export const TEST_CALLIGRAPHY_CATEGORY_ID = "jlpt-n5";
+export const TEST_CALLIGRAPHY_JOYO_GROUPING = "joyo";
+export const TEST_CALLIGRAPHY_JLPT_GROUPING = "jlpt";
+export const TEST_CALLIGRAPHY_INVALID_GROUPING = "hsk";
+export const TEST_CALLIGRAPHY_JLPT_GROUPING_LABEL = "JLPT";
+export const TEST_CALLIGRAPHY_JLPT_LABEL = "JLPT N5";
+export const TEST_CALLIGRAPHY_RESIDUAL_LABEL = "Unclassified";
+export const TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS = [
+  "jlpt-n5",
+  "jlpt-n4",
+  "jlpt-n3",
+  "jlpt-n2",
+  "jlpt-n1"
+] as const;
+
+export const TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES = [
+  10,
+  9,
+  8,
+  6,
+  5,
+  4,
+  3,
+  2,
+  1
+] as const;
+export const TEST_CALLIGRAPHY_EVALUATION_SUMMARY = "The attempt is recognizable.";
+export const TEST_CALLIGRAPHY_EVALUATION_SCORE = 82;
+export const TEST_CALLIGRAPHY_BACK_LABEL = "Back";
+export const TEST_CALLIGRAPHY_CLEAR_LABEL = "Clear";
+export const TEST_CALLIGRAPHY_VALIDATE_LABEL = "Validate";
+
+/**
+ * Shared calligraphy domain objects.
+ */
+
+export const TEST_CALLIGRAPHY_JLPT_CATEGORIES: ReadonlyArray<CalligraphyCategory> =
+  TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS.map((id, index) => {
+    const level = 5 - index;
+
+    return {
+      id,
+      grouping: TEST_CALLIGRAPHY_JLPT_GROUPING,
+      label: `JLPT N${level}`,
+      order: index + 1,
+      isResidual: false,
+      kanjiCount: 1
+    };
+  });
+
+export const TEST_CALLIGRAPHY_JOYO_CATEGORIES: ReadonlyArray<CalligraphyCategory> =
+  TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES.map((grade, index) => ({
+    id: `joyo-grade-${grade}`,
+    grouping: TEST_CALLIGRAPHY_JOYO_GROUPING,
+    label: `Jōyō Grade ${grade}`,
+    order: index + 1,
+    isResidual: false,
+    kanjiCount: 1
+  }));
+
+export const TEST_CALLIGRAPHY_CATEGORY: CalligraphyCategory =
+  TEST_CALLIGRAPHY_JLPT_CATEGORIES[0];
+
+export const TEST_CALLIGRAPHY_JLPT_RESIDUAL_CATEGORY: CalligraphyCategory = {
+  id: "jlpt-unclassified",
+  grouping: TEST_CALLIGRAPHY_JLPT_GROUPING,
+  label: TEST_CALLIGRAPHY_RESIDUAL_LABEL,
+  order: 6,
+  isResidual: true,
+  kanjiCount: 297
+};
+
+export const TEST_CALLIGRAPHY_JOYO_RESIDUAL_CATEGORY: CalligraphyCategory = {
+  id: "joyo-unclassified",
+  grouping: TEST_CALLIGRAPHY_JOYO_GROUPING,
+  label: TEST_CALLIGRAPHY_RESIDUAL_LABEL,
+  order: 10,
+  isResidual: true,
+  kanjiCount: 297
+};
+
+export const TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES: ReadonlyArray<CalligraphyCategory> = [
+  ...TEST_CALLIGRAPHY_JLPT_CATEGORIES,
+  TEST_CALLIGRAPHY_JLPT_RESIDUAL_CATEGORY
+];
+
+export const TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES: ReadonlyArray<CalligraphyCategory> = [
+  ...TEST_CALLIGRAPHY_JOYO_CATEGORIES,
+  TEST_CALLIGRAPHY_JOYO_RESIDUAL_CATEGORY
+];
+
+export const TEST_CALLIGRAPHY_VIEW_CATEGORY: CalligraphyCategory = {
+  ...TEST_CALLIGRAPHY_CATEGORY,
+  kanjiCount: 3
+};
+export const TEST_CALLIGRAPHY_FINALIZED_ATTEMPT: CalligraphyAttempt = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,
+  isFinalized: true,
+  strokes: [
+    {
+      points: [{ x: 1, y: 1 }],
+      startedAt: "2026-05-14T10:00:00.000Z",
+      endedAt: "2026-05-14T10:00:01.000Z"
+    }
+  ]
+};
+
+export const TEST_CALLIGRAPHY_EMPTY_ATTEMPT: CalligraphyAttempt = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,
+  isFinalized: false,
+  strokes: []
+};
+
+export const TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE: CalligraphyAttempt = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,
+  isFinalized: false,
+  strokes: [
+    {
+      points: [{ x: 1, y: 1 }, { x: 2, y: 2 }],
+      startedAt: "2026-05-14T10:00:00.000Z",
+      endedAt: "2026-05-14T10:00:01.000Z"
+    }
+  ]
+};
+
+export const TEST_CALLIGRAPHY_EVALUATION_RESULT: CalligraphyEvaluationResult = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  score: TEST_CALLIGRAPHY_EVALUATION_SCORE,
+  summary: TEST_CALLIGRAPHY_EVALUATION_SUMMARY,
+  metrics: {
+    strokeCount: 1,
+    strokeOrder: 1,
+    approximateDirection: 1,
+    generalSimilarity: 0.8
+  }
+};
+
+export const TEST_CALLIGRAPHY_INVALID_EVALUATION_RESULT: CalligraphyEvaluationResult = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  score: TEST_CALLIGRAPHY_EVALUATION_SCORE,
+  summary: TEST_CALLIGRAPHY_EVALUATION_SUMMARY,
+  metrics: {
+    strokeCount: NaN,
+    strokeOrder: NaN,
+    approximateDirection: NaN,
+    generalSimilarity: NaN
+  }
+};
+
+export const TEST_CALLIGRAPHY_KANJI_BY_CATEGORY_CASES = [
+  {
+    categoryId: "jlpt-n5",
+    unsortedKanji: [
+      { character: "日", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 },
+      { character: "一", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 1 },
+      { character: "大", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 3 }
+    ],
+    sortedKanji: [
+      { character: "一", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 1 },
+      { character: "大", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 3 },
+      { character: "日", categoryId: "jlpt-n5", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 }
+    ]
+  },
+  {
+    categoryId: "jlpt-n4",
+    unsortedKanji: [
+      { character: "両", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 6 },
+      { character: "不", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 },
+      { character: "仕", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 5 }
+    ],
+    sortedKanji: [
+      { character: "不", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 },
+      { character: "仕", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 5 },
+      { character: "両", categoryId: "jlpt-n4", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 6 }
+    ]
+  },
+  {
+    categoryId: "jlpt-n3",
+    unsortedKanji: [
+      { character: "漢", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 },
+      { character: "森", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 12 },
+      { character: "想", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 }
+    ],
+    sortedKanji: [
+      { character: "森", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 12 },
+      { character: "漢", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 },
+      { character: "想", categoryId: "jlpt-n3", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 }
+    ]
+  },
+  {
+    categoryId: "jlpt-n2",
+    unsortedKanji: [
+      { character: "愛", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 },
+      { character: "器", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 15 },
+      { character: "緑", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 14 }
+    ],
+    sortedKanji: [
+      { character: "愛", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 },
+      { character: "緑", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 14 },
+      { character: "器", categoryId: "jlpt-n2", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 15 }
+    ]
+  },
+  {
+    categoryId: "jlpt-n1",
+    unsortedKanji: [
+      { character: "議", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 20 },
+      { character: "機", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 16 },
+      { character: "艦", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 21 }
+    ],
+    sortedKanji: [
+      { character: "機", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 16 },
+      { character: "議", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 20 },
+      { character: "艦", categoryId: "jlpt-n1", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 21 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-1",
+    unsortedKanji: [
+      { character: "日", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "一", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 1 },
+      { character: "人", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 2 }
+    ],
+    sortedKanji: [
+      { character: "一", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 1 },
+      { character: "人", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 2 },
+      { character: "日", categoryId: "joyo-grade-1", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-2",
+    unsortedKanji: [
+      { character: "曜", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 },
+      { character: "光", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 6 },
+      { character: "雲", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 12 }
+    ],
+    sortedKanji: [
+      { character: "光", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 6 },
+      { character: "雲", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 12 },
+      { character: "曜", categoryId: "joyo-grade-2", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-3",
+    unsortedKanji: [
+      { character: "漢", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 },
+      { character: "写", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 5 },
+      { character: "感", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 }
+    ],
+    sortedKanji: [
+      { character: "写", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 5 },
+      { character: "漢", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 },
+      { character: "感", categoryId: "joyo-grade-3", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-4",
+    unsortedKanji: [
+      { character: "説", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 14 },
+      { character: "管", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 14 },
+      { character: "不", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 }
+    ],
+    sortedKanji: [
+      { character: "不", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "説", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 14 },
+      { character: "管", categoryId: "joyo-grade-4", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 14 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-5",
+    unsortedKanji: [
+      { character: "興", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 },
+      { character: "圧", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 5 },
+      { character: "質", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 15 }
+    ],
+    sortedKanji: [
+      { character: "圧", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 5 },
+      { character: "質", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 15 },
+      { character: "興", categoryId: "joyo-grade-5", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-6",
+    unsortedKanji: [
+      { character: "難", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 },
+      { character: "己", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 3 },
+      { character: "装", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 12 }
+    ],
+    sortedKanji: [
+      { character: "己", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 3 },
+      { character: "装", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 12 },
+      { character: "難", categoryId: "joyo-grade-6", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-8",
+    unsortedKanji: [
+      { character: "彙", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 },
+      { character: "挨", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 10 },
+      { character: "曖", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 17 }
+    ],
+    sortedKanji: [
+      { character: "挨", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 10 },
+      { character: "彙", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 13 },
+      { character: "曖", categoryId: "joyo-grade-8", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 17 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-9",
+    unsortedKanji: [
+      { character: "璽", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 19 },
+      { character: "釜", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 10 },
+      { character: "韓", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 }
+    ],
+    sortedKanji: [
+      { character: "釜", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 10 },
+      { character: "韓", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 18 },
+      { character: "璽", categoryId: "joyo-grade-9", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 19 }
+    ]
+  },
+  {
+    categoryId: "joyo-grade-10",
+    unsortedKanji: [
+      { character: "鷹", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 24 },
+      { character: "丑", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "謎", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 }
+    ],
+    sortedKanji: [
+      { character: "丑", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "謎", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 },
+      { character: "鷹", categoryId: "joyo-grade-10", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 24 }
+    ]
+  },
+  {
+    categoryId: "jlpt-unclassified",
+    unsortedKanji: [
+      { character: "曖", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 17 },
+      { character: "丑", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 },
+      { character: "彙", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 }
+    ],
+    sortedKanji: [
+      { character: "丑", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 4 },
+      { character: "彙", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 13 },
+      { character: "曖", categoryId: "jlpt-unclassified", grouping: TEST_CALLIGRAPHY_JLPT_GROUPING, strokeCount: 17 }
+    ]
+  },
+  {
+    categoryId: "joyo-unclassified",
+    unsortedKanji: [
+      { character: "鴨", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 },
+      { character: "丑", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "曖", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 17 }
+    ],
+    sortedKanji: [
+      { character: "丑", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 4 },
+      { character: "鴨", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 16 },
+      { character: "曖", categoryId: "joyo-unclassified", grouping: TEST_CALLIGRAPHY_JOYO_GROUPING, strokeCount: 17 }
+    ]
+  }
+] as const;
+
+export const TEST_CALLIGRAPHY_JOYO_GROUPING_LABEL = "Joyo";
 
 /**
  * Canonical image sample used by image-related tests.
@@ -399,5 +771,124 @@ export const TEST_SCREENS_I18N = [
     route: "/about",
     titleKey: "about",
     checks: ["about-list"]
+  },
+  {
+    route: "/calligraphy",
+    titleKey: "calligraphy",
+    checks: ["calligraphy-screen"]
   }
 ] as const;
+
+export const TEST_CALLIGRAPHY_ROUTES = {
+  home: "/calligraphy",
+  category: `/calligraphy/category/${TEST_CALLIGRAPHY_CATEGORY_ID}`,
+  practicePrefix: "/calligraphy/practice/"
+} as const;
+
+export const TEST_CALLIGRAPHY_TEST_IDS = {
+  loadingScreen: "loading-screen-view",
+  screen: "calligraphy-screen",
+  view: "calligraphy-view",
+  groupingSegment: "calligraphy-grouping-segment",
+  groupingJlpt: "calligraphy-grouping-jlpt",
+  groupingJoyo: "calligraphy-grouping-joyo",
+  categoriesPanel: "calligraphy-categories-panel",
+  categoryPrefix: "calligraphy-category-",
+  categoryView: "calligraphy-category-view",
+  categoryBackButton: "calligraphy-category-back-button",
+  kanjiPrefix: "calligraphy-kanji-",
+  practiceScreen: "calligraphy-practice-screen",
+  practiceTopControls: "calligraphy-practice-top-controls",
+  practiceCanvas: "calligraphy-practice-canvas",
+  backButton: "calligraphy-back-button",
+  resetButton: "calligraphy-reset-button",
+  validateButton: "calligraphy-validate-button",
+  drawingCanvas: "drawing-canvas",
+  drawingStrokesView: "drawing-strokes-view",
+  evaluationOverlay: "calligraphy-evaluation-overlay",
+  evaluationPanel: "calligraphy-evaluation-panel",
+  score: "calligraphy-score",
+  scoreValue: "calligraphy-score-value",
+  evaluationSummary: "calligraphy-evaluation-summary",
+  metricList: "calligraphy-metric-list",
+  metricPrefix: "calligraphy-metric-",
+  recommendation: "calligraphy-recommendation",
+  dismissEvaluationButton: "dismiss-evaluation-button"
+} as const;
+
+export const TEST_CALLIGRAPHY_REQUIRED_METRIC_IDS = [
+  "strokeCount",
+  "strokeOrder",
+  "approximateDirection",
+  "generalSimilarity"
+] as const;
+
+export const TEST_CALLIGRAPHY_SCORE_RANGE = {
+  min: 0,
+  max: 100
+} as const;
+
+export const TEST_CALLIGRAPHY_VISUAL_THRESHOLDS = {
+  canvasMajorityRatio: 0.55,
+  topControlsMaxHeightRatio: 0.25
+} as const;
+
+export const TEST_CALLIGRAPHY_STROKE_PATH = {
+  startRatio: 0.25,
+  endRatio: 0.72,
+  pointerId: 1,
+  pointerType: "touch",
+  pressedButtons: 1,
+  releasedButtons: 0
+} as const;
+
+export const TEST_CALLIGRAPHY_WAIT_TIMEOUTS = {
+  applicationReadyMs: 60_000
+} as const;
+
+export const TEST_CALLIGRAPHY_STROKE_COUNT_PATTERN = /\d+/u;
+
+export const TEST_CALLIGRAPHY_E2E_MESSAGES = {
+  homeVisible: "The calligraphy home screen should be visible before checking the requirement.",
+  groupingSegmentVisible: "The grouping segmented control should be visible on the calligraphy screen.",
+  onlyOneGroupingActive: "Only one calligraphy grouping should be active at the same time.",
+  selectedGroupingActive: "The selected calligraphy grouping should be active in the interface.",
+  selectedGroupingCurrent: "The selected calligraphy grouping should expose the current-page state.",
+  categoryPanelVisible: "The category panel should be visible for the active grouping.",
+  categoriesVisible: "The active grouping should expose visible categories.",
+  categoriesBelongToGrouping: "Visible categories should belong exclusively to the active grouping.",
+  residualCategoryVisible: "The residual category should be visible when unclassified kanji exist.",
+  categoryNavigable: "Every visible calligraphy category should be navigable.",
+  categoryScreenVisible: "The selected calligraphy category screen should be visible.",
+  categoryRouteSelected: "Selecting a category should navigate to that same category.",
+  categoryKanjiVisible: "The selected category should show visible kanji entries.",
+  categoryKanjiSorted: "Visible category kanji should be sorted by ascending stroke count.",
+  categoryKanjiUnique: "Each visible category kanji should have exactly one visual entry.",
+  practiceVisible: "Selecting a category kanji should open a calligraphy practice screen.",
+  practiceRouteSelected: "The practice route should contain the selected kanji.",
+  categoryBackVisible: "The category back control should be visible.",
+  returnedHome: "The category back control should return to the calligraphy home screen.",
+  returnedCategory: "The practice back control should return to the selected category list.",
+  practiceCanvasVisible: "The calligraphy practice canvas should be visible.",
+  strokeVisible: "Drawn calligraphy strokes should be represented on screen.",
+  resetEnabled: "The reset control should be enabled after drawing a stroke.",
+  validateEnabled: "The validate control should be enabled after drawing a stroke.",
+  canvasEmptyAfterReset: "Resetting practice should remove all visible strokes from the canvas.",
+  canvasOperativeAfterReset: "The practice canvas should remain operative after reset.",
+  evaluationOverlayVisible: "Validating a drawn attempt should display evaluation feedback.",
+  scoreVisible: "The evaluation score should be visible.",
+  scoreInRange: "The evaluation score should stay within the permitted range.",
+  summaryVisible: "The evaluation summary should be visible.",
+  metricVisible: "Every evaluation metric required by the contract should be visible.",
+  recommendationVisible: "The evaluation recommendation should be visible.",
+  feedbackOverPractice: "Evaluation feedback should remain superposed over the practice screen.",
+  canvasIsPrimary: "The practice canvas should occupy most of the available practice area.",
+  noTargetVisualReference: "The practice interface should not show a visual reference to the target kanji.",
+  onlyEssentialControls: "Only the essential practice controls should be present in the practice toolbar.",
+  controlsAtTop: "Practice controls should be grouped above the canvas.",
+  controlsCompact: "Practice controls should use a compact portion of the practice area.",
+  noDuplicateEntries: "No duplicated visual kanji entries should be rendered.",
+  listMatchesSelectedCategory: "The visible kanji list should correspond to the selected category.",
+  resultTextReadable: "The visible result metadata should expose a readable stroke count.",
+  strokeCount: "All drawn strokes should remain visible on the canvas.",
+} as const;

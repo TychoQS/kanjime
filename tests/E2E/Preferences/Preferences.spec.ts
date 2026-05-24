@@ -3,7 +3,7 @@ import { getContrast } from "polished";
 
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
 import { WCAG_AAA_CONTRAST_THRESHOLD } from "../../Support/TestData";
-import { TRANSLATIONS } from "../../../src/Shared/I18n";
+import { TRANSLATIONS, SUPPORTED_LOCALES, LANGUAGE_NAMES } from "../../../src/Shared/I18n";
 
 const TEST_KANJI = "日";
 
@@ -75,35 +75,37 @@ test("[R38][E2E] UserPreferenceInterface changes theme without losing functional
 
 import { TEST_SCREENS_I18N } from "../../Support/TestData";
 
-test("[R10][E2E] GlobalProps applies configured language to all screen texts", async ({ page }) => {
-  const app = new E2EApplicationPage(page);
+for (const locale of SUPPORTED_LOCALES) {
+  test(`[R10][E2E] GlobalProps applies configured language to all screen texts [${locale} – ${LANGUAGE_NAMES[locale]}]`, async ({ page }) => {
+    const app = new E2EApplicationPage(page);
 
-  // Requirement: USABILIDAD R10 - GlobalProps
-  // @pre A supported language is configured before startup.
-  const testLang = "es-ES";
-  const es = TRANSLATIONS[testLang];
+    // Requirement: USABILIDAD R10 - GlobalProps
+    // @pre A supported language is configured before startup.
+    const translations = TRANSLATIONS[locale];
 
-  await page.addInitScript(lang => {
-    window.localStorage.setItem("kanjime.preferences", JSON.stringify({ language: lang, theme: "light" }));
-  }, testLang);
+    await page.addInitScript(lang => {
+      window.localStorage.setItem("kanjime.preferences", JSON.stringify({ language: lang, theme: "light" }));
+    }, locale);
 
-  for (const screen of TEST_SCREENS_I18N) {
-    await app.goto(screen.route);
-    await expect(page.locator("html")).toHaveAttribute("lang", testLang);
-    await expect(page.locator("ion-title").filter({ hasText: es[screen.titleKey] })).toBeVisible();
-    for (const testId of screen.checks) {
-      await expect(page.getByTestId(testId)).toBeVisible();
+    for (const screen of TEST_SCREENS_I18N) {
+      await app.goto(screen.route);
+      await expect(page.locator("html")).toHaveAttribute("lang", locale);
+      await expect(page.locator("ion-title").filter({ hasText: translations[screen.titleKey] })).toBeVisible();
+      for (const testId of screen.checks) {
+        await expect(page.getByTestId(testId)).toBeVisible();
+      }
     }
-  }
 
-  // Verify navigation menu
-  await app.openMenu();
-  await expect(page.getByTestId("nav-classification")).toContainText(es.recognition);
-  await expect(page.getByTestId("nav-search")).toContainText(es.search);
-  await expect(page.getByTestId("nav-history")).toContainText(es.history);
-  await expect(page.getByTestId("nav-about")).toContainText(es.about);
-  await app.closeMenu();
-});
+    // @post The interface text is rendered in the configured language.
+    await app.openMenu();
+    await expect(page.getByTestId("nav-classification")).toContainText(translations.recognition);
+    await expect(page.getByTestId("nav-search")).toContainText(translations.search);
+    await expect(page.getByTestId("nav-history")).toContainText(translations.history);
+    await expect(page.getByTestId("nav-about")).toContainText(translations.about);
+    await expect(page.getByTestId("nav-calligraphy")).toContainText(translations.calligraphy);
+    await app.closeMenu();
+  });
+}
 
 for (const theme of ["light", "dark"] as const) {
   test(`[R15][E2E] GlobalProps maintains contrast with ${theme} theme on all screens`, async ({ page }) => {

@@ -79,6 +79,55 @@ async function resolveSourceTarget(sourceDefinition) {
 }
 
 /**
+ * Downloads all files declared by a bundled source.
+ *
+ * @param {Extract<typeof DATA_SOURCE_DEFINITIONS[number], { sourceType: "directBundle" }>} sourceDefinition Bundled source definition.
+ * @returns {Promise<Array<{
+ *   fileId: string;
+ *   downloadUrl: string;
+ *   compressedFileName: string;
+ *   expandedFileName: string;
+ *   rawFilePath: string;
+ *   expandedFilePath: string;
+ *   compressedSha256: string;
+ *   expandedSha256: string;
+ *   compressedSizeBytes: number;
+ *   expandedSizeBytes: number;
+ * }>>}
+ */
+async function downloadBundleFiles(sourceDefinition) {
+  const downloadedFiles = [];
+
+  for (const fileDefinition of sourceDefinition.files) {
+    writeStatus(`  Downloading ${fileDefinition.fileId.toUpperCase()}...`);
+
+    const downloadedSource = await downloadBinary([fileDefinition.url]);
+    const compressedContents = downloadedSource.contents;
+    const expandedContents = expandContents(compressedContents, fileDefinition.compression);
+    const rawFilePath = resolve(PATHS.rawSourcesDirectory, fileDefinition.compressedFileName);
+    const expandedFilePath = resolve(PATHS.expandedSourcesDirectory, fileDefinition.expandedFileName);
+
+    await writeBinaryFile(rawFilePath, compressedContents);
+    await writeBinaryFile(expandedFilePath, expandedContents);
+
+    downloadedFiles.push({
+      fileId: fileDefinition.fileId,
+      downloadUrl: downloadedSource.downloadUrl,
+      compressedFileName: fileDefinition.compressedFileName,
+      expandedFileName: fileDefinition.expandedFileName,
+      rawFilePath,
+      expandedFilePath,
+      compressedSha256: calculateSha256(compressedContents),
+      expandedSha256: calculateSha256(expandedContents),
+      compressedSizeBytes: compressedContents.byteLength,
+      expandedSizeBytes: expandedContents.byteLength
+    });
+  }
+
+  return downloadedFiles;
+}
+
+/**
  * Downloads a remote file.
  *
  * @param {ReadonlyArray<string>} downloadUrls Source URLs ordered by priority.
@@ -140,6 +189,22 @@ const downloadManifestEntries = [];
 
 for (const sourceDefinition of DATA_SOURCE_DEFINITIONS) {
   writeStatus(`Processing ${sourceDefinition.displayName}...`);
+
+  if (sourceDefinition.sourceType === "directBundle") {
+    downloadManifestEntries.push({
+      id: sourceDefinition.id,
+      displayName: sourceDefinition.displayName,
+      homepage: sourceDefinition.homepage,
+      attribution: sourceDefinition.attribution,
+      license: sourceDefinition.license,
+      downloadUrl: sourceDefinition.homepage,
+      downloadedAt: new Date().toISOString(),
+      upstreamVersion: null,
+      files: await downloadBundleFiles(sourceDefinition)
+    });
+
+    continue;
+  }
 
   const target = await resolveSourceTarget(sourceDefinition);
   let downloadedSource = null;

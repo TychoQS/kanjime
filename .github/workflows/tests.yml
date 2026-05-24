@@ -6,7 +6,8 @@ on:
       - main
 
 jobs:
-  test:
+  unit-integration-build:
+    name: unit + integration + build
     runs-on: ubuntu-latest
 
     env:
@@ -23,16 +24,75 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Install data processing system dependencies
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
 
       - name: Prepare database
         run: npm run data:prepare
 
-      - name: Install Playwright system dependencies
-        run: npx playwright install-deps
+      - name: Clean Vite cache
+        run: rm -rf .vite
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+      - name: Run unit tests
+        run: npm run test:unit
 
-      - name: Run all tests
-        run: npm run test:all
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Build application
+        run: npm run build
+
+  e2e:
+    name: e2e (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: unit-integration-build
+
+    env:
+      CI: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: android
+            browser: chromium
+
+          - project: ios
+            browser: webkit
+
+          - project: android-tablet
+            browser: chromium
+
+          - project: ipad
+            browser: webkit
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install data processing system dependencies
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Prepare database
+        run: npm run data:prepare
+
+      - name: Build application
+        run: npm run build
+
+      - name: Install Playwright browser and dependencies
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Run E2E tests for ${{ matrix.project }}
+        run: npm run test:e2e -- --project=${{ matrix.project }}

@@ -23,7 +23,7 @@ describe("NAVIGATION", () => {
    * Condition: All
    */
   it(buildRequirementTitle("NAVIGATION", "Integration", "All", "clears page state while preserving user preferences"), async () => {
-    const clearRecorder = createVoidArgumentRecorder<"classification" | "search" | "history" | "about" | "kanjiEntry">();
+    const clearRecorder = createVoidArgumentRecorder<"classification" | "search" | "history" | "about" | "kanjiEntry" | "calligraphy">();
     const publishRecorder = createVoidArgumentRecorder<{ page: "classification"; mode: "image" }>();
     const languageRecorder = createVoidArgumentRecorder<string>();
     const themeRecorder = createVoidArgumentRecorder<"light" | "dark" | "system">();

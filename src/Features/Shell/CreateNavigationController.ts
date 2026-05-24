@@ -6,7 +6,9 @@ import { createNavigationViewModel } from "./ViewModel/NavigationViewModel";
  * External collaborators consumed by the navigation controller.
  */
 export interface CreateNavigationControllerDependencies {
-  readonly clearPageState: (page: NavigationPage) => Promise<void> | void;
+  readonly clearPageState: {
+    bivarianceHack(page: NavigationPage): Promise<void> | void;
+  }["bivarianceHack"];
   readonly publishInitialRoute: (route: { page: "classification"; mode: "image" }) => Promise<void> | void;
 }
 

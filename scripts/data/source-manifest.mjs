@@ -50,5 +50,50 @@ export const DATA_SOURCE_DEFINITIONS = [
     attribution: "Electrotechnical Laboratory, Japanese Technical Committee for Optical Character Recognition",
     license: "ETL Character Database Terms of Use",
     upstreamVersion: "ETL9B"
+  },
+  {
+    id: "tanosjlpt",
+    displayName: "Tanos JLPT Kanji Lists",
+    sourceType: "directBundle",
+    files: [
+      {
+        fileId: "n1",
+        url: "https://www.tanos.co.uk/jlpt/oldexam/jlpt1/kanji/jlpt_kanji_level_1_base.zip",
+        compressedFileName: "jlpt_kanji_level_1_base.zip",
+        expandedFileName: "jlpt_kanji_level_1_base.zip",
+        compression: "none"
+      },
+      {
+        fileId: "n2",
+        url: "https://www.tanos.co.uk/jlpt/oldexam/jlpt2/kanji/jlpt_kanji_level_2_base.zip",
+        compressedFileName: "jlpt_kanji_level_2_base.zip",
+        expandedFileName: "jlpt_kanji_level_2_base.zip",
+        compression: "none"
+      },
+      {
+        fileId: "n3",
+        url: "https://www.tanos.co.uk/jlpt/jlpt3/kanji/KanjiList.N3.pdf",
+        compressedFileName: "KanjiList.N3.pdf",
+        expandedFileName: "KanjiList.N3.pdf",
+        compression: "none"
+      },
+      {
+        fileId: "n4",
+        url: "https://www.tanos.co.uk/jlpt/jlpt4/kanji/jlpt_kanji_level_4_base.zip",
+        compressedFileName: "jlpt_kanji_level_4_base.zip",
+        expandedFileName: "jlpt_kanji_level_4_base.zip",
+        compression: "none"
+      },
+      {
+        fileId: "n5",
+        url: "https://www.tanos.co.uk/jlpt/jlpt5/kanji/jlpt_kanji_level_5_base.zip",
+        compressedFileName: "jlpt_kanji_level_5_base.zip",
+        expandedFileName: "jlpt_kanji_level_5_base.zip",
+        compression: "none"
+      }
+    ],
+    homepage: "https://www.tanos.co.uk/jlpt/skills/kanji/",
+    attribution: "Jonathan Waller (Tanos)",
+    license: "Creative Commons Attribution (CC BY)"
   }
 ];

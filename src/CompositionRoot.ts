@@ -2,6 +2,17 @@ import packageMetadata from "../package.json";
 
 import { CreateAboutController } from "./Features/About/CreateAboutController";
 import type { AboutInterface } from "./Features/About/Contracts/AboutInterface";
+import { CreateCalligraphyCanvasController } from "./Features/Calligraphy/CreateCalligraphyCanvasController";
+import type { CalligraphyCanvasInterface } from "./Features/Calligraphy/Contracts/CalligraphyCanvasInterface";
+import { CreateCalligraphyController } from "./Features/Calligraphy/CreateCalligraphyController";
+import type { CalligraphyInterface } from "./Features/Calligraphy/Contracts/CalligraphyInterface";
+import { CreateCalligraphyEvaluationController } from "./Features/Calligraphy/CreateCalligraphyEvaluationController";
+import type { CalligraphyEvaluationInterface } from "./Features/Calligraphy/Contracts/CalligraphyEvaluationInterface";
+import { CreateCategoryController } from "./Features/Calligraphy/CreateCategoryController";
+import type { CategoryInterface } from "./Features/Calligraphy/Contracts/CategoryInterface";
+import { CreateKanjiPracticeController } from "./Features/Calligraphy/CreateKanjiPracticeController";
+import type { KanjiPracticeInterface } from "./Features/Calligraphy/Contracts/KanjiPracticeInterface";
+import { evaluateCalligraphyAttempt } from "./Features/Calligraphy/Services/CalligraphyEvaluationService";
 import { CreateCanvasController } from "./Features/Classification/Canvas/CreateCanvasController";
 import type { CanvasInterface } from "./Features/Classification/Canvas/Contracts/CanvasInterface";
 import { CreateImageController } from "./Features/Classification/Image/CreateImageController";
@@ -67,6 +78,11 @@ export interface CompositionRoot {
   readonly displayInferencesController: DisplayInferencesInterface;
   readonly classificationController: ClassificationInterface;
   readonly toggleClassificationModeController: ToggleClassificationModeInterface;
+  readonly calligraphyController: CalligraphyInterface;
+  readonly categoryController: CategoryInterface;
+  readonly calligraphyCanvasController: CalligraphyCanvasInterface;
+  readonly kanjiPracticeController: KanjiPracticeInterface;
+  readonly calligraphyEvaluationController: CalligraphyEvaluationInterface;
   initialize(): Promise<ApplicationPreferences>;
   loadHistoryGroups(): Promise<ReadonlyArray<HistoryGroup>>;
   loadKanjiDetails(character: string, language: string, recordVisit?: boolean): Promise<DetailedKanjiEntry>;
@@ -246,6 +262,40 @@ export function createCompositionRoot(): CompositionRoot {
     }
   });
 
+  const calligraphyController = CreateCalligraphyController({
+    getCategories: () => kanjiRepository.getCachedCalligraphyCategories(),
+    navigateToCategory: async (_categoryId: string) => undefined
+  });
+
+  const categoryController = CreateCategoryController({
+    getKanjiByCategory: categoryId => kanjiRepository.getCalligraphyKanjiByCategory(categoryId),
+    startCalligraphyPractice: async (_character: string) => undefined,
+    returnToCalligraphy: async () => undefined
+  });
+
+  const calligraphyCanvasController = CreateCalligraphyCanvasController({});
+
+  const calligraphyEvaluationController = CreateCalligraphyEvaluationController({
+    evaluateAttempt: attempt => evaluateCalligraphyAttempt({
+      loadReferenceStrokeOrder: async character => {
+        const details = await kanjiRepository.getDetails(character);
+        return details.strokeOrder ?? "";
+      }
+    }, attempt),
+    createFeedback: result => ({
+      score: result.score,
+      summary: result.summary,
+      recommendation: result.recommendation ?? "recommendSimilarity",
+      aspects: result.aspects ?? [],
+      isOverlayVisible: true
+    })
+  });
+
+  const kanjiPracticeController = CreateKanjiPracticeController({
+    navigateBackToCategory: async () => undefined,
+    requestEvaluation: attempt => calligraphyEvaluationController.evaluateAttempt(attempt)
+  });
+
   return {
     kanjiRepository,
     persistence,
@@ -306,6 +356,11 @@ export function createCompositionRoot(): CompositionRoot {
     displayInferencesController,
     classificationController,
     toggleClassificationModeController,
+    calligraphyController,
+    categoryController,
+    calligraphyCanvasController,
+    kanjiPracticeController,
+    calligraphyEvaluationController,
     async initialize(): Promise<ApplicationPreferences> {
       await Promise.all([
         kanjiRepository.initialize(),

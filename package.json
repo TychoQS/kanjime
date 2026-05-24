@@ -13,6 +13,8 @@
     "test:unit": "vitest run tests/Unit",
     "test:integration": "vitest run tests/Integration",
     "test:e2e": "playwright test",
+    "test:iteration-1": "rm -rf .vite && vitest run tests --exclude=tests/Unit/Calligraphy/** && playwright test",
+    "test:iteration-2": "rm -rf .vite && vitest run tests/Unit/Calligraphy",
     "model:export": "python3 ./scripts/model/export-onnx.py",
     "data:download": "node ./scripts/data/download-sources.mjs",
     "data:build": "node ./scripts/data/build-database.mjs",

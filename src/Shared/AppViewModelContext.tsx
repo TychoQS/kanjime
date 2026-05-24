@@ -5,6 +5,10 @@ import { matchPath, useLocation } from "react-router-dom";
 import type { CompositionRoot } from "../CompositionRoot";
 import { useAboutScreenViewModel, type AboutScreenViewModel } from "../Features/About/ViewModel/AboutViewModel";
 import {
+  useCalligraphyScreenViewModel,
+  type CalligraphyScreenViewModel
+} from "../Features/Calligraphy/ViewModel/CalligraphyScreenViewModel";
+import {
   useCanvasInteractionViewModel,
   type CanvasInteractionViewModel
 } from "../Features/Classification/Canvas/ViewModel/CanvasViewModel";
@@ -44,6 +48,7 @@ export interface AppViewModelContextValue {
   readonly kanji: KanjiDetailScreenViewModel;
   readonly classification: ClassificationScreenViewModel;
   readonly canvasInteraction: CanvasInteractionViewModel;
+  readonly calligraphy: CalligraphyScreenViewModel;
 }
 
 const AppViewModelContext = createContext<AppViewModelContextValue | null>(null);
@@ -67,6 +72,7 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
   const isClassificationActive = location.pathname === "/classification";
   const isSearchActive = location.pathname === "/search";
   const isHistoryActive = location.pathname === "/history";
+  const isCalligraphyActive = location.pathname.startsWith("/calligraphy");
 
   const about = useAboutScreenViewModel(props.root.aboutController, language, isReady);
   const search = useSearchScreenViewModel(props.root.searchController, isReady && isSearchActive);
@@ -88,6 +94,14 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
     toggleClassificationModeController: props.root.toggleClassificationModeController,
     canvasInteraction
   }, isReady && isClassificationActive);
+  const calligraphy = useCalligraphyScreenViewModel({
+    calligraphyController: props.root.calligraphyController,
+    categoryController: props.root.categoryController,
+    calligraphyCanvasController: props.root.calligraphyCanvasController,
+    kanjiPracticeController: props.root.kanjiPracticeController,
+    calligraphyEvaluationController: props.root.calligraphyEvaluationController,
+    canvasInteraction
+  }, isReady && isCalligraphyActive);
 
   const contextValue = useMemo<AppViewModelContextValue>(() => ({
     root: props.root,
@@ -97,8 +111,9 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
     history,
     kanji,
     classification,
-    canvasInteraction
-  }), [about, canvasInteraction, classification, history, kanji, preferences, props.root, search]);
+    canvasInteraction,
+    calligraphy
+  }), [about, calligraphy, canvasInteraction, classification, history, kanji, preferences, props.root, search]);
 
   return (
     <AppViewModelContext.Provider value={contextValue}>

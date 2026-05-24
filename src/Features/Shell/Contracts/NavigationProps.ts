@@ -1,3 +1,5 @@
+import type { NavigationPage } from "../../../Shared/DomainTypes";
+
 /**
  * Props contract for the application navigation drawer.
  *
@@ -10,13 +12,13 @@
  */
 export interface NavigationProps {
   readonly isMenuOpen: boolean;
-  readonly currentPage: "classification" | "search" | "history" | "about" | "kanjiEntry";
+  readonly currentPage: NavigationPage;
   readonly availablePages: ReadonlyArray<{
-    id: "classification" | "search" | "history" | "about" | "kanjiEntry";
+    id: NavigationPage;
     label: string;
   }>;
   readonly onCloseRequested: () => void;
   readonly onNavigateRequested: (
-    page: "classification" | "search" | "history" | "about" | "kanjiEntry"
+    page: NavigationPage
   ) => void;
 }

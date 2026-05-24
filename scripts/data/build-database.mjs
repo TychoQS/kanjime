@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import { execFileSync } from "node:child_process";
 import initSqlJs from "sql.js";
 import { XMLParser } from "fast-xml-parser";
 
@@ -341,6 +342,82 @@ function selectReadingExamples(examples, reading) {
 }
 
 /**
+ * Parses JLPT kanji rows from a zipped Tanos base list.
+ *
+ * @param {string} archivePath Absolute path to the downloaded ZIP file.
+ * @returns {ReadonlyArray<string>}
+ *
+ * @post The returned array contains one kanji character per row in the bundled level list.
+ */
+function parseTanosZipLevel(archivePath) {
+  const contents = execFileSync("unzip", ["-p", archivePath], { encoding: "utf8" });
+
+  return contents
+    .split(/\r?\n/u)
+    .map((line) => line.split(",")[0]?.trim() ?? "")
+    .filter((character) => /^\p{Script=Han}$/u.test(character));
+}
+
+/**
+ * Parses JLPT kanji rows from the Tanos N3 PDF list.
+ *
+ * @param {string} pdfPath Absolute path to the downloaded PDF file.
+ * @returns {ReadonlyArray<string>}
+ *
+ * @post The returned array contains every kanji listed in the PDF exactly once.
+ */
+function parseTanosPdfLevel(pdfPath) {
+  const contents = execFileSync("pdftotext", [pdfPath, "-"], { encoding: "utf8" });
+
+  return [...new Set(
+    contents
+      .split(/\r?\n/u)
+      .map((line) => line.trim())
+      .filter((line) => /^\p{Script=Han}$/u.test(line))
+  )];
+}
+
+/**
+ * Builds a character-keyed map of JLPT levels derived from Jonathan Waller's Tanos resources.
+ *
+ * @param {{ readonly files?: ReadonlyArray<{ readonly fileId: string; readonly expandedFilePath: string; readonly rawFilePath: string }> }} jlptSource Download manifest source entry.
+ * @param {ReadonlySet<string>} targetCharacters Characters allowed by the classifier.
+ * @returns {Map<string, string>}
+ */
+function parseTanosJlptOverrides(jlptSource, targetCharacters) {
+  if (!Array.isArray(jlptSource.files) || jlptSource.files.length === 0) {
+    throw new Error("The download manifest does not contain Tanos JLPT files.");
+  }
+
+  const levelParsers = {
+    n1: (filePath) => parseTanosZipLevel(filePath),
+    n2: (filePath) => parseTanosZipLevel(filePath),
+    n3: (filePath) => parseTanosPdfLevel(filePath),
+    n4: (filePath) => parseTanosZipLevel(filePath),
+    n5: (filePath) => parseTanosZipLevel(filePath)
+  };
+  const overrides = new Map();
+
+  for (const file of jlptSource.files) {
+    const parser = levelParsers[file.fileId];
+
+    if (!parser) {
+      continue;
+    }
+
+    const level = file.fileId.toUpperCase();
+
+    for (const character of parser(file.expandedFilePath || file.rawFilePath)) {
+      if (targetCharacters.has(character)) {
+        overrides.set(character, level);
+      }
+    }
+  }
+
+  return overrides;
+}
+
+/**
  * Loads the SQL.js runtime.
  *
  * @returns {Promise<import("sql.js").SqlJsStatic>}
@@ -369,7 +446,7 @@ function runStatement(statement, values) {
  * @returns {Promise<void>}
  */
 async function buildPackagedDatabase() {
-  const downloadedManifest = /** @type {{ generatedAt: string; sources: Array<{ id: string; expandedFilePath: string; downloadUrl: string; attribution: string; homepage: string; license: string; upstreamVersion: string | null; downloadedAt: string; expandedSha256: string }> }} */ (
+  const downloadedManifest = /** @type {{ generatedAt: string; sources: Array<{ id: string; displayName: string; expandedFilePath?: string; rawFilePath?: string; downloadUrl: string; attribution: string; homepage: string; license: string; upstreamVersion: string | null; downloadedAt: string | null; expandedSha256?: string; files?: Array<{ fileId: string; expandedFilePath: string; rawFilePath: string }> }> }} */ (
     await readJsonFile(PATHS.downloadManifestFile)
   );
   const modelClasses = /** @type {string[]} */ (await readJsonFile(PATHS.modelClassesFile));
@@ -378,8 +455,9 @@ async function buildPackagedDatabase() {
   const kanjidicSource = downloadedManifest.sources.find((source) => source.id === "kanjidic2");
   const jmdictSource = downloadedManifest.sources.find((source) => source.id === "jmdict");
   const kanjiVgSource = downloadedManifest.sources.find((source) => source.id === "kanjivg");
+  const tanosJlptSource = downloadedManifest.sources.find((source) => source.id === "tanosjlpt");
 
-  if (!kanjidicSource || !jmdictSource || !kanjiVgSource) {
+  if (!kanjidicSource || !jmdictSource || !kanjiVgSource || !tanosJlptSource) {
     throw new Error("The download manifest does not contain all required sources.");
   }
 
@@ -394,6 +472,7 @@ async function buildPackagedDatabase() {
   const kanjidicEntries = parseKanjidic(kanjidicXml, targetCharacters);
   const jmdictExamples = parseJmdict(jmdictXml, targetCharacters);
   const kanjiVgEntries = parseKanjiVg(kanjiVgXml, targetCharacters);
+  const tanosJlptOverrides = parseTanosJlptOverrides(tanosJlptSource, targetCharacters);
 
   writeStatus("Building SQLite database...");
 
@@ -497,7 +576,7 @@ async function buildPackagedDatabase() {
   for (const source of downloadedManifest.sources) {
     runStatement(insertSourceStatement, [
       source.id,
-      source.id === "kanjidic2" ? "KANJIDIC2" : source.id === "jmdict" ? "JMdict" : source.id === "kanjivg" ? "KanjiVG" : "ETL9B",
+      source.displayName,
       source.homepage,
       source.downloadUrl,
       source.license,
@@ -532,7 +611,7 @@ async function buildPackagedDatabase() {
       JSON.stringify(kanjiVgEntry.components),
       kanjidicEntry.strokeCount,
       kanjiVgEntry.strokeOrderSvg,
-      kanjidicEntry.jlptLevel,
+      tanosJlptOverrides.get(character) ?? kanjidicEntry.jlptLevel,
       kanjidicEntry.joyoLevel
     ]);
 
@@ -585,6 +664,7 @@ async function buildPackagedDatabase() {
     generatedAt: buildTimestamp,
     sources: downloadedManifest.sources.map((source) => ({
       id: source.id,
+      displayName: source.displayName,
       attribution: source.attribution,
       homepage: source.homepage,
       license: source.license,

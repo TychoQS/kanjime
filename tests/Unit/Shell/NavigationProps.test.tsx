@@ -15,6 +15,7 @@ describe("NavigationProps", () => {
       { id: "search" as const, label: "Search" },
       { id: "history" as const, label: "History" },
       { id: "about" as const, label: "About" },
+      { id: "calligraphy" as const, label: "Calligraphy" },
     ],
     onCloseRequested: vi.fn(),
     onNavigateRequested: vi.fn(),

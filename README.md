@@ -15,6 +15,7 @@ This project packages locally processed and transformed data derived from the fo
 - JMdict, provided by the Electronic Dictionary Research and Development Group (EDRDG): https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project
 - KANJIDIC2, provided by the Electronic Dictionary Research and Development Group (EDRDG): https://www.edrdg.org/wiki/index.php/KANJIDIC_Project
 - KanjiVG, provided by the KanjiVG project contributors: https://kanjivg.tagaini.net/
+- Tanos JLPT Kanji Lists, provided by Jonathan Waller (Tanos): https://www.tanos.co.uk/jlpt/skills/kanji/
 
 The application does not redistribute the original source datasets directly.
 Instead, custom scripts are used to process and transform the original data into application-specific formats.

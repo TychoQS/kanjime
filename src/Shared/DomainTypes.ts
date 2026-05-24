@@ -15,7 +15,7 @@ export type ClassificationMode = "image" | "drawing";
 /**
  * Navigation targets available in the application shell.
  */
-export type NavigationPage = "classification" | "search" | "history" | "about" | "kanjiEntry";
+export type NavigationPage = "classification" | "search" | "history" | "about" | "kanjiEntry" | "calligraphy";
 
 /**
  * Persistent history categories defined by the contracts.
@@ -143,4 +143,92 @@ export interface ModelConfiguration {
   readonly inputWidth: number;
   readonly inputHeight: number;
   readonly isLoaded: boolean;
+}
+
+/**
+ * Supported calligraphy category grouping modes.
+ */
+export type CalligraphyGrouping = "jlpt" | "joyo";
+
+/**
+ * Category descriptor for a calligraphy grouping.
+ */
+export interface CalligraphyCategory {
+  readonly id: string;
+  readonly grouping: CalligraphyGrouping;
+  readonly label: string;
+  readonly order: number;
+  readonly isResidual: boolean;
+  readonly kanjiCount: number;
+}
+
+/**
+ * Kanji summary displayed inside a calligraphy category.
+ */
+export interface CalligraphyKanjiSummary {
+  readonly character: string;
+  readonly categoryId: string;
+  readonly grouping: CalligraphyGrouping;
+  readonly strokeCount: number;
+}
+
+/**
+ * Current writing attempt captured during calligraphy practice.
+ */
+export interface CalligraphyAttempt {
+  readonly targetCharacter: string;
+  readonly categoryId: string;
+  readonly strokes: ReadonlyArray<Stroke>;
+  readonly isFinalized: boolean;
+}
+
+/**
+ * Metrics considered by the calligraphy evaluator.
+ */
+export interface CalligraphyEvaluationMetrics {
+  readonly strokeCount: number;
+  readonly strokeOrder: number;
+  readonly approximateDirection: number;
+  readonly generalSimilarity: number;
+}
+
+/**
+ * Per-aspect explainable feedback for a calligraphy attempt.
+ */
+export interface CalligraphyEvaluationAspect {
+  readonly id: keyof CalligraphyEvaluationMetrics;
+  readonly score: number;
+  readonly description: string;
+}
+
+/**
+ * Calculated calligraphy evaluation result.
+ */
+export interface CalligraphyEvaluationResult {
+  readonly targetCharacter: string;
+  readonly score: number;
+  readonly summary: string;
+  readonly recommendation?: string;
+  readonly metrics: CalligraphyEvaluationMetrics;
+  readonly aspects?: ReadonlyArray<CalligraphyEvaluationAspect>;
+}
+
+/**
+ * Visual feedback shown after a calligraphy evaluation.
+ */
+export interface CalligraphyEvaluationFeedback {
+  readonly score: number;
+  readonly summary: string;
+  readonly recommendation?: string;
+  readonly aspects?: ReadonlyArray<CalligraphyEvaluationAspect>;
+  readonly isOverlayVisible: boolean;
+}
+
+/**
+ * Kanji entry displayed inside a selected calligraphy category.
+ */
+export interface CategoryKanjiEntry {
+  readonly character: string;
+  readonly categoryId: string;
+  readonly strokeCount: number;
 }

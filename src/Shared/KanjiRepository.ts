@@ -3,7 +3,14 @@ import { toHiragana, toKatakana } from "wanakana";
 
 import { loadPackagedDatabaseMetadata, openPackagedDatabase } from "./Database/PackagedDatabase";
 import type { PackagedDatabaseMetadata } from "./Database/Contracts/PackagedDatabaseMetadata";
-import type { CharacterSummary, DetailedKanjiEntry, MeaningEntry } from "./DomainTypes";
+import type {
+  CalligraphyCategory,
+  CalligraphyGrouping,
+  CategoryKanjiEntry,
+  CharacterSummary,
+  DetailedKanjiEntry,
+  MeaningEntry
+} from "./DomainTypes";
 import { DatabaseError } from "./AppErrors";
 
 export interface KanjiSummary extends CharacterSummary {
@@ -12,6 +19,7 @@ export interface KanjiSummary extends CharacterSummary {
 
 export interface SourceAttribution {
   readonly id: string;
+  readonly displayName: string;
   readonly attribution: string;
   readonly homepage: string;
   readonly license: string;
@@ -239,6 +247,37 @@ export class KanjiRepository {
     return [...this.summaryCache.values()];
   }
 
+  async getCalligraphyCategories(): Promise<ReadonlyArray<CalligraphyCategory>> {
+    await this.initialize();
+    return this.getCachedCalligraphyCategories();
+  }
+
+  getCachedCalligraphyCategories(): ReadonlyArray<CalligraphyCategory> {
+    const summaries = this.getAllCachedSummaries();
+    return [
+      ...buildCalligraphyCategories("jlpt", summaries),
+      ...buildCalligraphyCategories("joyo", summaries)
+    ];
+  }
+
+  async getCalligraphyKanjiByCategory(categoryId: string): Promise<ReadonlyArray<CategoryKanjiEntry>> {
+    await this.initialize();
+    const parsedCategory = parseCalligraphyCategoryId(categoryId);
+
+    if (parsedCategory === null) {
+      return [];
+    }
+
+    return this.getAllCachedSummaries()
+      .filter(summary => belongsToCalligraphyCategory(summary, parsedCategory.grouping, parsedCategory.label))
+      .map(summary => ({
+        character: summary.character,
+        categoryId,
+        strokeCount: summary.strokeCount
+      }))
+      .sort((left, right) => left.strokeCount - right.strokeCount || left.character.localeCompare(right.character));
+  }
+
   private async preloadSummaries(): Promise<void> {
     const database = this.requireDatabase();
     const rows = readRows(
@@ -435,7 +474,109 @@ function formatJlptLevel(level: string): string {
 }
 
 function formatJoyoLevel(level: string): string {
-  return `Joyo ${level}`;
+  return `Jōyō Grade ${level}`;
+}
+
+function buildCalligraphyCategories(
+  grouping: CalligraphyGrouping,
+  summaries: ReadonlyArray<KanjiSummary>
+): ReadonlyArray<CalligraphyCategory> {
+  const configuredLabels = grouping === "jlpt"
+    ? ["JLPT N5", "JLPT N4", "JLPT N3", "JLPT N2", "JLPT N1"]
+    : [...new Set(
+      summaries.flatMap(summary => summary.levels)
+        .filter(level => level.startsWith("Jōyō Grade "))
+    )].sort(compareJoyoLabels);
+
+  const categories = configuredLabels
+    .filter(label => summaries.some(summary => summary.levels.includes(label)))
+    .map((label, index) => ({
+      id: toCalligraphyCategoryId(grouping, label),
+      grouping,
+      label,
+      order: index + 1,
+      isResidual: false,
+      kanjiCount: summaries.filter(summary => summary.levels.includes(label)).length
+    }));
+
+  const residualCount = summaries.filter(summary => !hasGroupingLevel(summary, grouping)).length;
+
+  if (residualCount === 0) {
+    return categories;
+  }
+
+  return [
+    ...categories,
+    {
+      id: `${grouping}-unclassified`,
+      grouping,
+      label: "Unclassified",
+      order: categories.length + 1,
+      isResidual: true,
+      kanjiCount: residualCount
+    }
+  ];
+}
+
+function belongsToCalligraphyCategory(
+  summary: KanjiSummary,
+  grouping: CalligraphyGrouping,
+  label: string
+): boolean {
+  if (label === "Unclassified") {
+    return !hasGroupingLevel(summary, grouping);
+  }
+
+  return summary.levels.includes(label);
+}
+
+function hasGroupingLevel(summary: KanjiSummary, grouping: CalligraphyGrouping): boolean {
+  const prefix = grouping === "jlpt" ? "JLPT " : "Jōyō Grade ";
+  return summary.levels.some(level => level.startsWith(prefix));
+}
+
+function toCalligraphyCategoryId(grouping: CalligraphyGrouping, label: string): string {
+  if (label === "Unclassified") {
+    return `${grouping}-unclassified`;
+  }
+
+  if (grouping === "jlpt") {
+    return `${grouping}-${label.replace("JLPT ", "").toLowerCase()}`;
+  }
+
+  return `${grouping}-grade-${label.replace("Jōyō Grade ", "").replace("Joyo ", "")}`;
+}
+
+function parseCalligraphyCategoryId(
+  categoryId: string
+): { readonly grouping: CalligraphyGrouping; readonly label: string } | null {
+  const grouping = categoryId.startsWith("jlpt-") ? "jlpt" : categoryId.startsWith("joyo-") ? "joyo" : null;
+
+  if (grouping === null) {
+    return null;
+  }
+
+  const value = categoryId.replace(`${grouping}-`, "");
+
+  if (value === "unclassified") {
+    return { grouping, label: "Unclassified" };
+  }
+
+  return {
+    grouping,
+    label: grouping === "jlpt" ? `JLPT ${value.toUpperCase()}` : `Jōyō Grade ${value.replace("grade-", "")}`
+  };
+}
+
+function compareJoyoLabels(left: string, right: string): number {
+  const leftNumber = Number.parseInt(left.replace("Jōyō Grade ", "").replace("Joyo ", ""), 10);
+  const rightNumber = Number.parseInt(right.replace("Jōyō Grade ", "").replace("Joyo ", ""), 10);
+
+  if (Number.isNaN(leftNumber) || Number.isNaN(rightNumber)) {
+    return left.localeCompare(right);
+  }
+
+  return rightNumber - leftNumber;
 }
 
 function toAttribution(value: unknown): SourceAttribution | null {
@@ -445,6 +586,7 @@ function toAttribution(value: unknown): SourceAttribution | null {
 
   const candidate = value as Record<string, unknown>;
   const id = candidate.id;
+  const displayName = candidate.displayName;
   const attribution = candidate.attribution;
   const homepage = candidate.homepage;
   const license = candidate.license;
@@ -454,6 +596,7 @@ function toAttribution(value: unknown): SourceAttribution | null {
 
   if (
     typeof id !== "string" ||
+    typeof displayName !== "string" ||
     typeof attribution !== "string" ||
     typeof homepage !== "string" ||
     typeof license !== "string" ||
@@ -465,6 +608,7 @@ function toAttribution(value: unknown): SourceAttribution | null {
 
   return {
     id,
+    displayName,
     attribution,
     homepage,
     license,

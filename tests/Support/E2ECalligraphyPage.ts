@@ -178,17 +178,19 @@ export class E2ECalligraphyPage {
     return this.page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.drawingCanvas);
   }
 
-  async drawStroke(): Promise<void> {
+  async drawStroke(index = 0): Promise<void> {
     const box = await this.drawingCanvas().boundingBox();
 
     if (!box) {
       throw new Error("The drawing canvas is not visible.");
     }
 
-    const startX = box.x + box.width * TEST_CALLIGRAPHY_STROKE_PATH.startRatio;
-    const startY = box.y + box.height * TEST_CALLIGRAPHY_STROKE_PATH.startRatio;
-    const endX = box.x + box.width * TEST_CALLIGRAPHY_STROKE_PATH.endRatio;
-    const endY = box.y + box.height * TEST_CALLIGRAPHY_STROKE_PATH.endRatio;
+    const offset = index * 0.05;
+
+    const startX = box.x + box.width * (TEST_CALLIGRAPHY_STROKE_PATH.startRatio + offset);
+    const startY = box.y + box.height * (TEST_CALLIGRAPHY_STROKE_PATH.startRatio + offset);
+    const endX = box.x + box.width * (TEST_CALLIGRAPHY_STROKE_PATH.endRatio + offset);
+    const endY = box.y + box.height * (TEST_CALLIGRAPHY_STROKE_PATH.endRatio + offset);
 
     await this.dispatchDrawingPointerEvent("pointerdown", startX, startY, TEST_CALLIGRAPHY_STROKE_PATH.pressedButtons);
     await this.dispatchDrawingPointerEvent("pointermove", endX, endY, TEST_CALLIGRAPHY_STROKE_PATH.pressedButtons);
@@ -200,6 +202,13 @@ export class E2ECalligraphyPage {
       .getByTestId(TEST_CALLIGRAPHY_TEST_IDS.drawingStrokesView)
       .locator("path")
       .count()) > 0;
+  }
+
+  async getStrokeCount(): Promise<number> {
+    return this.page
+      .getByTestId(TEST_CALLIGRAPHY_TEST_IDS.drawingStrokesView)
+      .locator("path")
+      .count();
   }
 
   private async dispatchDrawingPointerEvent(

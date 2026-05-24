@@ -889,5 +889,6 @@ export const TEST_CALLIGRAPHY_E2E_MESSAGES = {
   controlsCompact: "Practice controls should use a compact portion of the practice area.",
   noDuplicateEntries: "No duplicated visual kanji entries should be rendered.",
   listMatchesSelectedCategory: "The visible kanji list should correspond to the selected category.",
-  resultTextReadable: "The visible result metadata should expose a readable stroke count."
+  resultTextReadable: "The visible result metadata should expose a readable stroke count.",
+  strokeCount: "All drawn strokes should remain visible on the canvas.",
 } as const;

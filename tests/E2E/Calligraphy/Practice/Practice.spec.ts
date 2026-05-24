@@ -44,23 +44,19 @@ test("[R51][E2E] CalligraphyCanvasInterface captures visible strokes in drawing 
   // @pre The user is in an active calligraphy practice.
   await calligraphy.startPracticeFromDefaultCategory();
 
-  // @inv Drawn strokes stay visible in the order made when observable.
-  await calligraphy.drawStroke();
+  // @post - el trazo aparece en pantalla tras dibujarlo
+  await calligraphy.drawStroke(0);
   await expect.poll(
     () => calligraphy.hasVisibleStroke(),
-    {
-      message: TEST_CALLIGRAPHY_E2E_MESSAGES.strokeVisible
-    }
+    { message: TEST_CALLIGRAPHY_E2E_MESSAGES.strokeVisible }
   ).toBe(true);
 
-  // @post New strokes are represented on the digital canvas.
-  await calligraphy.drawStroke();
+  // @inv - los trazos anteriores se mantienen visibles al añadir nuevos
+  await calligraphy.drawStroke(1);
   await expect.poll(
-    () => calligraphy.hasVisibleStroke(),
-    {
-      message: TEST_CALLIGRAPHY_E2E_MESSAGES.strokeVisible
-    }
-  ).toBe(true);
+    () => calligraphy.getStrokeCount(),
+    { message: TEST_CALLIGRAPHY_E2E_MESSAGES.strokeCount }
+  ).toBe(2);
 });
 
 test("[R52][E2E] CalligraphyCanvasInterface resets the current writing attempt", async ({ page }) => {
@@ -81,6 +77,15 @@ test("[R52][E2E] CalligraphyCanvasInterface resets the current writing attempt",
     TEST_CALLIGRAPHY_E2E_MESSAGES.resetEnabled
   ).toBeEnabled();
 
+  // @post Reset removes all strokes from the current attempt.
+  await page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.resetButton).click();
+  await expect.poll(
+    () => calligraphy.hasVisibleStroke(),
+    {
+      message: TEST_CALLIGRAPHY_E2E_MESSAGES.canvasEmptyAfterReset
+    }
+  ).toBe(false);
+
   // @inv The canvas remains operative after reset.
   await page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.resetButton).click();
   await calligraphy.drawStroke();
@@ -90,15 +95,6 @@ test("[R52][E2E] CalligraphyCanvasInterface resets the current writing attempt",
       message: TEST_CALLIGRAPHY_E2E_MESSAGES.canvasOperativeAfterReset
     }
   ).toBe(true);
-
-  // @post Reset removes all strokes from the current attempt.
-  await page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.resetButton).click();
-  await expect.poll(
-    () => calligraphy.hasVisibleStroke(),
-    {
-      message: TEST_CALLIGRAPHY_E2E_MESSAGES.canvasEmptyAfterReset
-    }
-  ).toBe(false);
 });
 
 test("[R53][E2E] KanjiPracticeInterface requests evaluation for a drawn attempt", async ({ page }) => {

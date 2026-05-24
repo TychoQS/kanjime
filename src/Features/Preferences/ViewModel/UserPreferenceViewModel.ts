@@ -4,23 +4,10 @@ import type { ApplicationPreferences, CompositionRoot } from "../../../Compositi
 import type { UserPreferenceInterface } from "../Contracts/UserPreferenceInterface";
 import type { CreateUserPreferenceControllerDependencies } from "../CreateUserPreferenceController";
 import type { ApplicationTheme } from "../../../Shared/DomainTypes";
-import type { SupportedLocale } from "../../../Shared/I18n";
+import { SUPPORTED_LOCALES, type SupportedLocale } from "../../../Shared/I18n";
 import { PreferenceError } from "../../../Shared/AppErrors";
 
-const SUPPORTED_LANGUAGES = new Set([
-  "en-US",
-  "en-GB",
-  "es-ES",
-  "fr-FR",
-  "de-DE",
-  "it-IT",
-  "pt-PT",
-  "zh-CN",
-  "ja-JP",
-  "ko-KR",
-  "ar-EG",
-  "sw-KE"
-]);
+const SUPPORTED_LANGUAGES = new Set<string>(SUPPORTED_LOCALES);
 
 const DEFAULT_PREFERENCES: ApplicationPreferences = {
   language: "en-US",

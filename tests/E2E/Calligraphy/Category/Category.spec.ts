@@ -4,7 +4,10 @@ import { E2ECalligraphyPage } from "../../../Support/E2ECalligraphyPage";
 import {
   TEST_CALLIGRAPHY_CATEGORY_ID,
   TEST_CALLIGRAPHY_E2E_MESSAGES,
+  TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS,
   TEST_CALLIGRAPHY_JLPT_GROUPING,
+  TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES,
+  TEST_CALLIGRAPHY_JOYO_GROUPING,
   TEST_CALLIGRAPHY_TEST_IDS
 } from "../../../Support/TestData";
 
@@ -69,24 +72,36 @@ test("[R47][E2E] CategoryInterface renders one visual entry for each visible kan
   // Requirement: FUNCIONALES R47 - CategoryInterface
   // @pre The user is on the kanji list for a category.
   await calligraphy.gotoHome();
-  await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
-  await calligraphy.openCategory(TEST_CALLIGRAPHY_CATEGORY_ID);
 
   // @inv No kanji has duplicated visible entries.
-  const entries = await calligraphy.visibleKanjiEntries();
-  const uniqueCharacters = new Set(entries.map(entry => entry.character));
-  expect(
-    uniqueCharacters.size,
-    TEST_CALLIGRAPHY_E2E_MESSAGES.noDuplicateEntries
-  ).toBe(entries.length);
-
   // @post Every visible category kanji has a rendered entry.
-  await expect.poll(
-    () => calligraphy.kanjiButtons().count(),
-    {
-      message: TEST_CALLIGRAPHY_E2E_MESSAGES.categoryKanjiVisible
-    }
-  ).toBe(entries.length);
+  await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
+  for (const categoryId of TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS) {
+    await calligraphy.openCategory(categoryId);
+    const entries = await calligraphy.visibleKanjiEntries();
+    const uniqueCharacters = new Set(entries.map(entry => entry.character));
+    expect(uniqueCharacters.size, TEST_CALLIGRAPHY_E2E_MESSAGES.noDuplicateEntries).toBe(entries.length);
+    await expect.poll(
+      () => calligraphy.kanjiButtons().count(),
+      { message: TEST_CALLIGRAPHY_E2E_MESSAGES.categoryKanjiVisible }
+    ).toBe(entries.length);
+    await calligraphy.gotoHome();
+    await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
+  }
+
+  await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
+  for (const grade of TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES) {
+    await calligraphy.openCategory(`joyo-grade-${grade}`);
+    const entries = await calligraphy.visibleKanjiEntries();
+    const uniqueCharacters = new Set(entries.map(entry => entry.character));
+    expect(uniqueCharacters.size, TEST_CALLIGRAPHY_E2E_MESSAGES.noDuplicateEntries).toBe(entries.length);
+    await expect.poll(
+      () => calligraphy.kanjiButtons().count(),
+      { message: TEST_CALLIGRAPHY_E2E_MESSAGES.categoryKanjiVisible }
+    ).toBe(entries.length);
+    await calligraphy.gotoHome();
+    await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
+  }
 });
 
 test("[R48][E2E] CategoryInterface starts practice for the selected kanji", async ({ page }) => {

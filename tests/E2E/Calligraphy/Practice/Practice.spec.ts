@@ -127,37 +127,30 @@ test("[R19][E2E] CalligraphyPracticeProps keeps the canvas as the main visual el
   const calligraphy = new E2ECalligraphyPage(page);
 
   // Requirement: USABILIDAD R19 - CalligraphyPracticeProps
-  // @pre The user starts a calligraphy practice.
+  // @pre
   await calligraphy.startPracticeFromDefaultCategory();
   await expect(
     page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.practiceCanvas),
     TEST_CALLIGRAPHY_E2E_MESSAGES.practiceCanvasVisible
   ).toBeVisible();
 
-  const ratio = await page.evaluate(testIds => {
+  // @post The canvas is the main visible element of the practice interface.
+  const getRatio = () => page.evaluate(testIds => {
     const practice = document.querySelector(`[data-testid="${testIds.practiceScreen}"]`);
     const canvas = document.querySelector(`[data-testid="${testIds.practiceCanvas}"]`);
     const practiceRect = practice?.getBoundingClientRect();
     const canvasRect = canvas?.getBoundingClientRect();
-
-    if (!practiceRect || !canvasRect || practiceRect.height === 0) {
-      return 0;
-    }
-
+    if (!practiceRect || !canvasRect || practiceRect.height === 0) return 0;
     return canvasRect.height / practiceRect.height;
   }, TEST_CALLIGRAPHY_TEST_IDS);
 
-  // @inv The canvas keeps most available practice space.
-  expect(
-    ratio,
-    TEST_CALLIGRAPHY_E2E_MESSAGES.canvasIsPrimary
-  ).toBeGreaterThan(TEST_CALLIGRAPHY_VISUAL_THRESHOLDS.canvasMajorityRatio);
+  const initialRatio = await getRatio();
+  expect(initialRatio, TEST_CALLIGRAPHY_E2E_MESSAGES.canvasIsPrimary).toBeGreaterThan(TEST_CALLIGRAPHY_VISUAL_THRESHOLDS.canvasMajorityRatio);
 
-  // @post The canvas is the main visible element of the practice interface.
-  await expect(
-    page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.practiceCanvas),
-    TEST_CALLIGRAPHY_E2E_MESSAGES.canvasIsPrimary
-  ).toBeVisible();
+  // @inv The canvas keeps most available practice space during the practice.
+  await calligraphy.drawStroke();
+  const ratioAfterStroke = await getRatio();
+  expect(ratioAfterStroke, TEST_CALLIGRAPHY_E2E_MESSAGES.canvasIsPrimary).toBeGreaterThan(TEST_CALLIGRAPHY_VISUAL_THRESHOLDS.canvasMajorityRatio);
 });
 
 test("[R20][E2E] CalligraphyPracticeProps hides visual hints for the target kanji", async ({ page }) => {
@@ -178,10 +171,15 @@ test("[R20][E2E] CalligraphyPracticeProps hides visual hints for the target kanj
   ).toBe(false);
 
   // @post Practice remains visible without target kanji visual references.
-  await expect(
-    page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.practiceCanvas),
-    TEST_CALLIGRAPHY_E2E_MESSAGES.practiceCanvasVisible
-  ).toBeVisible();
+  await calligraphy.drawStroke();
+  const visiblePracticeTextAfterStroke = await page
+    .getByTestId(TEST_CALLIGRAPHY_TEST_IDS.practiceScreen)
+    .first()
+    .textContent();
+  expect(
+    visiblePracticeTextAfterStroke?.includes(selectedCharacter) ?? false,
+    TEST_CALLIGRAPHY_E2E_MESSAGES.noTargetVisualReference
+  ).toBe(false);
 });
 
 test("[R21][E2E] CalligraphyPracticeProps shows only essential practice controls", async ({ page }) => {
@@ -238,13 +236,11 @@ test("[R23][E2E] CalligraphyPracticeProps groups controls at the top of practice
     };
   }, TEST_CALLIGRAPHY_TEST_IDS);
 
-  // @inv Practice controls remain grouped above the canvas.
+  // @post Controls appear in the upper area and use compact space.
   expect(
     layout.controlsTop < layout.canvasTop,
     TEST_CALLIGRAPHY_E2E_MESSAGES.controlsAtTop
   ).toBe(true);
-
-  // @post Controls appear in the upper area and use compact space.
   expect(
     layout.practiceHeight > 0 && layout.controlsHeight / layout.practiceHeight < TEST_CALLIGRAPHY_VISUAL_THRESHOLDS.topControlsMaxHeightRatio,
     TEST_CALLIGRAPHY_E2E_MESSAGES.controlsCompact

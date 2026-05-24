@@ -778,3 +778,116 @@ export const TEST_SCREENS_I18N = [
     checks: ["calligraphy-screen"]
   }
 ] as const;
+
+export const TEST_CALLIGRAPHY_ROUTES = {
+  home: "/calligraphy",
+  category: `/calligraphy/category/${TEST_CALLIGRAPHY_CATEGORY_ID}`,
+  practicePrefix: "/calligraphy/practice/"
+} as const;
+
+export const TEST_CALLIGRAPHY_TEST_IDS = {
+  loadingScreen: "loading-screen-view",
+  screen: "calligraphy-screen",
+  view: "calligraphy-view",
+  groupingSegment: "calligraphy-grouping-segment",
+  groupingJlpt: "calligraphy-grouping-jlpt",
+  groupingJoyo: "calligraphy-grouping-joyo",
+  categoriesPanel: "calligraphy-categories-panel",
+  categoryPrefix: "calligraphy-category-",
+  categoryView: "calligraphy-category-view",
+  categoryBackButton: "calligraphy-category-back-button",
+  kanjiPrefix: "calligraphy-kanji-",
+  practiceScreen: "calligraphy-practice-screen",
+  practiceTopControls: "calligraphy-practice-top-controls",
+  practiceCanvas: "calligraphy-practice-canvas",
+  backButton: "calligraphy-back-button",
+  resetButton: "calligraphy-reset-button",
+  validateButton: "calligraphy-validate-button",
+  drawingCanvas: "drawing-canvas",
+  drawingStrokesView: "drawing-strokes-view",
+  evaluationOverlay: "calligraphy-evaluation-overlay",
+  evaluationPanel: "calligraphy-evaluation-panel",
+  score: "calligraphy-score",
+  scoreValue: "calligraphy-score-value",
+  evaluationSummary: "calligraphy-evaluation-summary",
+  metricList: "calligraphy-metric-list",
+  metricPrefix: "calligraphy-metric-",
+  recommendation: "calligraphy-recommendation",
+  dismissEvaluationButton: "dismiss-evaluation-button"
+} as const;
+
+export const TEST_CALLIGRAPHY_REQUIRED_METRIC_IDS = [
+  "strokeCount",
+  "strokeOrder",
+  "approximateDirection",
+  "generalSimilarity"
+] as const;
+
+export const TEST_CALLIGRAPHY_SCORE_RANGE = {
+  min: 0,
+  max: 100
+} as const;
+
+export const TEST_CALLIGRAPHY_VISUAL_THRESHOLDS = {
+  canvasMajorityRatio: 0.55,
+  topControlsMaxHeightRatio: 0.25
+} as const;
+
+export const TEST_CALLIGRAPHY_STROKE_PATH = {
+  startRatio: 0.25,
+  endRatio: 0.72,
+  pointerId: 1,
+  pointerType: "touch",
+  pressedButtons: 1,
+  releasedButtons: 0
+} as const;
+
+export const TEST_CALLIGRAPHY_WAIT_TIMEOUTS = {
+  applicationReadyMs: 60_000
+} as const;
+
+export const TEST_CALLIGRAPHY_STROKE_COUNT_PATTERN = /\d+/u;
+
+export const TEST_CALLIGRAPHY_E2E_MESSAGES = {
+  homeVisible: "The calligraphy home screen should be visible before checking the requirement.",
+  groupingSegmentVisible: "The grouping segmented control should be visible on the calligraphy screen.",
+  onlyOneGroupingActive: "Only one calligraphy grouping should be active at the same time.",
+  selectedGroupingActive: "The selected calligraphy grouping should be active in the interface.",
+  selectedGroupingCurrent: "The selected calligraphy grouping should expose the current-page state.",
+  categoryPanelVisible: "The category panel should be visible for the active grouping.",
+  categoriesVisible: "The active grouping should expose visible categories.",
+  categoriesBelongToGrouping: "Visible categories should belong exclusively to the active grouping.",
+  residualCategoryVisible: "The residual category should be visible when unclassified kanji exist.",
+  categoryNavigable: "Every visible calligraphy category should be navigable.",
+  categoryScreenVisible: "The selected calligraphy category screen should be visible.",
+  categoryRouteSelected: "Selecting a category should navigate to that same category.",
+  categoryKanjiVisible: "The selected category should show visible kanji entries.",
+  categoryKanjiSorted: "Visible category kanji should be sorted by ascending stroke count.",
+  categoryKanjiUnique: "Each visible category kanji should have exactly one visual entry.",
+  practiceVisible: "Selecting a category kanji should open a calligraphy practice screen.",
+  practiceRouteSelected: "The practice route should contain the selected kanji.",
+  categoryBackVisible: "The category back control should be visible.",
+  returnedHome: "The category back control should return to the calligraphy home screen.",
+  returnedCategory: "The practice back control should return to the selected category list.",
+  practiceCanvasVisible: "The calligraphy practice canvas should be visible.",
+  strokeVisible: "Drawn calligraphy strokes should be represented on screen.",
+  resetEnabled: "The reset control should be enabled after drawing a stroke.",
+  validateEnabled: "The validate control should be enabled after drawing a stroke.",
+  canvasEmptyAfterReset: "Resetting practice should remove all visible strokes from the canvas.",
+  canvasOperativeAfterReset: "The practice canvas should remain operative after reset.",
+  evaluationOverlayVisible: "Validating a drawn attempt should display evaluation feedback.",
+  scoreVisible: "The evaluation score should be visible.",
+  scoreInRange: "The evaluation score should stay within the permitted range.",
+  summaryVisible: "The evaluation summary should be visible.",
+  metricVisible: "Every evaluation metric required by the contract should be visible.",
+  recommendationVisible: "The evaluation recommendation should be visible.",
+  feedbackOverPractice: "Evaluation feedback should remain superposed over the practice screen.",
+  canvasIsPrimary: "The practice canvas should occupy most of the available practice area.",
+  noTargetVisualReference: "The practice interface should not show a visual reference to the target kanji.",
+  onlyEssentialControls: "Only the essential practice controls should be present in the practice toolbar.",
+  controlsAtTop: "Practice controls should be grouped above the canvas.",
+  controlsCompact: "Practice controls should use a compact portion of the practice area.",
+  noDuplicateEntries: "No duplicated visual kanji entries should be rendered.",
+  listMatchesSelectedCategory: "The visible kanji list should correspond to the selected category.",
+  resultTextReadable: "The visible result metadata should expose a readable stroke count."
+} as const;

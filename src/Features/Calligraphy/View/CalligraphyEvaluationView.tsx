@@ -25,23 +25,23 @@ export function CalligraphyEvaluationView(props: CalligraphyEvaluationProps): JS
         data-testid="calligraphy-evaluation-overlay"
         hidden={!props.feedback.isOverlayVisible}
       >
-      <div className="calligraphy-evaluation-panel">
+      <div className="calligraphy-evaluation-panel" data-testid="calligraphy-evaluation-panel">
         <h2>{translate(language, "evaluation")}</h2>
         <p className="calligraphy-score" data-testid="calligraphy-score">
           <span className="calligraphy-score-label">{translate(language, "score")}</span>
-          <strong className="calligraphy-score-value">{props.feedback.score}</strong>
+          <strong className="calligraphy-score-value" data-testid="calligraphy-score-value">{props.feedback.score}</strong>
         </p>
-        <p>{summary}</p>
-        <ul className="calligraphy-metric-list">
+        <p data-testid="calligraphy-evaluation-summary">{summary}</p>
+        <ul className="calligraphy-metric-list" data-testid="calligraphy-metric-list">
           {(props.feedback.aspects ?? []).map(aspect => (
-            <li key={aspect.id}>
+            <li data-testid={`calligraphy-metric-${aspect.id}`} key={aspect.id}>
               <span>{translate(language, METRIC_LABELS[aspect.id])}</span>
               <strong>{Math.round(aspect.score)}</strong>
               <small>{translate(language, aspect.description as TranslationKey)}</small>
             </li>
           ))}
         </ul>
-        <p>
+        <p data-testid="calligraphy-recommendation">
           <strong>{translate(language, "recommendation")}: </strong>
           {translate(language, (props.feedback.recommendation ?? "recommendSimilarity") as TranslationKey)}
         </p>

@@ -87,7 +87,6 @@ test("[R52][E2E] CalligraphyCanvasInterface resets the current writing attempt",
   ).toBe(false);
 
   // @inv The canvas remains operative after reset.
-  await page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.resetButton).click();
   await calligraphy.drawStroke();
   await expect.poll(
     () => calligraphy.hasVisibleStroke(),

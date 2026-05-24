@@ -47,20 +47,16 @@ test("[R46][E2E] CalligraphyInterface opens the selected category list", async (
   const calligraphy = new E2ECalligraphyPage(page);
 
   // Requirement: FUNCIONALES R46 - CalligraphyInterface
-  // @pre The user is on the main calligraphy screen.
+  // @pre
   await calligraphy.gotoHome();
   await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
 
-  // @inv The application does not navigate to a category different from the selected one.
+  // @post The list of kanji belonging to the selected category is shown.
   await calligraphy.openCategory(TEST_CALLIGRAPHY_CATEGORY_ID);
   await expect.poll(
     () => page.evaluate(() => window.location.pathname),
-    {
-      message: TEST_CALLIGRAPHY_E2E_MESSAGES.categoryRouteSelected
-    }
+    { message: TEST_CALLIGRAPHY_E2E_MESSAGES.categoryRouteSelected }
   ).toContain(TEST_CALLIGRAPHY_CATEGORY_ID);
-
-  // @post The list of kanji for that category is shown.
   await expect(
     calligraphy.kanjiButtons().first(),
     TEST_CALLIGRAPHY_E2E_MESSAGES.categoryKanjiVisible

@@ -7,6 +7,7 @@ import {
   TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS,
   TEST_CALLIGRAPHY_JLPT_GROUPING,
   TEST_CALLIGRAPHY_JLPT_RESIDUAL_CATEGORY,
+  TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES,
   TEST_CALLIGRAPHY_JOYO_GROUPING,
   TEST_CALLIGRAPHY_JOYO_RESIDUAL_CATEGORY,
   TEST_CALLIGRAPHY_TEST_IDS
@@ -73,24 +74,51 @@ test("[R43][E2E] CalligraphyInterface shows categories for the active grouping",
 
 test("[R44][E2E] CalligraphyInterface exposes residual categories when needed", async ({ page }) => {
   const calligraphy = new E2ECalligraphyPage(page);
-
   // Requirement: FUNCIONALES R44 - CalligraphyInterface
   // @pre The user is on the main calligraphy screen.
   await calligraphy.gotoHome();
 
   // @inv The residual category remains accessible when unclassified kanji exist.
   await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
+  await calligraphy.openCategory(TEST_CALLIGRAPHY_JLPT_RESIDUAL_CATEGORY.id);
+  await expect(
+    calligraphy.kanjiButtons().first(),
+    TEST_CALLIGRAPHY_E2E_MESSAGES.categoryKanjiVisible
+  ).toBeVisible();
+  await calligraphy.gotoHome();
+
+  await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
+  await calligraphy.openCategory(TEST_CALLIGRAPHY_JOYO_RESIDUAL_CATEGORY.id);
+  await expect(
+    calligraphy.kanjiButtons().first(),
+    TEST_CALLIGRAPHY_E2E_MESSAGES.categoryKanjiVisible
+  ).toBeVisible();
+  await calligraphy.gotoHome();
+
+  // @post A residual category is shown together with the normal categories when applicable.
+  await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
   await expect(
     calligraphy.categoryButton(TEST_CALLIGRAPHY_JLPT_RESIDUAL_CATEGORY.id),
     TEST_CALLIGRAPHY_E2E_MESSAGES.residualCategoryVisible
   ).toBeVisible();
+  for (const categoryId of TEST_CALLIGRAPHY_JLPT_CATEGORY_IDS) {
+    await expect(
+      calligraphy.categoryButton(categoryId),
+      TEST_CALLIGRAPHY_E2E_MESSAGES.categoriesVisible
+    ).toBeVisible();
+  }
 
-  // @post A residual category is shown together with the normal categories when applicable.
   await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JOYO_GROUPING);
   await expect(
     calligraphy.categoryButton(TEST_CALLIGRAPHY_JOYO_RESIDUAL_CATEGORY.id),
     TEST_CALLIGRAPHY_E2E_MESSAGES.residualCategoryVisible
   ).toBeVisible();
+  for (const grade of TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES) {
+    await expect(
+      calligraphy.categoryButton(`joyo-grade-${grade}`),
+      TEST_CALLIGRAPHY_E2E_MESSAGES.categoriesVisible
+    ).toBeVisible();
+  }
 });
 
 test("[R17][E2E] CalligraphyProps keeps the selected grouping visually identified", async ({ page }) => {

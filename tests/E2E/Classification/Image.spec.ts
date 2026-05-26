@@ -40,16 +40,24 @@ test("[R20][E2E] ImageInterface uses crop selection as classification input", as
   await loadImageFromStorage(page);
   await expect(page.getByTestId("image-preview")).toBeVisible();
 
+  await expect(app.visibleResults("ocr-results-panel").first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByTestId("ocr-spinner")).toBeHidden({ timeout: 10_000 });
+  const resultsBefore = await app.visibleResults("ocr-results-panel").first().textContent();
+
   // @inv Only one crop is active and original image remains intact.
   await performCrop(page);
   await expect(page.getByTestId("crop-overlay-view")).toHaveCount(1);
   await expect(page.getByTestId("active-crop-box")).toBeVisible();
   await expect(page.getByTestId("image-preview")).toBeVisible();
 
-  // @post The crop is used as input and results appear in the panel.
-  const results = app.visibleResults("ocr-results-panel");
-  await expect(results.first()).toBeVisible({ timeout: 30_000 });
-  await expect.poll(() => results.count()).toBeGreaterThan(0);
+  // @post The crop triggers a new classification and produces different results.
+  await expect.poll(
+    async () => {
+      const current = await app.visibleResults("ocr-results-panel").first().textContent();
+      return current !== resultsBefore;
+    },
+    { timeout: 30_000, intervals: [500, 1000, 2000] }
+  ).toBe(true);
 });
 
 test("[R21][E2E] ImageInterface sets a selected image as OCR input", async ({ page }) => {

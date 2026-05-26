@@ -56,6 +56,17 @@ describe("OCR-CROP-CLASSIFY", () => {
       "OCR-CROP-CLASSIFY precondition failed: the model runtime must be initialized exactly once before crop classification."
     );
     imageController.setImage(TEST_IMAGE);
+    const fullImagePredictions = await inference.classifyFullImage({
+      sourceId: "full-image",
+      sourceUri: TEST_IMAGE.uri
+    });
+    expect(fullImagePredictions.length).toBeGreaterThan(0,
+      "OCR-CROP-CLASSIFY invariant failed: the full-image classification preceding the crop produced no predictions."
+    );
+    expect(classifierRecorder.calls).toHaveLength(1,
+      "OCR-CROP-CLASSIFY invariant failed: the full-image classification must trigger exactly one request before cropping."
+    );
+
     imageController.setActiveCrop(TEST_CROP);
     expect(imageController.getImageState().crop).toEqual(TEST_CROP,
       "OCR-CROP-CLASSIFY precondition failed: the first valid crop was not preserved as the active input."
@@ -68,6 +79,9 @@ describe("OCR-CROP-CLASSIFY", () => {
       sourceUri: TEST_IMAGE.uri,
       crop: TEST_CROP
     });
+    expect(classifierRecorder.calls).toHaveLength(2,
+      "OCR-CROP-CLASSIFY invariant failed: a crop classification after a full-image inference must still execute."
+    );
     imageController.setActiveCrop(secondCrop);
     const secondPredictions = await inference.classifyCrop({
       sourceId: "crop-source-2",
@@ -77,14 +91,18 @@ describe("OCR-CROP-CLASSIFY", () => {
     expect(imageController.getImageState().crop).toEqual(secondCrop,
       "OCR-CROP-CLASSIFY invariant failed: selecting a second valid crop must replace the previous active crop."
     );
-    expect(classifierRecorder.calls).toHaveLength(2,
-      "OCR-CROP-CLASSIFY invariant failed: each valid crop must trigger exactly one classification request."
+    expect(classifierRecorder.calls).toHaveLength(3,
+      "OCR-CROP-CLASSIFY invariant failed: each valid source (1 full-image + 2 crops) must trigger exactly one classification request."
     );
     expect(classifierRecorder.calls[0]).toEqual(
+      ["full-image", TEST_IMAGE.uri],
+      "OCR-CROP-CLASSIFY invariant failed: the classifier did not receive the expected sourceId/sourceUri for the full-image step."
+    );
+    expect(classifierRecorder.calls[1]).toEqual(
       ["crop-source-1", TEST_IMAGE.uri],
       "OCR-CROP-CLASSIFY invariant failed: the classifier did not receive the expected sourceId/sourceUri for the first crop."
     );
-    expect(classifierRecorder.calls[1]).toEqual(
+    expect(classifierRecorder.calls[2]).toEqual(
       ["crop-source-2", TEST_IMAGE.uri],
       "OCR-CROP-CLASSIFY invariant failed: the classifier did not receive the expected sourceId/sourceUri for the second crop."
     );

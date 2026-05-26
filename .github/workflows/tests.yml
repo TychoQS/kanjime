@@ -95,4 +95,4 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: Run E2E tests for ${{ matrix.project }}
-        run: npm run test:e2e -- --project=${{ matrix.project }}
+        run: npm run test:e2e:mobile -- --project=${{ matrix.project }}

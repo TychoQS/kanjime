@@ -25,5 +25,9 @@ apps/mobile/data/
 apps/mobile/android
 apps/mobile/ios
 apps/mobile/public/assets/database/
+apps/admin/dist
+apps/admin/.vite
+apps/admin/test-results/
+apps/admin/playwright-report/
 
 packages/*/dist

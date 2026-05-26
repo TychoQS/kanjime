@@ -33,7 +33,7 @@ jobs:
         run: npm run data:prepare
 
       - name: Clean Vite cache
-        run: rm -rf .vite
+        run: rm -rf apps/mobile/.vite
 
       - name: Run unit tests
         run: npm run test:unit

@@ -20,8 +20,20 @@ Scope: whole repo.
 ### Technologies
 - Tech Stack: Development will be based on web technologies (React + Capacitor + TypeScript); For state management, useContext will be employed; For navigation, a stack-based navigation using React Router and IonRouterOutlet will be employed; The deep learning models will be executed using ONNX Runtime Web; The UI library to be used will be Ionic React, which is designed to work with Capacitor and adapts natively to iOS and Android. Components will be built using Ionic React as a base. Ionic components will be used for navigation, modals, lists, and any element with native mobile behavior. The logic and structure of the components will remain standard React.
 
+### Monorepo
+- The project must be organized as a monorepo containing the App, the administration panel and the required shared packages.
+
+### App And Admin Separation
+- The App and the administration panel must remain as independent applications within the monorepo, avoiding mixing screens, routes or application-specific logic between them.
+
+### Shared Packages
+- Common logic, types and utilities shared by the App and the administration panel must be placed in shared packages, avoiding duplicated definitions between applications.
+
+### Admin
+- The administration panel must be limited to technical support tasks, such as managing version configuration and consulting errors reported by the App.
+
 ### Code Conventions
-- The naming conventions are: - Components, directories, and files: PascalCase - Functions, variables, and hooks: camelCase - Constants: UPPER_SNAKE_CASE; Regarding formatting, the following rules will be defined in Prettier: - Double quotes for strings - Semicolon at the end of instructions - space indentation These will be defined in the corresponding Prettier file to ensure their follow-up; Regarding syntax, the following rules are established: -The reserved word any cannot be used - Unused variables, functions, components, and others are not allowed - console.log cannot be used in the final code These will be defined in the corresponding ESLint file to ensure their operation; All text generated in an artifact (code, documentation, etc...) must be strictly in English. The only exception is the internationalization files, which will be in the corresponding language to ensure the same; Hard-coded literals should not be used in either the application or the tests. This data should be provided using variables or constants.
+- The naming conventions are: - Components, directories, and files: PascalCase - Functions, variables, and hooks: camelCase - Constants: UPPER_SNAKE_CASE; Regarding formatting, the following rules will be defined in Prettier: - Double quotes for strings - Semicolon at the end of instructions - space indentation These will be defined in the corresponding Prettier file to ensure their follow-up; Regarding syntax, the following rules are established: -The reserved word any cannot be used - Unused variables, functions, components, and others are not allowed - console.log cannot be used in the final code These will be defined in the corresponding ESLint file to ensure their operation; All text generated in an artifact (code, documentation, etc...) must be strictly in English. The only exception is the internationalization files, which will be in the corresponding language to ensure the same; Hard-coded literals should not be used in either the application or the tests. This data should be provided using variables or constants; Code conventions, formatting, typing, documentation and testing rules must apply to the App, the administration panel and the shared packages.
 
 ### Contracts
 - Contracts must be placed in a folder named ‘Contracts’ within the directory of the relevant Feature; Contracts for the same interface must be consolidated into a single file with the same name.
@@ -84,3 +96,6 @@ Scope: whole repo.
 
 ### Feedback
 - The application must always inform the user about ongoing processes (loading, processing, idle states); When no data is available (no results, empty history), the interface should clearly communicate it; Error messages must be clear, non-technical, and help the user understand what happened.
+
+### Admin
+- The administration panel must prioritize a clear and functional structure, organizing technical information into separated sections for versions and errors; The administration panel screens must maintain visual and structural consistency, reusing common patterns for lists, forms, loading states and error messages; The administration panel must avoid features, screens or visual elements that are not related to version configuration or error observability.

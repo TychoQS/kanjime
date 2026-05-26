@@ -191,10 +191,6 @@ export function useClassificationScreenViewModel(
 
     const thisSourceId = currentSourceIdRef.current;
 
-    if (lastImageSourceIdRef.current.length > 0 && sourceId !== lastImageSourceIdRef.current) {
-      return;
-    }
-
     setIsProcessing(true);
     setErrorMessage(null);
 

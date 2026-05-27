@@ -12,7 +12,7 @@ export interface AdminErrorDetailInterface {
    * Requirement IDs: R66.
    *
    * @pre The administrator is listed in the error log, and there is at least one reported error.
-   * @inv The returned detail matches the selected error and does not expose sensitive information.
+   * @inv The returned detail matches the selected error.
    * @post The administrator can see the message, date, application version, and basic context for the error.
    */
   getErrorDetail(errorId: string): Promise<AdminErrorDetail>;

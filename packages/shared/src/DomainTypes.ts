@@ -268,9 +268,66 @@ export interface UpdateAvailabilityState {
 /**
  * User action recorded before an error is captured.
  */
-export interface ApplicationUserAction {
-  readonly label: string;
+/**
+ * User action categories that can be recorded before an application error.
+ *
+ */
+export type ApplicationUserAction =
+    | NavigationUserAction
+    | ClassificationUserAction
+    | SearchUserAction
+    | KanjiUserAction
+    | CalligraphyUserAction
+    | PreferencesUserAction
+    | ErrorUserAction;
+
+interface BaseUserAction {
   readonly occurredAt: string;
+}
+
+export interface NavigationUserAction extends BaseUserAction {
+  readonly type: "navigation:opened";
+  readonly page: NavigationPage;
+}
+
+export interface ClassificationUserAction extends BaseUserAction {
+  readonly type:
+      | "classification:mode-selected"
+      | "classification:image-selected"
+      | "classification:crop-confirmed"
+      | "classification:stroke-completed"
+      | "classification:inference-requested"
+      | "classification:canvas-cleared";
+  readonly mode: ClassificationMode;
+}
+
+export interface SearchUserAction extends BaseUserAction {
+  readonly type: "search:submitted";
+  readonly queryLength: number;
+}
+
+export interface KanjiUserAction extends BaseUserAction {
+  readonly type: "kanji:detail-opened";
+}
+
+export interface CalligraphyUserAction extends BaseUserAction {
+  readonly type:
+      | "calligraphy:grouping-selected"
+      | "calligraphy:category-opened"
+      | "calligraphy:practice-started"
+      | "calligraphy:stroke-completed"
+      | "calligraphy:attempt-reset"
+      | "calligraphy:evaluation-requested";
+  readonly grouping?: CalligraphyGrouping;
+}
+
+export interface PreferencesUserAction extends BaseUserAction {
+  readonly type: "preferences:changed";
+  readonly preference: "language" | "theme";
+}
+
+export interface ErrorUserAction extends BaseUserAction {
+  readonly type: "error:captured";
 }
 
 /**

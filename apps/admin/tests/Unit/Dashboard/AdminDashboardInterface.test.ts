@@ -35,8 +35,8 @@ describe("AdminDashboardInterface", () => {
 
     const summary = await controller.loadTechnicalSummary();
 
-    expect(loadTechnicalSummary.calls).toHaveLength(1);
-    expect(summary).toBeDefined();
+    expect(loadTechnicalSummary.calls, "The dashboard did not request the technical summary exactly once.").toHaveLength(1);
+    expect(summary, "The dashboard did not load a technical summary when opened.").toBeDefined();
   });
 
   /**
@@ -52,9 +52,9 @@ describe("AdminDashboardInterface", () => {
 
     const summary = await controller.loadTechnicalSummary();
 
-    expect(summary.versionConfiguration).toEqual(TECHNICAL_SUMMARY.versionConfiguration);
-    expect(summary.reportedErrorCount).toBe(REPORTED_ERROR_COUNT);
-    expect(summary.latestReportedErrorAt).toBe(CONFIGURATION_DATE);
+    expect(summary.versionConfiguration, "The dashboard does not keep version information in a separated section.").toEqual(TECHNICAL_SUMMARY.versionConfiguration);
+    expect(summary.reportedErrorCount, "The dashboard does not expose the reported error count in the error section.").toBe(REPORTED_ERROR_COUNT);
+    expect(summary.latestReportedErrorAt, "The dashboard does not expose the latest reported error date in the error section.").toBe(CONFIGURATION_DATE);
   });
 
   /**
@@ -70,7 +70,7 @@ describe("AdminDashboardInterface", () => {
 
     const summary = await controller.loadTechnicalSummary();
 
-    expect(summary.latestReportedErrorAt).not.toBeUndefined();
-    expect(summary).toEqual(TECHNICAL_SUMMARY);
+    expect(summary.latestReportedErrorAt, "The dashboard technical summary does not include the latest reported error date.").not.toBeUndefined();
+    expect(summary, "The dashboard does not expose the complete basic technical application summary.").toEqual(TECHNICAL_SUMMARY);
   });
 });

@@ -35,6 +35,7 @@ describe("AdminDashboardInterface", () => {
 
     const summary = await controller.loadTechnicalSummary();
 
+    expect(loadTechnicalSummary.calls).toHaveLength(1);
     expect(summary).toBeDefined();
   });
 
@@ -51,8 +52,9 @@ describe("AdminDashboardInterface", () => {
 
     const summary = await controller.loadTechnicalSummary();
 
-    expect(summary.versionConfiguration.currentVersion).toBe(CURRENT_VERSION);
+    expect(summary.versionConfiguration).toEqual(TECHNICAL_SUMMARY.versionConfiguration);
     expect(summary.reportedErrorCount).toBe(REPORTED_ERROR_COUNT);
+    expect(summary.latestReportedErrorAt).toBe(CONFIGURATION_DATE);
   });
 
   /**
@@ -69,5 +71,6 @@ describe("AdminDashboardInterface", () => {
     const summary = await controller.loadTechnicalSummary();
 
     expect(summary.latestReportedErrorAt).not.toBeUndefined();
+    expect(summary).toEqual(TECHNICAL_SUMMARY);
   });
 });

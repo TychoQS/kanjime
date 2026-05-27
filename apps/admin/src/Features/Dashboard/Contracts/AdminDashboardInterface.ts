@@ -13,9 +13,8 @@ export interface AdminDashboardInterface {
    *
    * Requirement IDs: R62.
    *
-   * @pre The administrator opens the administration panel.
-   * @inv Version and error information remain separated in the returned summary.
-   * @post The returned summary describes the basic technical state of the application.
+   * @pre The administrator access the administration panel.
+   * @post The returned summary describes technical state of the application.
    */
   loadTechnicalSummary(): Promise<AdminTechnicalSummary>;
 }

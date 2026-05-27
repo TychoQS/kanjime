@@ -29,7 +29,6 @@ describe("AdminVersionsInterface", () => {
     });
 
     const summary = await controller.getVersionSummary(VERSION_CONFIGURATION);
-
     expect(summary).toBeDefined();
   });
 
@@ -44,10 +43,8 @@ describe("AdminVersionsInterface", () => {
       readCurrentDate: readCurrentDate.handler
     });
     const sourceConfiguration = { ...VERSION_CONFIGURATION };
-
     await controller.getVersionSummary(sourceConfiguration);
-
-    expect(sourceConfiguration).toEqual(VERSION_CONFIGURATION);
+    expect(sourceConfiguration, "The version summary reading mutated the source version configuration.").toEqual(VERSION_CONFIGURATION);
   });
 
   /**
@@ -63,8 +60,9 @@ describe("AdminVersionsInterface", () => {
 
     const summary = await controller.getVersionSummary(VERSION_CONFIGURATION);
 
-    expect(summary.currentVersion).toBe(CURRENT_VERSION);
-    expect(summary.latestVersion).toBe(LATEST_VERSION);
-    expect(summary.minimumSupportedVersion).toBe(MINIMUM_SUPPORTED_VERSION);
+    expect(summary.currentVersion, "The version summary does not show the current version.").toBe(CURRENT_VERSION);
+    expect(summary.latestVersion, "The version summary does not show the latest available version.").toBe(LATEST_VERSION);
+    expect(summary.minimumSupportedVersion, "The version summary does not show the minimum supported version.").toBe(MINIMUM_SUPPORTED_VERSION);
+    expect(summary.updatedAt, "The version summary does not show the configuration update date.").toBe(CONFIGURATION_DATE);
   });
 });

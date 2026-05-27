@@ -21,7 +21,8 @@ describe("ErrorInterface", () => {
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
 
-    expect(state.isControlled).toBe(true);
+    expect(createUserFacingMessage.calls, "The safe user-facing error message was not requested.").toHaveLength(1);
+    expect(state.isControlled, "The unexpected runtime error was not captured as a controlled error.").toBe(true);
   });
 
   /**
@@ -37,7 +38,8 @@ describe("ErrorInterface", () => {
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
 
-    expect(state.message.length).toBeGreaterThan(0);
+    expect(state.message.trim().length, "The controlled error state leaves the application without a visible message.").toBeGreaterThan(0);
+    expect(state.isControlled, "The error capture did not keep the application in a controlled state.").toBe(true);
   });
 
   /**
@@ -53,6 +55,6 @@ describe("ErrorInterface", () => {
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
 
-    expect(state.message).toBe(SAFE_ERROR_MESSAGE);
+    expect(state.message, "The controlled error interface does not show the safe user-facing message.").toBe(SAFE_ERROR_MESSAGE);
   });
 });

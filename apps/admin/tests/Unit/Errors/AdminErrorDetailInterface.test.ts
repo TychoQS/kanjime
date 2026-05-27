@@ -1,5 +1,6 @@
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createAdminErrorDetailStub } from "../../Support/AdminContractStubs";
+import { CreateAdminErrorDetailController } from "../../../src/Features/Errors/CreateAdminErrorDetailController";
+import { createAdminErrorDetailDependencies } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
 
 const ERROR_IDENTIFIER = "error-report-1";
@@ -15,7 +16,7 @@ describe("AdminErrorDetailInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R66", "Unit", "Precondition", "selects an existing reported error"), async () => {
-    const controller = createAdminErrorDetailStub();
+    const controller = CreateAdminErrorDetailController(createAdminErrorDetailDependencies());
 
     const detail = await controller.getErrorDetail(ERROR_IDENTIFIER);
 
@@ -28,7 +29,7 @@ describe("AdminErrorDetailInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R66", "Unit", "Invariant", "matches selected error and hides sensitive data"), async () => {
-    const controller = createAdminErrorDetailStub();
+    const controller = CreateAdminErrorDetailController(createAdminErrorDetailDependencies());
 
     const detail = await controller.getErrorDetail(ERROR_IDENTIFIER);
 
@@ -42,7 +43,7 @@ describe("AdminErrorDetailInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R66", "Unit", "Postcondition", "shows selected error detail with basic context"), async () => {
-    const controller = createAdminErrorDetailStub();
+    const controller = CreateAdminErrorDetailController(createAdminErrorDetailDependencies());
 
     const detail = await controller.getErrorDetail(ERROR_IDENTIFIER);
 

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { CreateErrorObservabilityController } from "../../../src/Features/Error/CreateErrorObservabilityController";
+import { createErrorObservabilityDependencies } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createErrorObservabilityStub } from "../../Support/VersionAndErrorContractStubs";
 import type { ApplicationErrorContext } from "@kanjime/shared";
 
 const APPLICATION_VERSION = "1.0.0";
@@ -36,7 +37,7 @@ describe("ErrorObservabilityInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R61", "Unit", "Precondition", "creates report from captured error context"), async () => {
-    const controller = createErrorObservabilityStub();
+    const controller = CreateErrorObservabilityController(createErrorObservabilityDependencies());
 
     const report = await controller.createErrorReport(UNEXPECTED_ERROR, ERROR_CONTEXT);
 
@@ -49,7 +50,7 @@ describe("ErrorObservabilityInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R61", "Unit", "Invariant", "includes required traceability fields"), async () => {
-    const controller = createErrorObservabilityStub();
+    const controller = CreateErrorObservabilityController(createErrorObservabilityDependencies());
 
     const report = await controller.createErrorReport(UNEXPECTED_ERROR, ERROR_CONTEXT);
 
@@ -65,7 +66,7 @@ describe("ErrorObservabilityInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R61", "Unit", "Postcondition", "prepares report for observability registration"), async () => {
-    const controller = createErrorObservabilityStub();
+    const controller = CreateErrorObservabilityController(createErrorObservabilityDependencies());
 
     const report = await controller.createErrorReport(UNEXPECTED_ERROR, ERROR_CONTEXT);
 

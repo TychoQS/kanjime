@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { CreateUpdateAvailableController } from "../../../src/Features/Version/CreateUpdateAvailableController";
+import { createUpdateAvailableDependencies } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createUpdateAvailableStub } from "../../Support/VersionAndErrorContractStubs";
 import type { VersionCheckResult } from "@kanjime/shared";
 
 const CURRENT_VERSION = "1.0.0";
@@ -29,7 +30,7 @@ describe("UpdateAvailableInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R58", "Unit", "Precondition", "receives an older compatible running version"), () => {
-    const controller = createUpdateAvailableStub();
+    const controller = CreateUpdateAvailableController(createUpdateAvailableDependencies());
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
 
@@ -43,7 +44,7 @@ describe("UpdateAvailableInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R58", "Unit", "Invariant", "keeps the application usable when update exists"), () => {
-    const controller = createUpdateAvailableStub();
+    const controller = CreateUpdateAvailableController(createUpdateAvailableDependencies());
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
 
@@ -56,7 +57,7 @@ describe("UpdateAvailableInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R58", "Unit", "Postcondition", "activates an informational update notice"), () => {
-    const controller = createUpdateAvailableStub();
+    const controller = CreateUpdateAvailableController(createUpdateAvailableDependencies());
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
 

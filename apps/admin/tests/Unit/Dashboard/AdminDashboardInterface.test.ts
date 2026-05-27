@@ -1,4 +1,5 @@
-import { createAdminDashboardStub } from "../../Support/AdminContractStubs";
+import { CreateAdminDashboardController } from "../../../src/Features/Dashboard/CreateAdminDashboardController";
+import { createAdminDashboardDependencies } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 import { describe, expect, it } from "vitest";
 
@@ -12,7 +13,7 @@ describe("AdminDashboardInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R62", "Unit", "Precondition", "loads dashboard when administrator opens panel"), async () => {
-    const controller = createAdminDashboardStub();
+    const controller = CreateAdminDashboardController(createAdminDashboardDependencies());
 
     const summary = await controller.loadTechnicalSummary();
 
@@ -25,7 +26,7 @@ describe("AdminDashboardInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R62", "Unit", "Invariant", "separates version and error dashboard sections"), async () => {
-    const controller = createAdminDashboardStub();
+    const controller = CreateAdminDashboardController(createAdminDashboardDependencies());
 
     const summary = await controller.loadTechnicalSummary();
 
@@ -39,7 +40,7 @@ describe("AdminDashboardInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R62", "Unit", "Postcondition", "shows basic technical application summary"), async () => {
-    const controller = createAdminDashboardStub();
+    const controller = CreateAdminDashboardController(createAdminDashboardDependencies());
 
     const summary = await controller.loadTechnicalSummary();
 

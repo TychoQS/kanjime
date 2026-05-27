@@ -1,5 +1,6 @@
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createAdminVersionsStub } from "../../Support/AdminContractStubs";
+import { CreateAdminVersionsController } from "../../../src/Features/Versions/CreateAdminVersionsController";
+import { createAdminVersionsDependencies } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
 import type { VersionConfiguration } from "@kanjime/shared";
 
@@ -22,7 +23,7 @@ describe("AdminVersionsInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R63", "Unit", "Precondition", "receives available version configuration"), async () => {
-    const controller = createAdminVersionsStub();
+    const controller = CreateAdminVersionsController(createAdminVersionsDependencies());
 
     const summary = await controller.getVersionSummary(VERSION_CONFIGURATION);
 
@@ -35,7 +36,7 @@ describe("AdminVersionsInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R63", "Unit", "Invariant", "does not mutate version configuration while reading"), async () => {
-    const controller = createAdminVersionsStub();
+    const controller = CreateAdminVersionsController(createAdminVersionsDependencies());
     const sourceConfiguration = { ...VERSION_CONFIGURATION };
 
     await controller.getVersionSummary(sourceConfiguration);
@@ -49,7 +50,7 @@ describe("AdminVersionsInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R63", "Unit", "Postcondition", "shows current latest and minimum supported versions"), async () => {
-    const controller = createAdminVersionsStub();
+    const controller = CreateAdminVersionsController(createAdminVersionsDependencies());
 
     const summary = await controller.getVersionSummary(VERSION_CONFIGURATION);
 

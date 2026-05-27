@@ -1,6 +1,7 @@
 import type { AdminErrorsProps } from "../../../src/Features/Errors/Contracts/AdminErrorsProps";
+import { CreateAdminErrorsController } from "../../../src/Features/Errors/CreateAdminErrorsController";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createAdminErrorsStub } from "../../Support/AdminContractStubs";
+import { createAdminErrorsDependencies } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
 
 const CONTEXT_SUMMARY = "Recognition screen";
@@ -13,7 +14,7 @@ describe("AdminErrorsProps", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R28", "Unit", "Precondition", "renders error list with reported errors"), async () => {
-    const controller = createAdminErrorsStub();
+    const controller = CreateAdminErrorsController(createAdminErrorsDependencies());
 
     const errors = await controller.listReportedErrors();
 
@@ -26,7 +27,7 @@ describe("AdminErrorsProps", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R28", "Unit", "Invariant", "lists errors without exposing sensitive user information"), async () => {
-    const controller = createAdminErrorsStub();
+    const controller = CreateAdminErrorsController(createAdminErrorsDependencies());
 
     const errors = await controller.listReportedErrors();
     const props: AdminErrorsProps = {
@@ -45,7 +46,7 @@ describe("AdminErrorsProps", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R28", "Unit", "Postcondition", "shows enough basic information to identify each error"), async () => {
-    const controller = createAdminErrorsStub();
+    const controller = CreateAdminErrorsController(createAdminErrorsDependencies());
 
     const errors = await controller.listReportedErrors();
 

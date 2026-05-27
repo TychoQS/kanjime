@@ -1,6 +1,7 @@
 import type { AdminErrorDetailProps } from "../../../src/Features/Errors/Contracts/AdminErrorDetailProps";
+import { CreateAdminErrorDetailController } from "../../../src/Features/Errors/CreateAdminErrorDetailController";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createAdminErrorDetailStub } from "../../Support/AdminContractStubs";
+import { createAdminErrorDetailDependencies } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
 
 const ERROR_IDENTIFIER = "error-report-1";
@@ -16,7 +17,7 @@ describe("AdminErrorDetailProps", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R66", "Unit", "Precondition", "renders selected reported error detail"), async () => {
-    const controller = createAdminErrorDetailStub();
+    const controller = CreateAdminErrorDetailController(createAdminErrorDetailDependencies());
 
     const detail = await controller.getErrorDetail(ERROR_IDENTIFIER);
 
@@ -29,7 +30,7 @@ describe("AdminErrorDetailProps", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R66", "Unit", "Invariant", "hides sensitive data in selected error detail props"), async () => {
-    const controller = createAdminErrorDetailStub();
+    const controller = CreateAdminErrorDetailController(createAdminErrorDetailDependencies());
 
     const detail = await controller.getErrorDetail(ERROR_IDENTIFIER);
     const props: AdminErrorDetailProps = {
@@ -48,7 +49,7 @@ describe("AdminErrorDetailProps", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R66", "Unit", "Postcondition", "shows selected error message date version and context"), async () => {
-    const controller = createAdminErrorDetailStub();
+    const controller = CreateAdminErrorDetailController(createAdminErrorDetailDependencies());
 
     const detail = await controller.getErrorDetail(ERROR_IDENTIFIER);
     const props: AdminErrorDetailProps = {

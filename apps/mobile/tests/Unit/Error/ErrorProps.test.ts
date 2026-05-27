@@ -1,8 +1,9 @@
 import type { ErrorProps } from "../../../src/Features/Error/Contracts/ErrorProps";
 import { describe, expect, it } from "vitest";
 
+import { CreateErrorController } from "../../../src/Features/Error/CreateErrorController";
+import { createErrorDependencies } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createErrorStub } from "../../Support/VersionAndErrorContractStubs";
 
 const SAFE_ERROR_MESSAGE = "An unexpected error has occurred. You can continue using the application.";
 const UNEXPECTED_ERROR = new Error("Unexpected rendering failure");
@@ -14,7 +15,7 @@ describe("ErrorProps", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R25", "Unit", "Precondition", "renders controlled error interface after unexpected failure"), async () => {
-    const controller = createErrorStub();
+    const controller = CreateErrorController(createErrorDependencies());
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
 
@@ -27,7 +28,7 @@ describe("ErrorProps", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R25", "Unit", "Invariant", "does not show stack traces or internal details"), async () => {
-    const controller = createErrorStub();
+    const controller = CreateErrorController(createErrorDependencies());
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
     const props: ErrorProps = {
@@ -47,7 +48,7 @@ describe("ErrorProps", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R25", "Unit", "Postcondition", "shows a clear non-technical error message"), async () => {
-    const controller = createErrorStub();
+    const controller = CreateErrorController(createErrorDependencies());
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
 

@@ -1,5 +1,6 @@
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createAdminVersionFormStub } from "../../Support/AdminContractStubs";
+import { CreateAdminVersionFormController } from "../../../src/Features/Versions/CreateAdminVersionFormController";
+import { createAdminVersionFormDependencies } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
 import type { VersionConfiguration } from "@kanjime/shared";
 
@@ -23,7 +24,7 @@ describe("AdminVersionFormInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R64", "Unit", "Precondition", "accepts valid version configuration from form"), async () => {
-    const controller = createAdminVersionFormStub();
+    const controller = CreateAdminVersionFormController(createAdminVersionFormDependencies());
 
     const savedConfiguration = await controller.saveVersionConfiguration(VERSION_CONFIGURATION);
 
@@ -36,7 +37,7 @@ describe("AdminVersionFormInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R64", "Unit", "Invariant", "rejects invalid version format before saving"), () => {
-    const controller = createAdminVersionFormStub();
+    const controller = CreateAdminVersionFormController(createAdminVersionFormDependencies());
     const invalidConfiguration: VersionConfiguration = {
       ...VERSION_CONFIGURATION,
       latestVersion: INVALID_VERSION
@@ -53,7 +54,7 @@ describe("AdminVersionFormInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R64", "Unit", "Postcondition", "saves valid version configuration for application use"), async () => {
-    const controller = createAdminVersionFormStub();
+    const controller = CreateAdminVersionFormController(createAdminVersionFormDependencies());
 
     const savedConfiguration = await controller.saveVersionConfiguration(VERSION_CONFIGURATION);
 

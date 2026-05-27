@@ -1,6 +1,7 @@
 import type { AdminVersionsProps } from "../../../src/Features/Versions/Contracts/AdminVersionsProps";
+import { CreateAdminVersionsController } from "../../../src/Features/Versions/CreateAdminVersionsController";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createAdminVersionsStub } from "../../Support/AdminContractStubs";
+import { createAdminVersionsDependencies } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
 import type { VersionConfiguration } from "@kanjime/shared";
 
@@ -23,7 +24,7 @@ describe("AdminVersionsProps", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R26", "Unit", "Precondition", "renders versions screen with valid configuration"), async () => {
-    const controller = createAdminVersionsStub();
+    const controller = CreateAdminVersionsController(createAdminVersionsDependencies());
 
     const summary = await controller.getVersionSummary(VERSION_CONFIGURATION);
 
@@ -36,7 +37,7 @@ describe("AdminVersionsProps", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R26", "Unit", "Invariant", "differentiates version values and configuration date"), async () => {
-    const controller = createAdminVersionsStub();
+    const controller = CreateAdminVersionsController(createAdminVersionsDependencies());
 
     const summary = await controller.getVersionSummary(VERSION_CONFIGURATION);
     const props: AdminVersionsProps = {
@@ -56,7 +57,7 @@ describe("AdminVersionsProps", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R26", "Unit", "Postcondition", "presents version state clearly for administrator"), async () => {
-    const controller = createAdminVersionsStub();
+    const controller = CreateAdminVersionsController(createAdminVersionsDependencies());
 
     const summary = await controller.getVersionSummary(VERSION_CONFIGURATION);
 

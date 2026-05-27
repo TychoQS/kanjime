@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { CreateVersionCheckController } from "../../../src/Features/Version/CreateVersionCheckController";
+import { createVersionCheckDependencies } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createVersionCheckStub } from "../../Support/VersionAndErrorContractStubs";
 
 const CURRENT_VERSION = "1.0.0";
 const LATEST_VERSION = "1.1.0";
@@ -14,7 +15,7 @@ describe("VersionCheckInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R57", "Unit", "Precondition", "skips version check when current version is missing"), async () => {
-    const controller = createVersionCheckStub();
+    const controller = CreateVersionCheckController(createVersionCheckDependencies());
 
     const result = await controller.checkCurrentVersion(null);
 
@@ -27,7 +28,7 @@ describe("VersionCheckInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R57", "Unit", "Invariant", "does not block startup during version check"), async () => {
-    const controller = createVersionCheckStub();
+    const controller = CreateVersionCheckController(createVersionCheckDependencies());
     const startupState = { isAccessible: true };
 
     await controller.checkCurrentVersion(CURRENT_VERSION);
@@ -41,7 +42,7 @@ describe("VersionCheckInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R57", "Unit", "Postcondition", "reports whether an update is available"), async () => {
-    const controller = createVersionCheckStub();
+    const controller = CreateVersionCheckController(createVersionCheckDependencies());
 
     const result = await controller.checkCurrentVersion(CURRENT_VERSION);
 
@@ -55,7 +56,7 @@ describe("VersionCheckInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R59", "Unit", "Precondition", "handles failed remote version configuration loading"), async () => {
-    const controller = createVersionCheckStub();
+    const controller = CreateVersionCheckController(createVersionCheckDependencies());
 
     const result = await controller.recoverWithLastKnownConfiguration();
 
@@ -68,7 +69,7 @@ describe("VersionCheckInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R59", "Unit", "Invariant", "does not throw uncontrolled startup error on connection failure"), async () => {
-    const controller = createVersionCheckStub();
+    const controller = CreateVersionCheckController(createVersionCheckDependencies());
 
     const result = await controller.recoverWithLastKnownConfiguration();
 
@@ -81,7 +82,7 @@ describe("VersionCheckInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R59", "Unit", "Postcondition", "uses the last known version configuration"), async () => {
-    const controller = createVersionCheckStub();
+    const controller = CreateVersionCheckController(createVersionCheckDependencies());
 
     const result = await controller.recoverWithLastKnownConfiguration();
 

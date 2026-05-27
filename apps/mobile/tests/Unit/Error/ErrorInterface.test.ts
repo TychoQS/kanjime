@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { CreateErrorController } from "../../../src/Features/Error/CreateErrorController";
+import { createErrorDependencies } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createErrorStub } from "../../Support/VersionAndErrorContractStubs";
 
 const SAFE_ERROR_MESSAGE = "An unexpected error has occurred. You can continue using the application.";
 const UNEXPECTED_ERROR = new Error("Unexpected rendering failure");
@@ -13,7 +14,7 @@ describe("ErrorInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R60", "Unit", "Precondition", "captures a thrown runtime error"), async () => {
-    const controller = createErrorStub();
+    const controller = CreateErrorController(createErrorDependencies());
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
 
@@ -26,7 +27,7 @@ describe("ErrorInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R60", "Unit", "Invariant", "does not leave the application in an empty state"), async () => {
-    const controller = createErrorStub();
+    const controller = CreateErrorController(createErrorDependencies());
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
 
@@ -39,7 +40,7 @@ describe("ErrorInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R60", "Unit", "Postcondition", "returns controlled error interface state"), async () => {
-    const controller = createErrorStub();
+    const controller = CreateErrorController(createErrorDependencies());
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
 

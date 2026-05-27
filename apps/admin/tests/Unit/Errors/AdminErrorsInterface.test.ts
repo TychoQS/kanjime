@@ -1,5 +1,6 @@
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createAdminErrorsStub } from "../../Support/AdminContractStubs";
+import { CreateAdminErrorsController } from "../../../src/Features/Errors/CreateAdminErrorsController";
+import { createAdminErrorsDependencies } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
 
 const ERROR_IDENTIFIER = "error-report-1";
@@ -15,7 +16,7 @@ describe("AdminErrorsInterface", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R65", "Unit", "Precondition", "receives reported application errors"), async () => {
-    const controller = createAdminErrorsStub();
+    const controller = CreateAdminErrorsController(createAdminErrorsDependencies());
 
     const errors = await controller.listReportedErrors();
 
@@ -28,7 +29,7 @@ describe("AdminErrorsInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R65", "Unit", "Invariant", "omits sensitive user information from error list"), async () => {
-    const controller = createAdminErrorsStub();
+    const controller = CreateAdminErrorsController(createAdminErrorsDependencies());
 
     const errors = await controller.listReportedErrors();
 
@@ -41,7 +42,7 @@ describe("AdminErrorsInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R65", "Unit", "Postcondition", "shows reported errors with basic analysis information"), async () => {
-    const controller = createAdminErrorsStub();
+    const controller = CreateAdminErrorsController(createAdminErrorsDependencies());
 
     const errors = await controller.listReportedErrors();
 

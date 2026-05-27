@@ -1,6 +1,7 @@
 import type { AdminVersionFormProps } from "../../../src/Features/Versions/Contracts/AdminVersionFormProps";
+import { CreateAdminVersionFormController } from "../../../src/Features/Versions/CreateAdminVersionFormController";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createAdminVersionFormStub } from "../../Support/AdminContractStubs";
+import { createAdminVersionFormDependencies } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
 import type { VersionConfiguration } from "@kanjime/shared";
 
@@ -25,7 +26,7 @@ describe("AdminVersionFormProps", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R27", "Unit", "Precondition", "receives invalid version format in form"), () => {
-    const controller = createAdminVersionFormStub();
+    const controller = CreateAdminVersionFormController(createAdminVersionFormDependencies());
     const invalidConfiguration: VersionConfiguration = {
       ...VERSION_CONFIGURATION,
       latestVersion: INVALID_VERSION
@@ -42,7 +43,7 @@ describe("AdminVersionFormProps", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R27", "Unit", "Invariant", "does not allow saving invalid version configuration"), () => {
-    const controller = createAdminVersionFormStub();
+    const controller = CreateAdminVersionFormController(createAdminVersionFormDependencies());
     const invalidConfiguration: VersionConfiguration = {
       ...VERSION_CONFIGURATION,
       latestVersion: INVALID_VERSION
@@ -66,7 +67,7 @@ describe("AdminVersionFormProps", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R27", "Unit", "Postcondition", "shows clear validation message for invalid format"), () => {
-    const controller = createAdminVersionFormStub();
+    const controller = CreateAdminVersionFormController(createAdminVersionFormDependencies());
     const invalidConfiguration: VersionConfiguration = {
       ...VERSION_CONFIGURATION,
       latestVersion: INVALID_VERSION

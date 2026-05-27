@@ -1,3 +1,9 @@
+import type { CreateErrorControllerDependencies } from "../../src/Features/Error/CreateErrorController";
+import type { CreateErrorObservabilityControllerDependencies } from "../../src/Features/Error/CreateErrorObservabilityController";
+import type { CreateUpdateAvailableControllerDependencies } from "../../src/Features/Version/CreateUpdateAvailableController";
+import type { CreateVersionCheckControllerDependencies } from "../../src/Features/Version/CreateVersionCheckController";
+import type { VersionConfiguration } from "@kanjime/shared";
+
 /**
  * Recorder for async functions without arguments.
  */
@@ -111,6 +117,71 @@ export function createVoidTupleRecorder<TArguments extends unknown[]>(): VoidTup
     calls,
     async handler(...arguments_: TArguments): Promise<void> {
       calls.push(arguments_);
+    }
+  };
+}
+
+const CURRENT_VERSION = "1.0.0";
+const LATEST_VERSION = "1.1.0";
+const MINIMUM_SUPPORTED_VERSION = "0.9.0";
+const CONFIGURATION_DATE = "2026-05-27T00:00:00.000Z";
+const UPDATE_MESSAGE = "A new version is available. You can continue using the application.";
+const SAFE_ERROR_MESSAGE = "An unexpected error has occurred. You can continue using the application.";
+const REPORT_ID = "error-report-1";
+
+const VERSION_CONFIGURATION: VersionConfiguration = {
+  currentVersion: CURRENT_VERSION,
+  latestVersion: LATEST_VERSION,
+  minimumSupportedVersion: MINIMUM_SUPPORTED_VERSION,
+  updatedAt: CONFIGURATION_DATE
+};
+
+/**
+ * Creates mocked dependencies for version check controller tests.
+ */
+export function createVersionCheckDependencies(): CreateVersionCheckControllerDependencies {
+  return {
+    async loadVersionConfiguration(): Promise<VersionConfiguration> {
+      return VERSION_CONFIGURATION;
+    },
+    async loadLastKnownVersionConfiguration(): Promise<VersionConfiguration> {
+      return VERSION_CONFIGURATION;
+    }
+  };
+}
+
+/**
+ * Creates mocked dependencies for update availability controller tests.
+ */
+export function createUpdateAvailableDependencies(): CreateUpdateAvailableControllerDependencies {
+  return {
+    createUpdateMessage(): string {
+      return UPDATE_MESSAGE;
+    }
+  };
+}
+
+/**
+ * Creates mocked dependencies for controlled error controller tests.
+ */
+export function createErrorDependencies(): CreateErrorControllerDependencies {
+  return {
+    createUserFacingMessage(): string {
+      return SAFE_ERROR_MESSAGE;
+    }
+  };
+}
+
+/**
+ * Creates mocked dependencies for error observability controller tests.
+ */
+export function createErrorObservabilityDependencies(): CreateErrorObservabilityControllerDependencies {
+  return {
+    createReportId(): string {
+      return REPORT_ID;
+    },
+    readCurrentDate(): string {
+      return CONFIGURATION_DATE;
     }
   };
 }

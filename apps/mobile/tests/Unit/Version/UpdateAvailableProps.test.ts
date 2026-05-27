@@ -1,8 +1,9 @@
 import type { UpdateAvailableProps } from "../../../src/Features/Version/Contracts/UpdateAvailableProps";
 import { describe, expect, it } from "vitest";
 
+import { CreateUpdateAvailableController } from "../../../src/Features/Version/CreateUpdateAvailableController";
+import { createUpdateAvailableDependencies } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import { createUpdateAvailableStub } from "../../Support/VersionAndErrorContractStubs";
 import type { VersionCheckResult } from "@kanjime/shared";
 
 const CURRENT_VERSION = "1.0.0";
@@ -31,7 +32,7 @@ describe("UpdateAvailableProps", () => {
    * Condition: Precondition
    */
   it(buildRequirementTitle("R24", "Unit", "Precondition", "renders update notice when newer version exists"), () => {
-    const controller = createUpdateAvailableStub();
+    const controller = CreateUpdateAvailableController(createUpdateAvailableDependencies());
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
 
@@ -44,7 +45,7 @@ describe("UpdateAvailableProps", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R24", "Unit", "Invariant", "shows non-technical non-blocking update message"), () => {
-    const controller = createUpdateAvailableStub();
+    const controller = CreateUpdateAvailableController(createUpdateAvailableDependencies());
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
     const props: UpdateAvailableProps = {
@@ -66,7 +67,7 @@ describe("UpdateAvailableProps", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R24", "Unit", "Postcondition", "communicates update availability clearly"), () => {
-    const controller = createUpdateAvailableStub();
+    const controller = CreateUpdateAvailableController(createUpdateAvailableDependencies());
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
 

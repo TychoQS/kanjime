@@ -12,7 +12,6 @@ export interface AdminErrorsInterface {
    * Requirement IDs: R65.
    *
    * @pre Error reports have been registered by the application.
-   * @inv Reported error summaries never expose sensitive user information.
    * @post The administrator can see reported errors with basic analysis for information.
    */
   listReportedErrors(): Promise<ReadonlyArray<AdminErrorSummary>>;

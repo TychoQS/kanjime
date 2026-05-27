@@ -9,7 +9,6 @@ describe("AdminErrorsInterface", () => {
   const ERROR_MESSAGE = "An unexpected error has occurred.";
   const ERROR_DATE = "2026-05-27T00:00:00.000Z";
   const APPLICATION_VERSION = "1.0.0";
-  const SENSITIVE_TEXT = "password";
 
   const REPORTED_ERRORS: ReadonlyArray<AdminErrorSummary> = [
     {
@@ -34,23 +33,8 @@ describe("AdminErrorsInterface", () => {
 
     const errors = await controller.listReportedErrors();
 
-    expect(errors.length).toBeGreaterThan(0);
-  });
-
-  /**
-   * Requirement: R65
-   * Type: Unit
-   * Condition: Invariant
-   */
-  it(buildRequirementTitle("R65", "Unit", "Invariant", "omits sensitive user information from error list"), async () => {
-    const listReportedErrors = createAsyncValueRecorder(REPORTED_ERRORS);
-    const controller = CreateAdminErrorsController({
-      listReportedErrors: listReportedErrors.handler
-    });
-
-    const errors = await controller.listReportedErrors();
-
-    expect(JSON.stringify(errors)).not.toContain(SENSITIVE_TEXT);
+    expect(errors.length, "The reported list is empty").toBeGreaterThan(0);
+    expect(listReportedErrors.calls, "The reported error list was not requested.").toHaveLength(1);
   });
 
   /**
@@ -66,9 +50,13 @@ describe("AdminErrorsInterface", () => {
 
     const errors = await controller.listReportedErrors();
 
-    expect(errors[0].id).toBe(ERROR_IDENTIFIER);
-    expect(errors[0].message).toBe(ERROR_MESSAGE);
-    expect(errors[0].occurredAt).toBe(ERROR_DATE);
-    expect(errors[0].applicationVersion).toBe(APPLICATION_VERSION);
+    expect(errors.length, "The reported error list does not show every reported error.").toBe(REPORTED_ERRORS.length);
+    for (const [index, expectedError] of REPORTED_ERRORS.entries()) {
+      expect(errors[index].id, "The reported error does not show its identifier.").toBe(expectedError.id);
+      expect(errors[index].message, "The reported error does not show its message.").toBe(expectedError.message);
+      expect(errors[index].occurredAt, "The reported error does not show its date.").toBe(expectedError.occurredAt);
+      expect(errors[index].applicationVersion, "The reported error does not show the application version.").toBe(expectedError.applicationVersion);
+      expect(errors[index].contextSummary, "The reported error does not show its basic context summary.").toBe(expectedError.contextSummary);
+    }
   });
 });

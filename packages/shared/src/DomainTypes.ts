@@ -232,3 +232,119 @@ export interface CategoryKanjiEntry {
   readonly categoryId: string;
   readonly strokeCount: number;
 }
+
+/**
+ * Version configuration shared by the mobile application and the administration panel.
+ */
+export interface VersionConfiguration {
+  readonly currentVersion: string;
+  readonly latestVersion: string;
+  readonly minimumSupportedVersion: string;
+  readonly updatedAt: string;
+}
+
+/**
+ * Result produced by the startup version check.
+ */
+export interface VersionCheckResult {
+  readonly configuration: VersionConfiguration | null;
+  readonly isCurrentVersionDefined: boolean;
+  readonly isUpdateAvailable: boolean;
+  readonly isSupported: boolean;
+  readonly usedLastKnownConfiguration: boolean;
+}
+
+/**
+ * Non-blocking update notice state exposed to the mobile interface.
+ */
+export interface UpdateAvailabilityState {
+  readonly isVisible: boolean;
+  readonly currentVersion: string;
+  readonly latestVersion: string;
+  readonly message: string;
+  readonly canContinueUsingApplication: boolean;
+}
+
+/**
+ * User action recorded before an error is captured.
+ */
+export interface ApplicationUserAction {
+  readonly label: string;
+  readonly occurredAt: string;
+}
+
+/**
+ * Basic execution context included in captured error reports.
+ */
+export interface ApplicationErrorContext {
+  readonly applicationVersion: string;
+  readonly webEngine: string;
+  readonly webEngineVersion: string;
+  readonly lastActions: ReadonlyArray<ApplicationUserAction>;
+}
+
+/**
+ * Structured report generated when a controlled error is captured.
+ */
+export interface ApplicationErrorReport {
+  readonly id: string;
+  readonly message: string;
+  readonly occurredAt: string;
+  readonly applicationVersion: string;
+  readonly webEngine: string;
+  readonly webEngineVersion: string;
+  readonly lastActions: ReadonlyArray<ApplicationUserAction>;
+  readonly isReadyForObservability: boolean;
+}
+
+/**
+ * Technical summary displayed in the administration dashboard.
+ */
+export interface AdminTechnicalSummary {
+  readonly versionConfiguration: VersionConfiguration;
+  readonly reportedErrorCount: number;
+  readonly latestReportedErrorAt: string | null;
+}
+
+/**
+ * Version state displayed by the administration panel.
+ */
+export interface AdminVersionSummary {
+  readonly currentVersion: string;
+  readonly latestVersion: string;
+  readonly minimumSupportedVersion: string;
+  readonly updatedAt: string;
+}
+
+/**
+ * Editable version form state displayed by the administration panel.
+ */
+export interface AdminVersionFormState {
+  readonly currentVersion: string;
+  readonly latestVersion: string;
+  readonly minimumSupportedVersion: string;
+  readonly validationMessage: string | null;
+  readonly canSave: boolean;
+}
+
+/**
+ * Error row displayed in the administration error list.
+ */
+export interface AdminErrorSummary {
+  readonly id: string;
+  readonly message: string;
+  readonly occurredAt: string;
+  readonly applicationVersion: string;
+  readonly contextSummary: string;
+}
+
+/**
+ * Error detail displayed by the administration panel.
+ */
+export interface AdminErrorDetail {
+  readonly id: string;
+  readonly message: string;
+  readonly occurredAt: string;
+  readonly applicationVersion: string;
+  readonly context: ApplicationErrorContext;
+}

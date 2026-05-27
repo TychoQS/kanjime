@@ -11,6 +11,12 @@
       "sourceType": "github",
       "computedHash": "2e2f4d88795630cdf2096f82ea50506d6db9958034d3827a7a4d0730ec922386"
     },
+    "caveman": {
+      "source": "juliusbrussee/caveman",
+      "sourceType": "github",
+      "skillPath": "skills/caveman/SKILL.md",
+      "computedHash": "dfbf85749fd474feeb0bbe60c779795ecd5dbec0083299b56e68916bc3ddd8c9"
+    },
     "e2e-testing-patterns": {
       "source": "wshobson/agents",
       "sourceType": "github",

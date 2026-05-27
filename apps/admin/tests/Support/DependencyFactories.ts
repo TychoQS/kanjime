@@ -1,114 +1,70 @@
-import type { CreateAdminDashboardControllerDependencies } from "../../src/Features/Dashboard/CreateAdminDashboardController";
-import type { CreateAdminErrorDetailControllerDependencies } from "../../src/Features/Errors/CreateAdminErrorDetailController";
-import type { CreateAdminErrorsControllerDependencies } from "../../src/Features/Errors/CreateAdminErrorsController";
-import type { CreateAdminVersionFormControllerDependencies } from "../../src/Features/Versions/CreateAdminVersionFormController";
-import type { CreateAdminVersionsControllerDependencies } from "../../src/Features/Versions/CreateAdminVersionsController";
-import type {
-  AdminErrorDetail,
-  AdminErrorSummary,
-  AdminTechnicalSummary,
-  VersionConfiguration
-} from "@kanjime/shared";
-
-const CURRENT_VERSION = "1.0.0";
-const LATEST_VERSION = "1.1.0";
-const MINIMUM_SUPPORTED_VERSION = "0.9.0";
-const CONFIGURATION_DATE = "2026-05-27T00:00:00.000Z";
-const REPORTED_ERROR_ID = "reported-error-1";
-const REPORTED_ERROR_MESSAGE = "An unexpected error has occurred.";
-const CONTEXT_SUMMARY = "Recognition screen";
-const REPORTED_ERROR_COUNT = 3;
-
-const VERSION_CONFIGURATION: VersionConfiguration = {
-  currentVersion: CURRENT_VERSION,
-  latestVersion: LATEST_VERSION,
-  minimumSupportedVersion: MINIMUM_SUPPORTED_VERSION,
-  updatedAt: CONFIGURATION_DATE
-};
-
-const REPORTED_ERROR: AdminErrorSummary = {
-  id: REPORTED_ERROR_ID,
-  message: REPORTED_ERROR_MESSAGE,
-  occurredAt: CONFIGURATION_DATE,
-  applicationVersion: CURRENT_VERSION,
-  contextSummary: CONTEXT_SUMMARY
-};
-
-const ERROR_DETAIL: AdminErrorDetail = {
-  id: REPORTED_ERROR_ID,
-  message: REPORTED_ERROR_MESSAGE,
-  occurredAt: CONFIGURATION_DATE,
-  applicationVersion: CURRENT_VERSION,
-  context: {
-    applicationVersion: CURRENT_VERSION,
-    webEngine: "Chromium",
-    webEngineVersion: "124",
-    lastActions: [
-      {
-        label: CONTEXT_SUMMARY,
-        occurredAt: CONFIGURATION_DATE
-      }
-    ]
-  }
-};
+/**
+ * Recorder for sync functions without arguments.
+ */
+export interface ValueRecorder<TResult> {
+  readonly calls: number[];
+  readonly handler: () => TResult;
+}
 
 /**
- * Creates mocked dependencies for admin dashboard controller tests.
+ * Creates a recorder for sync functions without arguments.
  */
-export function createAdminDashboardDependencies(): CreateAdminDashboardControllerDependencies {
-  const summary: AdminTechnicalSummary = {
-    versionConfiguration: VERSION_CONFIGURATION,
-    reportedErrorCount: REPORTED_ERROR_COUNT,
-    latestReportedErrorAt: CONFIGURATION_DATE
-  };
+export function createValueRecorder<TResult>(result: TResult): ValueRecorder<TResult> {
+  const calls: number[] = [];
 
   return {
-    async loadTechnicalSummary(): Promise<AdminTechnicalSummary> {
-      return summary;
+    calls,
+    handler(): TResult {
+      calls.push(calls.length + 1);
+      return result;
     }
   };
 }
 
 /**
- * Creates mocked dependencies for admin versions controller tests.
+ * Recorder for async functions without arguments.
  */
-export function createAdminVersionsDependencies(): CreateAdminVersionsControllerDependencies {
+export interface AsyncValueRecorder<TResult> {
+  readonly calls: number[];
+  readonly handler: () => Promise<TResult>;
+}
+
+/**
+ * Creates a recorder for async functions without arguments.
+ */
+export function createAsyncValueRecorder<TResult>(result: TResult): AsyncValueRecorder<TResult> {
+  const calls: number[] = [];
+
   return {
-    readCurrentDate(): string {
-      return CONFIGURATION_DATE;
+    calls,
+    async handler(): Promise<TResult> {
+      calls.push(calls.length + 1);
+      return result;
     }
   };
 }
 
 /**
- * Creates mocked dependencies for admin version form controller tests.
+ * Recorder for async functions receiving a single argument.
  */
-export function createAdminVersionFormDependencies(): CreateAdminVersionFormControllerDependencies {
-  return {
-    async saveVersionConfiguration(configuration: VersionConfiguration): Promise<VersionConfiguration> {
-      return configuration;
-    }
-  };
+export interface AsyncArgumentRecorder<TArgument, TResult> {
+  readonly calls: TArgument[];
+  readonly handler: (argument: TArgument) => Promise<TResult>;
 }
 
 /**
- * Creates mocked dependencies for admin errors controller tests.
+ * Creates a recorder for async functions receiving a single argument.
  */
-export function createAdminErrorsDependencies(): CreateAdminErrorsControllerDependencies {
-  return {
-    async listReportedErrors(): Promise<ReadonlyArray<AdminErrorSummary>> {
-      return [REPORTED_ERROR];
-    }
-  };
-}
+export function createAsyncArgumentRecorder<TArgument, TResult>(
+  result: TResult
+): AsyncArgumentRecorder<TArgument, TResult> {
+  const calls: TArgument[] = [];
 
-/**
- * Creates mocked dependencies for admin error detail controller tests.
- */
-export function createAdminErrorDetailDependencies(): CreateAdminErrorDetailControllerDependencies {
   return {
-    async getErrorDetail(_errorId: string): Promise<AdminErrorDetail> {
-      return ERROR_DETAIL;
+    calls,
+    async handler(argument: TArgument): Promise<TResult> {
+      calls.push(argument);
+      return result;
     }
   };
 }

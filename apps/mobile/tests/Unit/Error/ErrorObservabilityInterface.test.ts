@@ -1,43 +1,48 @@
 import { describe, expect, it } from "vitest";
 
 import { CreateErrorObservabilityController } from "../../../src/Features/Error/CreateErrorObservabilityController";
-import { createErrorObservabilityDependencies } from "../../Support/DependencyFactories";
+import { createValueRecorder } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 import type { ApplicationErrorContext } from "@kanjime/shared";
 
-const APPLICATION_VERSION = "1.0.0";
-const WEB_ENGINE = "Chromium";
-const WEB_ENGINE_VERSION = "124.0.0";
-const ERROR_IDENTIFIER = "error-report-1";
-const ERROR_DATE = "2026-05-27T00:00:00.000Z";
-const ACTION_LABEL = "Opened recognition screen";
-const SENSITIVE_ACTION_LABEL = "Typed password value";
-const UNEXPECTED_ERROR = new Error("Unexpected rendering failure");
-
-const ERROR_CONTEXT: ApplicationErrorContext = {
-  applicationVersion: APPLICATION_VERSION,
-  webEngine: WEB_ENGINE,
-  webEngineVersion: WEB_ENGINE_VERSION,
-  lastActions: [
-    {
-      label: ACTION_LABEL,
-      occurredAt: ERROR_DATE
-    },
-    {
-      label: SENSITIVE_ACTION_LABEL,
-      occurredAt: ERROR_DATE
-    }
-  ]
-};
-
 describe("ErrorObservabilityInterface", () => {
+  const APPLICATION_VERSION = "1.0.0";
+  const WEB_ENGINE = "Chromium";
+  const WEB_ENGINE_VERSION = "124.0.0";
+  const ERROR_IDENTIFIER = "error-report-1";
+  const ERROR_DATE = "2026-05-27T00:00:00.000Z";
+  const ACTION_LABEL = "Opened recognition screen";
+  const SENSITIVE_ACTION_LABEL = "Typed password value";
+  const UNEXPECTED_ERROR = new Error("Unexpected rendering failure");
+
+  const ERROR_CONTEXT: ApplicationErrorContext = {
+    applicationVersion: APPLICATION_VERSION,
+    webEngine: WEB_ENGINE,
+    webEngineVersion: WEB_ENGINE_VERSION,
+    lastActions: [
+      {
+        label: ACTION_LABEL,
+        occurredAt: ERROR_DATE
+      },
+      {
+        label: SENSITIVE_ACTION_LABEL,
+        occurredAt: ERROR_DATE
+      }
+    ]
+  };
+
   /**
    * Requirement: R61
    * Type: Unit
    * Condition: Precondition
    */
   it(buildRequirementTitle("R61", "Unit", "Precondition", "creates report from captured error context"), async () => {
-    const controller = CreateErrorObservabilityController(createErrorObservabilityDependencies());
+    const createReportId = createValueRecorder(ERROR_IDENTIFIER);
+    const readCurrentDate = createValueRecorder(ERROR_DATE);
+    const controller = CreateErrorObservabilityController({
+      createReportId: createReportId.handler,
+      readCurrentDate: readCurrentDate.handler
+    });
 
     const report = await controller.createErrorReport(UNEXPECTED_ERROR, ERROR_CONTEXT);
 
@@ -50,7 +55,12 @@ describe("ErrorObservabilityInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R61", "Unit", "Invariant", "includes required traceability fields"), async () => {
-    const controller = CreateErrorObservabilityController(createErrorObservabilityDependencies());
+    const createReportId = createValueRecorder(ERROR_IDENTIFIER);
+    const readCurrentDate = createValueRecorder(ERROR_DATE);
+    const controller = CreateErrorObservabilityController({
+      createReportId: createReportId.handler,
+      readCurrentDate: readCurrentDate.handler
+    });
 
     const report = await controller.createErrorReport(UNEXPECTED_ERROR, ERROR_CONTEXT);
 
@@ -66,7 +76,12 @@ describe("ErrorObservabilityInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R61", "Unit", "Postcondition", "prepares report for observability registration"), async () => {
-    const controller = CreateErrorObservabilityController(createErrorObservabilityDependencies());
+    const createReportId = createValueRecorder(ERROR_IDENTIFIER);
+    const readCurrentDate = createValueRecorder(ERROR_DATE);
+    const controller = CreateErrorObservabilityController({
+      createReportId: createReportId.handler,
+      readCurrentDate: readCurrentDate.handler
+    });
 
     const report = await controller.createErrorReport(UNEXPECTED_ERROR, ERROR_CONTEXT);
 

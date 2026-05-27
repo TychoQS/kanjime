@@ -1,22 +1,36 @@
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 import { CreateAdminErrorsController } from "../../../src/Features/Errors/CreateAdminErrorsController";
-import { createAdminErrorsDependencies } from "../../Support/DependencyFactories";
+import { createAsyncValueRecorder } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
-
-const ERROR_IDENTIFIER = "error-report-1";
-const ERROR_MESSAGE = "An unexpected error has occurred.";
-const ERROR_DATE = "2026-05-27T00:00:00.000Z";
-const APPLICATION_VERSION = "1.0.0";
-const SENSITIVE_TEXT = "password";
+import type { AdminErrorSummary } from "@kanjime/shared";
 
 describe("AdminErrorsInterface", () => {
+  const ERROR_IDENTIFIER = "error-report-1";
+  const ERROR_MESSAGE = "An unexpected error has occurred.";
+  const ERROR_DATE = "2026-05-27T00:00:00.000Z";
+  const APPLICATION_VERSION = "1.0.0";
+  const SENSITIVE_TEXT = "password";
+
+  const REPORTED_ERRORS: ReadonlyArray<AdminErrorSummary> = [
+    {
+      id: ERROR_IDENTIFIER,
+      message: ERROR_MESSAGE,
+      occurredAt: ERROR_DATE,
+      applicationVersion: APPLICATION_VERSION,
+      contextSummary: "Recognition screen"
+    }
+  ];
+
   /**
    * Requirement: R65
    * Type: Unit
    * Condition: Precondition
    */
   it(buildRequirementTitle("R65", "Unit", "Precondition", "receives reported application errors"), async () => {
-    const controller = CreateAdminErrorsController(createAdminErrorsDependencies());
+    const listReportedErrors = createAsyncValueRecorder(REPORTED_ERRORS);
+    const controller = CreateAdminErrorsController({
+      listReportedErrors: listReportedErrors.handler
+    });
 
     const errors = await controller.listReportedErrors();
 
@@ -29,7 +43,10 @@ describe("AdminErrorsInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R65", "Unit", "Invariant", "omits sensitive user information from error list"), async () => {
-    const controller = CreateAdminErrorsController(createAdminErrorsDependencies());
+    const listReportedErrors = createAsyncValueRecorder(REPORTED_ERRORS);
+    const controller = CreateAdminErrorsController({
+      listReportedErrors: listReportedErrors.handler
+    });
 
     const errors = await controller.listReportedErrors();
 
@@ -42,7 +59,10 @@ describe("AdminErrorsInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R65", "Unit", "Postcondition", "shows reported errors with basic analysis information"), async () => {
-    const controller = CreateAdminErrorsController(createAdminErrorsDependencies());
+    const listReportedErrors = createAsyncValueRecorder(REPORTED_ERRORS);
+    const controller = CreateAdminErrorsController({
+      listReportedErrors: listReportedErrors.handler
+    });
 
     const errors = await controller.listReportedErrors();
 

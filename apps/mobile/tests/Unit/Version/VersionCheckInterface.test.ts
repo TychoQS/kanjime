@@ -33,26 +33,27 @@ describe("VersionCheckInterface", () => {
 
     const result = await controller.checkCurrentVersion(null);
 
-    expect(result.isCurrentVersionDefined).toBe(false);
+    expect(loadVersionConfiguration.calls, "The remote version configuration should not be loaded when the current version is missing.").toHaveLength(0);
+    expect(result.isCurrentVersionDefined, "The version check did not detect that the current version is missing.").toBe(false);
   });
 
   /**
    * Requirement: R57
    * Type: Unit
-   * Condition: Invariant
+   * Condition: Precondition
    */
-  it(buildRequirementTitle("R57", "Unit", "Invariant", "does not block startup during version check"), async () => {
+  it(buildRequirementTitle("R57", "Unit", "Precondition", "runs version check when current version is defined"), async () => {
     const loadVersionConfiguration = createAsyncValueRecorder(VERSION_CONFIGURATION);
     const loadLastKnownVersionConfiguration = createAsyncValueRecorder(VERSION_CONFIGURATION);
     const controller = CreateVersionCheckController({
       loadVersionConfiguration: loadVersionConfiguration.handler,
       loadLastKnownVersionConfiguration: loadLastKnownVersionConfiguration.handler
     });
-    const startupState = { isAccessible: true };
 
-    await controller.checkCurrentVersion(CURRENT_VERSION);
+    const result = await controller.checkCurrentVersion(CURRENT_VERSION);
 
-    expect(startupState.isAccessible).toBe(true);
+    expect(loadVersionConfiguration.calls, "The remote version configuration was not loaded when the current version was defined.").toHaveLength(1);
+    expect(result.isCurrentVersionDefined, "The version check did not detect the defined current version.").toBe(true);
   });
 
   /**
@@ -70,8 +71,10 @@ describe("VersionCheckInterface", () => {
 
     const result = await controller.checkCurrentVersion(CURRENT_VERSION);
 
-    expect(result.isUpdateAvailable).toBe(true);
-    expect(result.configuration?.latestVersion).toBe(LATEST_VERSION);
+    expect(result.isUpdateAvailable, "The version check did not report the available update.").toBe(true);
+    expect(result.configuration?.currentVersion, "The version check result does not include the current version.").toBe(CURRENT_VERSION);
+    expect(result.configuration?.latestVersion, "The version check result does not include the latest available version.").toBe(LATEST_VERSION);
+    expect(result.configuration?.minimumSupportedVersion, "The version check result does not include the minimum supported version.").toBe(MINIMUM_SUPPORTED_VERSION);
   });
 
   /**
@@ -89,7 +92,8 @@ describe("VersionCheckInterface", () => {
 
     const result = await controller.recoverWithLastKnownConfiguration();
 
-    expect(result.configuration).not.toBeNull();
+    expect(loadLastKnownVersionConfiguration.calls, "The last known version configuration was not requested after the remote version configuration failed.").toHaveLength(1);
+    expect(result.configuration, "The recovery did not provide any last known version configuration.").not.toBeNull();
   });
 
   /**
@@ -107,7 +111,8 @@ describe("VersionCheckInterface", () => {
 
     const result = await controller.recoverWithLastKnownConfiguration();
 
-    expect(result.isSupported).toBe(true);
+    expect(result.usedLastKnownConfiguration, "The recovery path did not use the last known version configuration.").toBe(true);
+    expect(result.isSupported, "The connection failure left the application in an unsupported startup state.").toBe(true);
   });
 
   /**
@@ -125,7 +130,7 @@ describe("VersionCheckInterface", () => {
 
     const result = await controller.recoverWithLastKnownConfiguration();
 
-    expect(result.usedLastKnownConfiguration).toBe(true);
-    expect(result.configuration?.minimumSupportedVersion).toBe(MINIMUM_SUPPORTED_VERSION);
+    expect(result.usedLastKnownConfiguration, "The version check did not mark that the last known configuration was used.").toBe(true);
+    expect(result.configuration, "The last known version configuration was not used as the recovery result.").toEqual(VERSION_CONFIGURATION);
   });
 });

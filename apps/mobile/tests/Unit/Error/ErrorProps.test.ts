@@ -22,7 +22,7 @@ describe("ErrorProps", () => {
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
 
-    expect(state.isControlled).toBe(true);
+    expect(state.isControlled, "The unexpected error was not transformed into a controlled error interface state.").toBe(true);
   });
 
   /**
@@ -44,8 +44,9 @@ describe("ErrorProps", () => {
       onDismissRequested: () => undefined
     };
 
-    expect(props.message).not.toContain("Error:");
-    expect(props.message).not.toContain("stack");
+    expect(props.message, "The controlled error message exposes the raw error type.").not.toContain("Error:");
+    expect(props.message.toLowerCase(), "The controlled error message exposes a stack trace.").not.toContain("stack");
+    expect(props.message, "The controlled error message exposes the internal error message.").not.toContain(UNEXPECTED_ERROR.message);
   });
 
   /**
@@ -61,6 +62,7 @@ describe("ErrorProps", () => {
 
     const state = await controller.captureUnexpectedError(UNEXPECTED_ERROR);
 
-    expect(state.message).toBe(SAFE_ERROR_MESSAGE);
+    expect(state.message.trim().length, "The controlled error interface does not show any user-facing message.").toBeGreaterThan(0);
+    expect(state.message, "The controlled error interface does not show the expected safe user-facing message.").toBe(SAFE_ERROR_MESSAGE);
   });
 });

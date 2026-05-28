@@ -2,7 +2,7 @@ import { buildRequirementTitle } from "../../Support/RequirementTest";
 import { CreateAdminErrorDetailController } from "../../../src/Features/Errors/CreateAdminErrorDetailController";
 import { createAsyncArgumentRecorder } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
-import type {AdminErrorDetail, ApplicationUserAction} from "@kanjime/shared";
+import type { AdminErrorDetail, ApplicationErrorContext, ApplicationUserAction } from "@kanjime/shared";
 
 describe("AdminErrorDetailInterface", () => {
   const ERROR_IDENTIFIER = "error-report-1";
@@ -21,17 +21,18 @@ describe("AdminErrorDetailInterface", () => {
     { type: "calligraphy:practice-started", grouping: "jlpt", occurredAt: ERROR_DATE },
     { type: "calligraphy:evaluation-requested", grouping: "jlpt", occurredAt: ERROR_DATE }
   ];
+  const ERROR_CONTEXT: ApplicationErrorContext = {
+    applicationVersion: APPLICATION_VERSION,
+    webEngine: "Chromium",
+    webEngineVersion: "124",
+    lastActions: LAST_ACTIONS
+  };
   const ERROR_DETAIL: AdminErrorDetail = {
     id: ERROR_IDENTIFIER,
     message: ERROR_MESSAGE,
     occurredAt: ERROR_DATE,
     applicationVersion: APPLICATION_VERSION,
-    context: {
-      applicationVersion: APPLICATION_VERSION,
-      webEngine: "Chromium",
-      webEngineVersion: "124",
-      lastActions: LAST_ACTIONS
-    }
+    context: ERROR_CONTEXT
   };
 
   /**

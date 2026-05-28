@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { CreateUpdateAvailableController } from "../../../src/Features/Version/CreateUpdateAvailableController";
 import { createValueRecorder } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import type { VersionCheckResult } from "@kanjime/shared";
+import type { VersionCheckResult, VersionConfiguration } from "@kanjime/shared";
 
 describe("UpdateAvailableProps", () => {
   const CURRENT_VERSION = "1.0.0";
@@ -12,14 +12,15 @@ describe("UpdateAvailableProps", () => {
   const MINIMUM_SUPPORTED_VERSION = "0.9.0";
   const CONFIGURATION_DATE = "2026-05-27T00:00:00.000Z";
   const UPDATE_MESSAGE = "A new version is available. You can continue using the application.";
+  const VERSION_CONFIGURATION: VersionConfiguration = {
+    currentVersion: CURRENT_VERSION,
+    latestVersion: LATEST_VERSION,
+    minimumSupportedVersion: MINIMUM_SUPPORTED_VERSION,
+    updatedAt: CONFIGURATION_DATE
+  };
 
   const VERSION_CHECK_RESULT: VersionCheckResult = {
-    configuration: {
-      currentVersion: CURRENT_VERSION,
-      latestVersion: LATEST_VERSION,
-      minimumSupportedVersion: MINIMUM_SUPPORTED_VERSION,
-      updatedAt: CONFIGURATION_DATE
-    },
+    configuration: VERSION_CONFIGURATION,
     isCurrentVersionDefined: true,
     isUpdateAvailable: true,
     isSupported: true,

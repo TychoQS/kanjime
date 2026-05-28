@@ -2,7 +2,7 @@ import { CreateAdminDashboardController } from "../../../src/Features/Dashboard/
 import { createAsyncValueRecorder } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 import { describe, expect, it } from "vitest";
-import type { AdminTechnicalSummary } from "@kanjime/shared";
+import type { AdminTechnicalSummary, VersionConfiguration } from "@kanjime/shared";
 
 describe("AdminDashboardInterface", () => {
   const CURRENT_VERSION = "1.0.0";
@@ -10,14 +10,15 @@ describe("AdminDashboardInterface", () => {
   const MINIMUM_SUPPORTED_VERSION = "0.9.0";
   const CONFIGURATION_DATE = "2026-05-27T00:00:00.000Z";
   const REPORTED_ERROR_COUNT = 3;
+  const VERSION_CONFIGURATION: VersionConfiguration = {
+    currentVersion: CURRENT_VERSION,
+    latestVersion: LATEST_VERSION,
+    minimumSupportedVersion: MINIMUM_SUPPORTED_VERSION,
+    updatedAt: CONFIGURATION_DATE
+  };
 
   const TECHNICAL_SUMMARY: AdminTechnicalSummary = {
-    versionConfiguration: {
-      currentVersion: CURRENT_VERSION,
-      latestVersion: LATEST_VERSION,
-      minimumSupportedVersion: MINIMUM_SUPPORTED_VERSION,
-      updatedAt: CONFIGURATION_DATE
-    },
+    versionConfiguration: VERSION_CONFIGURATION,
     reportedErrorCount: REPORTED_ERROR_COUNT,
     latestReportedErrorAt: CONFIGURATION_DATE
   };

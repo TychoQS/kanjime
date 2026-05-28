@@ -42,7 +42,7 @@ describe("AdminVersionsInterface", () => {
     const controller = CreateAdminVersionsController({
       readCurrentDate: readCurrentDate.handler
     });
-    const sourceConfiguration = { ...VERSION_CONFIGURATION };
+    const sourceConfiguration: VersionConfiguration = { ...VERSION_CONFIGURATION };
     await controller.getVersionSummary(sourceConfiguration);
     expect(sourceConfiguration, "The version summary reading mutated the source version configuration.").toEqual(VERSION_CONFIGURATION);
   });

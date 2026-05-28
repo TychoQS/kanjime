@@ -1,236 +1,479 @@
-# Iteration 3 — Mobile Context (Observability & Version Management)
+# Iteration 3 — Admin Context
 
 ## 1. Purpose
 
-This iteration implements the Observability and Version Management features for the mobile application.
+This iteration implements the administration side of the observability and version management module. This iteration must implement the administration application so the administrator can inspect the technical state of the system, consult reported errors, inspect error details, read the current version configuration, and update the version configuration.
 
-Observability enables the application to capture unexpected errors automatically and generate structured reports containing enough information to diagnose and trace the failure. The report is persisted by calling an injected `saveReport` dependency. The `CompositionRoot` wires this dependency to `ObservabilityPersistence`. No feature code changes are required if the wiring is updated later.
+The admin app is a separate application inside the monorepo. It must use the shared domain types and contracts from `@kanjime/shared`, and it must follow the same architecture style used in the project: feature folders, contracts, viewmodels/controllers, view components, dependency injection and unidirectional data flow.
 
-Version management allows the application to check on startup whether the running version is up to date, inform the user when an update is available, and handle gracefully any connectivity failure during that check by falling back to the last known configuration.
+The admin app must not implement a complete authentication flow in this iteration. Authentication, roles and production security rules are outside the scope of this loop unless they already exist in the project.
+
+The admin app must not rework the mobile implementation.
+
 
 ---
 
 ## 2. Feature order (MANDATORY)
 
-1. Error Observability
-2. Error Handling
-3. Version Check
-4. Update Available
+1. Admin Versions
+2. Admin Version Form
+3. Admin Errors
+4. Admin Error Detail
+5. Admin Dashboard
+6. Admin Shell integration
+
+Do not start the next feature until the current feature passes its affected unit tests, builds correctly, and is integrated through its real View component.
 
 ---
 
 ## 3. Features
 
-### Feature: Error Observability
+### Feature: Admin Versions
 
 **Requirements**
-- Functional: R61
+
+* Functional: R63
+* Usability: R26
 
 **Description**
-When an error is captured by the application, a structured report must be generated. The report must include: error message, ISO date of occurrence, application version, web engine name and version, and the last ten user actions as basic execution context.
+Allows the administrator to consult the current version configuration of the application.
 
-The application version must be obtained using `@capacitor/app` — `App.getInfo()`. The web engine name and version must be obtained using `@capacitor/device` — `Device.getInfo()`. The last ten user actions must be tracked as a rotating buffer updated on each relevant user interaction and passed as context when generating the report.
+The feature receives a valid `VersionConfiguration` and exposes an `AdminVersionSummary` with:
 
-The report is persisted by calling an injected `saveReport` dependency. The `CompositionRoot` wires this dependency to `ObservabilityPersistence`. The feature code has no knowledge of the storage mechanism and requires no changes if the wiring is updated.
+* `currentVersion`
+* `latestVersion`
+* `minimumSupportedVersion`
+* `updatedAt`
 
-All Capacitor plugin calls (`App.getInfo`, `Device.getInfo`) and the persistence write must be injected as dependencies so they can be mocked in tests.
+Reading the version configuration must not mutate the source configuration.
+
+The UI must present the version information in a clear and ordered way. Each value must be visually identifiable by a clear label.
 
 **Dependencies**
-- None
+
+* `ObservabilityRepository.getVersionConfiguration`
+* `VersionConfiguration`
+* `AdminVersionSummary`
 
 **Interface / Contracts**
-(For the conditions go to the `.requirements` directory — `ErrorObservabilityInterface`)
+
+Use the existing contracts:
+
+* `AdminVersionsInterface`
+* `AdminVersionsProps`
+
+The feature must include a real View component:
+
+* `AdminVersionsView`
+
+`AdminVersionsView` must consume `AdminVersionsProps`.
+
+Do not render the version summary inline inside `AdminShellView`.
 
 ---
 
-### Feature: Error Handling
+### Feature: Admin Version Form
 
 **Requirements**
-- Functional: R60
-- Component: R25
+
+* Functional: R64
+* Usability: R27
 
 **Description**
-The application must capture uncontrolled errors produced during component execution using a React error boundary placed at the root of the application. When an error is captured, the Error Observability feature must be triggered to generate and persist the report. The error boundary must not leave the application blank or trigger a second failure. The user must see a controlled error interface with a clear, non-technical message.
+Allows the administrator to modify the version configuration used by the application.
+
+The feature must:
+
+* receive editable version values;
+* validate the version format before saving;
+* reject invalid version configurations;
+* show a clear validation message for invalid versions;
+* persist valid version configurations through the injected dependency.
+
+The required version format is:
+
+```txt
+MAJOR.MINOR.PATCH
+```
+
+Examples of valid values:
+
+```txt
+1.0.0
+1.1.0
+0.9.0
+```
+
+Examples of invalid values:
+
+```txt
+invalid-version
+1.0
+v1.0.0
+1.0.0-beta
+```
+
+Invalid values must not be saved.
 
 **Dependencies**
-- Error Observability
+
+* `ObservabilityRepository.saveVersionConfiguration`
+* `VersionConfiguration`
+* `AdminVersionFormState`
 
 **Interface / Contracts**
-(For the conditions go to the `.requirements` directory — `ErrorInterface`, `ErrorProps`)
+
+Use the existing contracts:
+
+* `AdminVersionFormInterface`
+* `AdminVersionFormProps`
+
+The validation state must expose:
+
+* `currentVersion`
+* `latestVersion`
+* `minimumSupportedVersion`
+* `validationMessage`
+* `canSave`
+
+The feature must include a real View component:
+
+* `AdminVersionFormView`
+
+`AdminVersionFormView` must consume `AdminVersionFormProps`.
+
+Do not render the version form inline inside `AdminShellView`.
 
 ---
 
-### Feature: Version Check
+### Feature: Admin Errors
 
 **Requirements**
-- Functional: R57, R59
+
+* Functional: R65
+* Usability: R28
 
 **Description**
-On application startup, the version check must determine whether the running version is the latest available. The version configuration must be fetched from a remote source injected as a dependency. If the fetch fails or there is no connection, the application must fall back to the last configuration stored locally via `ObservabilityPersistence`. The version check must not block normal application access under any circumstance.
+Allows the administrator to consult the list of application error reports.
 
-The current application version must be obtained using `@capacitor/app` — `App.getInfo()`. The remote configuration fetch and the Capacitor plugin call must be injected as dependencies.
+The feature must read persisted error reports through the repository boundary and map them to `AdminErrorSummary`.
 
-The version check must not execute if no current application version is defined.
+Each visible error summary must include enough information to identify the error:
+
+* `id`
+* `message`
+* `occurredAt`
+* `applicationVersion`
+* `contextSummary`
+
+The list must not expose raw execution context, full action payloads, stack traces, or sensitive user input.
 
 **Dependencies**
-- None
+
+* `ObservabilityRepository.listErrorReports`
+* `ApplicationErrorReport`
+* `AdminErrorSummary`
 
 **Interface / Contracts**
-(For the conditions go to the `.requirements` directory — `VersionCheckInterface`)
+
+Use the existing contracts:
+
+* `AdminErrorsInterface`
+* `AdminErrorsProps`
+
+The feature must include a real View component:
+
+* `AdminErrorsView`
+
+`AdminErrorsView` must consume `AdminErrorsProps`.
+
+Do not render the error list inline inside `AdminShellView`.
 
 ---
 
-### Feature: Update Available
+### Feature: Admin Error Detail
 
 **Requirements**
-- Functional: R58
-- Component: R24
+
+* Functional: R66
 
 **Description**
-When the running version is older than the latest available version according to the version check result, the application must display a non-blocking informational notice to the user. The notice must not prevent normal application use. The message shown must not include technical terms or internal version identifiers beyond what the user needs to understand that an update exists.
+Allows the administrator to open the detail of a selected reported error.
+
+The feature must read one persisted error report by id through the repository boundary and map it to `AdminErrorDetail`.
+
+The detail must include:
+
+* `id`
+* `message`
+* `occurredAt`
+* `applicationVersion`
+* basic execution context:
+
+  * `applicationVersion`
+  * `webEngine`
+  * `webEngineVersion`
+  * `lastActions`
+
+The selected detail must correspond to the selected error id.
+
+`lastActions` must use the shared typed `ApplicationUserAction` model. Do not convert actions into free-form labels in the domain layer.
 
 **Dependencies**
-- Version Check
+
+* `ObservabilityRepository.getErrorReport`
+* `ApplicationErrorReport`
+* `ApplicationErrorContext`
+* `ApplicationUserAction`
+* `AdminErrorDetail`
 
 **Interface / Contracts**
-(For the conditions go to the `.requirements` directory — `UpdateAvailableInterface`, `UpdateAvailableProps`)
+
+Use the existing contracts:
+
+* `AdminErrorDetailInterface`
+* `AdminErrorDetailProps`
+
+The feature must include a real View component:
+
+* `AdminErrorDetailView`
+
+`AdminErrorDetailView` must consume `AdminErrorDetailProps`.
+
+Do not render the error detail inline inside `AdminShellView`.
+
+---
+
+### Feature: Admin Dashboard
+
+**Requirements**
+
+* Functional: R62
+
+**Description**
+Shows a technical overview of the application.
+
+The dashboard must expose version information and error information as separate sections.
+
+The dashboard summary must include:
+
+* `versionConfiguration`
+* `reportedErrorCount`
+* `latestReportedErrorAt`
+
+The dashboard must derive this information from the same repository boundary used by the versions and errors features.
+
+**Dependencies**
+
+* `ObservabilityRepository.getVersionConfiguration`
+* `ObservabilityRepository.listErrorReports`
+* `AdminTechnicalSummary`
+* `VersionConfiguration`
+
+**Interface / Contracts**
+
+Use the existing contract:
+
+* `AdminDashboardInterface`
+
+If it does not exist yet, create:
+
+The feature must include a real View component:
+
+* `AdminDashboardView`
+
+`AdminDashboardView` must consume `AdminDashboardProps`.
+
+Do not render the dashboard content inline inside `AdminShellView`.
+
+---
+
+### Feature: Admin Shell
+
+**Requirements**
+
+* Integration of R62, R63, R64, R65 and R66
+
+**Description**
+Integrates the admin features into the administration application.
+
+The shell must provide a minimal navigation structure so the administrator can access:
+
+* dashboard;
+* versions;
+* version form;
+* errors list;
+* error detail.
+
+A tab or section-based layout is allowed, but only for navigation and composition. The shell must not implement the internal UI of each feature.
+
+`AdminShellView` must compose the feature views. It must not render dashboard, version summary, version form, error list or error detail internals inline.
+
+**Dependencies**
+
+* Admin Dashboard
+* Admin Versions
+* Admin Version Form
+* Admin Errors
+* Admin Error Detail
+* Admin repository implementation
+
+**Interface / Contracts**
+
+The shell may have its own dependencies contract, but feature views must receive their own Props contracts.
 
 ---
 
 ## 4. Dependencies (explicit graph)
 
-- Error Observability → no dependencies
-- Error Handling → depends on Error Observability
-- Version Check → no dependencies
-- Update Available → depends on Version Check
+- Admin Versions → depends on version configuration data.
+- Admin Version Form → depends on Admin Versions and version configuration data.
+- Admin Errors → depends on reported application errors.
+- Admin Error Detail → depends on Admin Errors.
+- Admin Dashboard → depends on Admin Versions and Admin Errors.
+- Admin Shell → depends on Admin Dashboard, Admin Versions, Admin Version Form, Admin Errors and Admin Error Detail.
 
 ---
 
-## 5. Persistence rules
+## 5. Repository and data access rules
 
-- `AppPersistence` (`apps/mobile/src/Shared/AppPersistence.ts`) must not be modified. It owns user preferences and history and has no responsibility over observability or version data.
-- A shared repository interface must be created at `packages/shared/src/ObservabilityRepository.ts`. It defines the operations available to both apps: `saveErrorReport`, `listErrorReports`, `getErrorReport`, `saveVersionConfiguration`, and `getVersionConfiguration`. Both apps depend on this interface, never on a concrete implementation.
-- A new dedicated implementation must be created at `apps/mobile/src/Shared/`. This class implements `ObservabilityRepository` and uses `@capacitor/preferences` as its storage mechanism. It is specific to the mobile app.
-- No external service, Firebase, Supabase, or any remote backend must be used or assumed in the mobile implementation.
-- Do not invent URLs, API keys, or remote endpoints.
-- The remote version configuration fetch must be injected as a dependency in the controller, not hardcoded. The `CompositionRoot` wires this dependency. The controller has no knowledge of the fetch mechanism and requires no changes if the wiring is updated.
+* The persistence boundary is `ObservabilityRepository`
+* Admin must not import mobile persistence
+* Admin must not use `@capacitor/preferences`
+* Admin must not import anything from `apps/mobile`
+* Admin must not invent Firebase URLs, API keys, Supabase clients or remote endpoints
+* Admin must not hardcode test data as final implementation
+* Admin may use a local browser storage implementation only as an admin-side repository adapter prepared to be replaced by backend/Firebase wiring
+* Feature code must depend on injected repository functions, not on concrete persistence classes
 
----
+Preferred structure:
 
-## 6. Capacitor rules
+```txt
+packages/shared/src/ObservabilityRepository.ts
+  shared repository interface
 
-- Application version must be retrieved using `@capacitor/app` — `App.getInfo()` — injected as a dependency
-- Web engine name and version must be retrieved using `@capacitor/device` — `Device.getInfo()` — injected as a dependency
-- Local persistence must use `ObservabilityPersistence` which wraps `@capacitor/preferences`
-- All Capacitor plugin calls must be injected as dependencies so they can be mocked in Vitest without `vi.mock`
+apps/admin/src/Shared/AdminObservabilityRepository.ts
+  admin repository implementation
 
----
-
-## 7. Shared types and interfaces
-
-The following must exist in `packages/shared/src/` before or during this iteration. If they are already declared, do not redeclare them.
-
-**Types**
-- `VersionConfiguration` — `{ currentVersion: string; latestVersion: string; minimumSupportedVersion: string; updatedAt: string }`
-- `VersionCheckResult` — `{ configuration: VersionConfiguration | null; isCurrentVersionDefined: boolean; isUpdateAvailable: boolean; isSupported: boolean; usedLastKnownConfiguration: boolean }`
-- `ErrorReport` — `{ message: string; occurredAt: string; applicationVersion: string; webEngine: string; webEngineVersion: string; context: ErrorExecutionContext }`
-- `ErrorExecutionContext` — `{ applicationVersion: string; webEngine: string; webEngineVersion: string; lastActions: ReadonlyArray<string> }`
-
-**Interface**
-- `ObservabilityRepository` — defines the persistence contract consumed by both apps:
-  - `saveErrorReport(report: ErrorReport): Promise<void>`
-  - `listErrorReports(): Promise<ReadonlyArray<ErrorReport>>`
-  - `getErrorReport(id: string): Promise<ErrorReport | null>`
-  - `saveVersionConfiguration(config: VersionConfiguration): Promise<void>`
-  - `getVersionConfiguration(): Promise<VersionConfiguration | null>`
+apps/admin/src/CompositionRoot.ts
+  creates repository instance
+  creates controllers
+  exposes dependencies required by the shell
+```
 
 ---
 
-## 8. Integration rules
+## 6. Integration rules
 
-- A feature is only valid if it is reachable from the application
-- The Error Handling error boundary must wrap the root of the application in `App.tsx` to capture all uncontrolled errors
-- The Version Check must be wired into the application startup flow in `App.tsx` or `CompositionRoot.ts`
-- The Update Available notice must be rendered conditionally from the application shell when the version check returns an available update
-- No feature implemented in this iteration must interrupt, notify, or display any message to the user as a result of a missing or failed internet connection. Connectivity failures must be handled silently by the feature logic.
-- No orphan features are allowed
-- UI must reflect real application state
-- A feature is INVALID if it passes tests but is not visible or usable in the UI
-- Proposed code for the feature is only valid if it uses the components that are being tested within the tests for the iteration. Do not generate an implementation that is not being tested.
+* A feature is only valid if it is reachable from the admin application
+* Features must be integrated into `App`, `CompositionRoot`, shell, or main admin flow
+* No orphan features are allowed
+* UI must reflect real application state
+* A feature is invalid if it passes tests but is not visible or usable in the UI
+* Proposed code for the feature is only valid if it uses the components and contracts that are being tested within the tests for the iteration
+* Do not generate an implementation that bypasses the tested contracts
+* Props contracts must not be used only in tests
+* Every Props contract must be consumed by a real production View component
+* `AdminShellView` must not render all feature internals inline
+* The shell is an orchestrator, not the implementation of every feature UI
 
 ---
 
-## 9. Definition of Done
+## 7. Definition of Done
 
 A feature is complete only if:
 
-- Tests pass
-- No regressions exist
-- Contracts are respected
-- Dependencies are implemented and used
-- Feature is integrated into the application
-- Feature is reachable from UI or main flow
-- No final stubs remain
-- No hardcoded or test-specific logic exists
-- Real implementation. Not just a mock implementation to pass tests and a separate implementation for the application. The implementation must use the current contracts and their current implementations.
-
+* Tests pass
+* Build passes
+* No regressions exist
+* Contracts are respected
+* Dependencies are implemented and used
+* Feature is integrated into the admin application
+* Feature is reachable from UI or main flow
+* No final stubs remain
+* No hardcoded or test-specific logic exists
+* Real implementation exists
+* The implementation uses the current contracts and their current implementations
+* The corresponding Props contract is consumed by a production View component
+* The feature View is used by the admin shell
+* The feature UI is not rendered inline inside `AdminShellView`
 ---
 
-## 10. UI validation rules
+## 8. UI validation rules
 
 ### Layout / Structure
 
-- No nested scroll containers
-- No overlapping components blocking interaction
-- All elements must remain within visible screen bounds
+* No nested scroll containers
+* No overlapping components blocking interaction
+* All elements must remain within visible screen bounds
+* Shell navigation must not hide or duplicate feature content
+* Feature sections must be visually separated and understandable
 
 ### Data / State
 
-- UI must be driven by real application state
-- No placeholder or static data allowed in final UI
-- UI must update after user interaction
+* UI must be driven by real application state
+* No placeholder or static data allowed in final UI
+* UI must update after user interaction
+* Version form must update validation state when inputs change
+* Error detail must correspond to the selected error id
 
 ### Error / Edge cases
 
-- Empty states must be handled explicitly
-- Errors must display clear, non-technical messages to the user
-- UI must not break when data is missing or undefined
+* Empty states must be handled explicitly
+* Missing version configuration must be handled explicitly
+* Repository failures must display clear, non-technical admin-facing messages
+* UI must not break when data is missing or undefined
 
 ### Invalid UI conditions
 
 The UI is invalid if:
 
-- Elements are not clickable due to layout issues
-- Components are duplicated unintentionally
-- UI does not update after state changes
-- UI shows stale or inconsistent data
-- UI depends on hardcoded values
+* Elements are not clickable due to layout issues
+* Components are duplicated unintentionally
+* UI does not update after state changes
+* UI shows stale or inconsistent data
+* UI depends on hardcoded values
+* UI bypasses the tested Props contracts
+* The shell renders feature internals directly instead of composing feature Views
 
 ---
 
-## 11. Architecture validation
+## 9. Architecture validation
 
 After each feature, verify:
 
 ```bash
-# No screen receives CompositionRoot directly
-grep -rn "CompositionRoot" src/Features/ --include="*.tsx"
+# No unfinished implementation remains
+grep -rn "Not implemented yet" apps/admin/src
 
-# No screen accesses data directly
-grep -rn "root\." src/Features/ --include="*.tsx"
+# Admin must not import mobile code
+grep -rn "apps/mobile" apps/admin/src
+
+# No feature view accesses a root object directly
+grep -rn "root\." apps/admin/src/Features --include="*.tsx"
+
+# Props contracts must be consumed by production TSX components
+grep -rn "AdminDashboardProps" apps/admin/src --include="*.tsx"
+grep -rn "AdminVersionsProps" apps/admin/src --include="*.tsx"
+grep -rn "AdminVersionFormProps" apps/admin/src --include="*.tsx"
+grep -rn "AdminErrorsProps" apps/admin/src --include="*.tsx"
+grep -rn "AdminErrorDetailProps" apps/admin/src --include="*.tsx"
 ```
 
-Both commands must return no matches for the feature to be valid.
+These checks are part of the validity of the implementation. Passing tests is not enough if the implementation bypasses the tested contracts.
 
 ---
 
-## 12. Global constraints
+## 10. Global constraints
 
-- Requirements in `.requirements` are the source of truth
-- Architecture rules are defined in `AGENTS.md`
-- This file only defines execution order and constraints
-- Do not hardcode outputs
-- Do not create mocks or final stubs
-- Exceptions must follow contract rules
-- All text generated in any artifact must be strictly in English
-- The only exception is i18n files, which must be in the corresponding language
+* Requirements in `.requirements` are the source of truth
+* Architecture rules are defined in `AGENTS.md`
+* This file only defines execution order and constraints
+* Do not hardcode outputs
+* Do not create mocks or final stubs
+* Do not create duplicate domain types
+* Do not introduce `any`
+* Do not leave console logs
+* Exceptions must follow contract rules
+* Keep generated source text in English
+* Do not bypass contracts by rendering domain objects directly in the shell when a Props contract exists

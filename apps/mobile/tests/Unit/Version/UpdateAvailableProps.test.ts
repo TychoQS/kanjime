@@ -39,32 +39,10 @@ describe("UpdateAvailableProps", () => {
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
 
-    expect(state.isVisible).toBe(true);
-  });
-
-  /**
-   * Requirement: R24
-   * Type: Unit
-   * Condition: Invariant
-   */
-  it(buildRequirementTitle("R24", "Unit", "Invariant", "shows non-technical non-blocking update message"), () => {
-    const createUpdateMessage = createValueRecorder(UPDATE_MESSAGE);
-    const controller = CreateUpdateAvailableController({
-      createUpdateMessage: createUpdateMessage.handler
-    });
-
-    const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
-    const props: UpdateAvailableProps = {
-      isVisible: state.isVisible,
-      message: state.message,
-      currentVersion: state.currentVersion,
-      latestVersion: state.latestVersion,
-      canContinueUsingApplication: state.canContinueUsingApplication,
-      onDismissRequested: () => undefined
-    };
-
-    expect(props.message).not.toContain("remote configuration");
-    expect(props.canContinueUsingApplication).toBe(true);
+    expect(VERSION_CHECK_RESULT.isUpdateAvailable, "The test scenario does not define an available update.").toBe(true);
+    expect(VERSION_CHECK_RESULT.configuration?.currentVersion, "The running version is not present in the update scenario.").toBe(CURRENT_VERSION);
+    expect(VERSION_CHECK_RESULT.configuration?.latestVersion, "The latest available version is not present in the update scenario.").toBe(LATEST_VERSION);
+    expect(VERSION_CHECK_RESULT.configuration?.currentVersion, "The running version should be older than the latest available version.").not.toBe(VERSION_CHECK_RESULT.configuration?.latestVersion);
   });
 
   /**
@@ -79,7 +57,8 @@ describe("UpdateAvailableProps", () => {
     });
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
-
-    expect(state.message).toBe(UPDATE_MESSAGE);
+    expect(state.isVisible, "The update notice is not visible when an update is available.").toBe(true);
+    expect(state.message, "The update notice does not communicate the expected update message.").toBe(UPDATE_MESSAGE);
+    expect(state.canContinueUsingApplication, "The update notice does not allow the user to continue using the application.").toBe(true);
   });
 });

@@ -38,8 +38,9 @@ describe("UpdateAvailableInterface", () => {
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
 
-    expect(state.currentVersion).toBe(CURRENT_VERSION);
-    expect(state.latestVersion).toBe(LATEST_VERSION);
+    expect(state.currentVersion, "The update state does not preserve the running application version.").toBe(CURRENT_VERSION);
+    expect(state.latestVersion, "The update state does not preserve the latest available version.").toBe(LATEST_VERSION);
+    expect(state.currentVersion, "The running version should be older than the latest available version.").not.toBe(state.latestVersion);
   });
 
   /**
@@ -55,7 +56,7 @@ describe("UpdateAvailableInterface", () => {
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
 
-    expect(state.canContinueUsingApplication).toBe(true);
+    expect(state.canContinueUsingApplication, "The update notice blocks application usage even though the running version is still supported.").toBe(true);
   });
 
   /**
@@ -71,6 +72,8 @@ describe("UpdateAvailableInterface", () => {
 
     const state = controller.getUpdateAvailability(VERSION_CHECK_RESULT);
 
-    expect(state.isVisible).toBe(true);
+    expect(createUpdateMessage.calls, "The update notice message was not requested.").toHaveLength(1);
+    expect(state.isVisible, "The update availability notice is not visible.").toBe(true);
+    expect(state.message, "The update availability notice does not show the expected informational message.").toBe(UPDATE_MESSAGE);
   });
 });

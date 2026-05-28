@@ -1,4 +1,5 @@
 import { Preferences } from "@capacitor/preferences";
+import { collection, doc, getDoc, getDocs, query, setDoc } from "firebase/firestore";
 
 import type {
   ApplicationErrorReport,
@@ -6,39 +7,61 @@ import type {
   ObservabilityRepository,
   VersionConfiguration
 } from "@kanjime/shared";
+import { getFirebaseFirestore } from "./FirebaseClient";
 
 const ERROR_REPORTS_KEY = "kanjime.observability.errorReports";
+const PENDING_ERROR_REPORTS_KEY = "kanjime.observability.pendingErrorReports";
 const VERSION_CONFIGURATION_KEY = "kanjime.observability.versionConfiguration";
+const ERRORS_COLLECTION = "errors";
+const VERSION_CONFIGURATION_COLLECTION = "versionConfiguration";
+const CURRENT_VERSION_CONFIGURATION_DOCUMENT = "current";
 
 /**
- * Mobile observability repository backed by Capacitor Preferences.
+ * Mobile observability repository backed by Firestore with local fallback storage.
  */
 export class ObservabilityPersistence implements ObservabilityRepository {
   async saveErrorReport(report: ApplicationErrorReport): Promise<void> {
-    const reports = await this.listErrorReports();
-    const nextReports = [
-      ...reports.filter(candidate => candidate.id !== report.id),
-      report
-    ];
+    try {
+      await setDoc(doc(getFirebaseFirestore(), ERRORS_COLLECTION, report.id), report);
+      await removePendingErrorReport(report.id);
+    } catch {
+      await savePendingErrorReport(report);
+    }
+  }
 
-    await Preferences.set({
-      key: ERROR_REPORTS_KEY,
-      value: JSON.stringify(nextReports)
-    });
+  async flushPendingErrorReports(): Promise<void> {
+    const pendingReports = await readPendingErrorReports();
+
+    for (const report of pendingReports) {
+      try {
+        await setDoc(doc(getFirebaseFirestore(), ERRORS_COLLECTION, report.id), report);
+        await removePendingErrorReport(report.id);
+      } catch {
+        return;
+      }
+    }
   }
 
   async listErrorReports(): Promise<ReadonlyArray<ApplicationErrorReport>> {
     try {
-      const result = await Preferences.get({ key: ERROR_REPORTS_KEY });
-      return parseErrorReports(result.value);
+      const snapshot = await getDocs(query(collection(getFirebaseFirestore(), ERRORS_COLLECTION)));
+      return snapshot.docs
+        .map(documentSnapshot => parseErrorReport(documentSnapshot.data()))
+        .filter((report): report is ApplicationErrorReport => report !== null)
+        .sort((left, right) => right.occurredAt.localeCompare(left.occurredAt));
     } catch {
-      return [];
+      return readPendingErrorReports();
     }
   }
 
   async getErrorReport(id: string): Promise<ApplicationErrorReport | null> {
-    const reports = await this.listErrorReports();
-    return reports.find(report => report.id === id) ?? null;
+    try {
+      const snapshot = await getDoc(doc(getFirebaseFirestore(), ERRORS_COLLECTION, id));
+      return snapshot.exists() ? parseErrorReport(snapshot.data()) : null;
+    } catch {
+      const reports = await readPendingErrorReports();
+      return reports.find(report => report.id === id) ?? null;
+    }
   }
 
   async saveVersionConfiguration(config: VersionConfiguration): Promise<void> {
@@ -49,12 +72,76 @@ export class ObservabilityPersistence implements ObservabilityRepository {
   }
 
   async getVersionConfiguration(): Promise<VersionConfiguration | null> {
+    const snapshot = await getDoc(
+      doc(
+        getFirebaseFirestore(),
+        VERSION_CONFIGURATION_COLLECTION,
+        CURRENT_VERSION_CONFIGURATION_DOCUMENT
+      )
+    );
+
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    return parseVersionConfigurationSnapshot(snapshot.data());
+  }
+
+  async getLastKnownVersionConfiguration(): Promise<VersionConfiguration | null> {
     try {
       const result = await Preferences.get({ key: VERSION_CONFIGURATION_KEY });
-      return parseVersionConfiguration(result.value);
+      return parseVersionConfigurationString(result.value);
     } catch {
       return null;
     }
+  }
+}
+
+async function savePendingErrorReport(report: ApplicationErrorReport): Promise<void> {
+  const reports = await readPendingErrorReports();
+  const nextReports = [
+    ...reports.filter(candidate => candidate.id !== report.id),
+    report
+  ];
+
+  await Preferences.set({
+    key: PENDING_ERROR_REPORTS_KEY,
+    value: JSON.stringify(nextReports)
+  });
+
+  await Preferences.set({
+    key: ERROR_REPORTS_KEY,
+    value: JSON.stringify(nextReports)
+  });
+}
+
+async function removePendingErrorReport(reportId: string): Promise<void> {
+  const nextReports = (await readPendingErrorReports()).filter(report => report.id !== reportId);
+
+  await Preferences.set({
+    key: PENDING_ERROR_REPORTS_KEY,
+    value: JSON.stringify(nextReports)
+  });
+
+  await Preferences.set({
+    key: ERROR_REPORTS_KEY,
+    value: JSON.stringify(nextReports)
+  });
+}
+
+async function readPendingErrorReports(): Promise<ReadonlyArray<ApplicationErrorReport>> {
+  try {
+    const result = await Preferences.get({ key: PENDING_ERROR_REPORTS_KEY });
+    const reports = parseErrorReports(result.value);
+
+    if (reports.length > 0) {
+      return reports;
+    }
+
+    const legacyResult = await Preferences.get({ key: ERROR_REPORTS_KEY });
+    return parseErrorReports(legacyResult.value);
+  } catch {
+    return [];
   }
 }
 
@@ -117,40 +204,43 @@ function parseErrorReport(value: unknown): ApplicationErrorReport | null {
   };
 }
 
-function parseVersionConfiguration(value: string | null): VersionConfiguration | null {
+function parseVersionConfigurationString(value: string | null): VersionConfiguration | null {
   if (value === null) {
     return null;
   }
 
   try {
-    const parsed = JSON.parse(value) as unknown;
-    if (!isRecord(parsed)) {
-      return null;
-    }
-
-    const currentVersion = parsed.currentVersion;
-    const latestVersion = parsed.latestVersion;
-    const minimumSupportedVersion = parsed.minimumSupportedVersion;
-    const updatedAt = parsed.updatedAt;
-
-    if (
-      typeof currentVersion !== "string" ||
-      typeof latestVersion !== "string" ||
-      typeof minimumSupportedVersion !== "string" ||
-      typeof updatedAt !== "string"
-    ) {
-      return null;
-    }
-
-    return {
-      currentVersion,
-      latestVersion,
-      minimumSupportedVersion,
-      updatedAt
-    };
+    return parseVersionConfigurationSnapshot(JSON.parse(value) as unknown);
   } catch {
     return null;
   }
+}
+
+function parseVersionConfigurationSnapshot(value: unknown): VersionConfiguration | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const currentVersion = value.currentVersion;
+  const latestVersion = value.latestVersion;
+  const minimumSupportedVersion = value.minimumSupportedVersion;
+  const updatedAt = value.updatedAt;
+
+  if (
+    typeof currentVersion !== "string" ||
+    typeof latestVersion !== "string" ||
+    typeof minimumSupportedVersion !== "string" ||
+    typeof updatedAt !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    currentVersion,
+    latestVersion,
+    minimumSupportedVersion,
+    updatedAt
+  };
 }
 
 function isApplicationUserAction(value: unknown): value is ApplicationUserAction {

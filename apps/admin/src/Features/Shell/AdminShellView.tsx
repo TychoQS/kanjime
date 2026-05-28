@@ -4,6 +4,8 @@ import {
   IonContent,
   IonHeader,
   IonPage,
+  IonSpinner,
+  IonText,
   IonTitle,
   IonToolbar
 } from "@ionic/react";
@@ -19,6 +21,7 @@ import type {
 } from "@kanjime/shared";
 
 import type { AdminCompositionRoot } from "../../CompositionRoot";
+import type { AdminAuthenticatedUser } from "../../Shared/FirebaseClient";
 import { AdminDashboardView } from "../Dashboard/View/AdminDashboardView";
 import { AdminErrorDetailView } from "../Errors/View/AdminErrorDetailView";
 import { AdminErrorsView } from "../Errors/View/AdminErrorsView";
@@ -37,12 +40,24 @@ const EMPTY_VERSION_SUMMARY: AdminVersionSummary = {
   minimumSupportedVersion: "",
   updatedAt: ""
 };
+const ADMIN_TITLE = "KanjiMe Admin";
+const AUTH_LOADING_MESSAGE = "Loading administrator session.";
+const AUTH_ERROR_MESSAGE = "The administrator session could not be started.";
+const SIGN_IN_TITLE = "Administrator sign in";
+const SIGN_IN_DESCRIPTION = "Use a Google account to access version configuration and error reports.";
+const SIGNING_IN_LABEL = "Signing in";
+const SIGN_IN_LABEL = "Sign in with Google";
+const SIGN_OUT_LABEL = "Sign out";
 
 /**
  * Administration shell that composes feature views and navigation.
  */
 export function AdminShellView(props: AdminShellViewProps): JSX.Element {
   const { composition } = props;
+  const [authUser, setAuthUser] = useState<AdminAuthenticatedUser | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
   const [dashboardSummary, setDashboardSummary] = useState<AdminTechnicalSummary | null>(null);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
@@ -65,7 +80,18 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     [composition.versionFormController, versionConfiguration]
   );
 
+  useEffect(() => {
+    return composition.authentication.subscribeToCurrentUser(user => {
+      setAuthUser(user);
+      setIsAuthReady(true);
+    });
+  }, [composition.authentication]);
+
   const loadDashboard = useCallback(async (): Promise<void> => {
+    if (authUser === null) {
+      return;
+    }
+
     setIsDashboardLoading(true);
     setDashboardError(null);
 
@@ -77,9 +103,13 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     } finally {
       setIsDashboardLoading(false);
     }
-  }, [composition.dashboardController]);
+  }, [authUser, composition.dashboardController]);
 
   const loadVersions = useCallback(async (): Promise<void> => {
+    if (authUser === null) {
+      return;
+    }
+
     setIsVersionsLoading(true);
     setVersionsError(null);
 
@@ -100,9 +130,13 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     } finally {
       setIsVersionsLoading(false);
     }
-  }, [composition]);
+  }, [authUser, composition]);
 
   const loadErrors = useCallback(async (): Promise<void> => {
+    if (authUser === null) {
+      return;
+    }
+
     setIsErrorsLoading(true);
     setErrorsMessage(null);
 
@@ -114,10 +148,14 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     } finally {
       setIsErrorsLoading(false);
     }
-  }, [composition.errorsController]);
+  }, [authUser, composition.errorsController]);
 
   const openErrorDetail = useCallback(
     async (errorId: string): Promise<void> => {
+      if (authUser === null) {
+        return;
+      }
+
       setActiveSection("errorDetail");
       setIsErrorDetailLoading(true);
       setErrorDetailMessage(null);
@@ -131,10 +169,14 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
         setIsErrorDetailLoading(false);
       }
     },
-    [composition.errorDetailController]
+    [authUser, composition.errorDetailController]
   );
 
   useEffect(() => {
+    if (authUser === null) {
+      return;
+    }
+
     if (activeSection === "dashboard") {
       void loadDashboard();
     }
@@ -146,10 +188,10 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     if (activeSection === "errors") {
       void loadErrors();
     }
-  }, [activeSection, loadDashboard, loadErrors, loadVersions]);
+  }, [activeSection, authUser, loadDashboard, loadErrors, loadVersions]);
 
   const saveVersionConfiguration = async (): Promise<void> => {
-    if (!formState.canSave) {
+    if (!formState.canSave || authUser === null) {
       return;
     }
 
@@ -162,16 +204,82 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     setActiveSection("versions");
   };
 
+  const signIn = async (): Promise<void> => {
+    setIsSigningIn(true);
+    setAuthErrorMessage(null);
+
+    try {
+      await composition.authentication.signInWithGoogle();
+    } catch {
+      setAuthErrorMessage(AUTH_ERROR_MESSAGE);
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  const signOut = async (): Promise<void> => {
+    setAuthErrorMessage(null);
+    await composition.authentication.signOut();
+  };
+
+  if (!isAuthReady) {
+    return (
+      <IonPage data-testid="admin-auth-loading-screen">
+        <IonContent fullscreen>
+          <main className="admin-shell">
+            <IonSpinner name="crescent" />
+            <p className="admin-muted">{AUTH_LOADING_MESSAGE}</p>
+          </main>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
+  if (authUser === null) {
+    return (
+      <IonPage data-testid="admin-sign-in-screen">
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle>{ADMIN_TITLE}</IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent fullscreen>
+          <main className="admin-shell">
+            <section className="admin-panel" aria-labelledby="admin-sign-in-title">
+              <h2 id="admin-sign-in-title">{SIGN_IN_TITLE}</h2>
+              <p className="admin-muted">{SIGN_IN_DESCRIPTION}</p>
+              {authErrorMessage !== null ? (
+                <IonText color="danger">
+                  <p role="alert">{authErrorMessage}</p>
+                </IonText>
+              ) : null}
+              <IonButton disabled={isSigningIn} onClick={() => {
+                void signIn();
+              }}>
+                {isSigningIn ? SIGNING_IN_LABEL : SIGN_IN_LABEL}
+              </IonButton>
+            </section>
+          </main>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
   return (
     <IonPage data-testid="admin-shell-screen">
       <IonHeader>
         <IonToolbar>
-          <IonTitle>KanjiMe Admin</IonTitle>
+          <IonTitle>{ADMIN_TITLE}</IonTitle>
           <IonButtons slot="end" className="admin-navigation">
             <IonButton onClick={() => setActiveSection("dashboard")}>Dashboard</IonButton>
             <IonButton onClick={() => setActiveSection("versions")}>Versions</IonButton>
             <IonButton onClick={() => setActiveSection("versionForm")}>Edit version</IonButton>
             <IonButton onClick={() => setActiveSection("errors")}>Errors</IonButton>
+            <IonButton onClick={() => {
+              void signOut();
+            }}>
+              {SIGN_OUT_LABEL}
+            </IonButton>
           </IonButtons>
         </IonToolbar>
       </IonHeader>

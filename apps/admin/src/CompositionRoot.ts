@@ -20,11 +20,16 @@ import type { AdminVersionFormInterface } from "./Features/Versions/Contracts/Ad
 import { CreateAdminVersionsController } from "./Features/Versions/CreateAdminVersionsController";
 import type { AdminVersionsInterface } from "./Features/Versions/Contracts/AdminVersionsInterface";
 import { AdminObservabilityRepository } from "./Shared/AdminObservabilityRepository";
+import {
+  createAdminAuthenticationClient,
+  type AdminAuthenticationClient
+} from "./Shared/FirebaseClient";
 
 /**
  * Administration dependency graph.
  */
 export interface AdminCompositionRoot {
+  readonly authentication: AdminAuthenticationClient;
   readonly repository: ObservabilityRepository;
   readonly dashboardController: AdminDashboardInterface;
   readonly versionsController: AdminVersionsInterface;
@@ -40,6 +45,7 @@ export interface AdminCompositionRoot {
  */
 export function createAdminCompositionRoot(): AdminCompositionRoot {
   const repository = new AdminObservabilityRepository();
+  const authentication = createAdminAuthenticationClient();
 
   const loadVersionConfiguration = async (): Promise<VersionConfiguration | null> =>
     repository.getVersionConfiguration();
@@ -90,6 +96,7 @@ export function createAdminCompositionRoot(): AdminCompositionRoot {
   });
 
   return {
+    authentication,
     repository,
     dashboardController,
     versionsController,

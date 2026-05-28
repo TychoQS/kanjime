@@ -1,89 +1,61 @@
+import { collection, doc, getDoc, getDocs, orderBy, query, setDoc } from "firebase/firestore";
+
 import type {
   ApplicationErrorReport,
   ApplicationUserAction,
   ObservabilityRepository,
   VersionConfiguration
 } from "@kanjime/shared";
+import { getFirebaseFirestore } from "./FirebaseClient";
 
-const ERROR_REPORTS_KEY = "kanjime.admin.observability.errorReports";
-const VERSION_CONFIGURATION_KEY = "kanjime.admin.observability.versionConfiguration";
+const ERRORS_COLLECTION = "errors";
+const VERSION_CONFIGURATION_COLLECTION = "versionConfiguration";
+const CURRENT_VERSION_CONFIGURATION_DOCUMENT = "current";
 
 /**
- * Administration observability repository backed by browser storage.
+ * Administration observability repository backed by Firestore.
  */
 export class AdminObservabilityRepository implements ObservabilityRepository {
-  private readonly fallbackStorage = new Map<string, string>();
-
   async saveErrorReport(report: ApplicationErrorReport): Promise<void> {
-    const reports = await this.listErrorReports();
-    const nextReports = [
-      ...reports.filter(candidate => candidate.id !== report.id),
-      report
-    ];
-
-    this.setItem(ERROR_REPORTS_KEY, JSON.stringify(nextReports));
+    await setDoc(doc(getFirebaseFirestore(), ERRORS_COLLECTION, report.id), report);
   }
 
   async listErrorReports(): Promise<ReadonlyArray<ApplicationErrorReport>> {
-    return parseErrorReports(this.getItem(ERROR_REPORTS_KEY));
+    const snapshot = await getDocs(
+      query(collection(getFirebaseFirestore(), ERRORS_COLLECTION), orderBy("occurredAt", "desc"))
+    );
+
+    return snapshot.docs
+      .map(documentSnapshot => parseErrorReport(documentSnapshot.data()))
+      .filter((report): report is ApplicationErrorReport => report !== null);
   }
 
   async getErrorReport(id: string): Promise<ApplicationErrorReport | null> {
-    const reports = await this.listErrorReports();
-    return reports.find(report => report.id === id) ?? null;
+    const snapshot = await getDoc(doc(getFirebaseFirestore(), ERRORS_COLLECTION, id));
+    return snapshot.exists() ? parseErrorReport(snapshot.data()) : null;
   }
 
   async saveVersionConfiguration(config: VersionConfiguration): Promise<void> {
-    this.setItem(VERSION_CONFIGURATION_KEY, JSON.stringify(config));
+    await setDoc(
+      doc(
+        getFirebaseFirestore(),
+        VERSION_CONFIGURATION_COLLECTION,
+        CURRENT_VERSION_CONFIGURATION_DOCUMENT
+      ),
+      config
+    );
   }
 
   async getVersionConfiguration(): Promise<VersionConfiguration | null> {
-    return parseVersionConfiguration(this.getItem(VERSION_CONFIGURATION_KEY));
-  }
+    const snapshot = await getDoc(
+      doc(
+        getFirebaseFirestore(),
+        VERSION_CONFIGURATION_COLLECTION,
+        CURRENT_VERSION_CONFIGURATION_DOCUMENT
+      )
+    );
 
-  private getItem(key: string): string | null {
-    if (typeof window === "undefined") {
-      return this.fallbackStorage.get(key) ?? null;
-    }
-
-    try {
-      return window.localStorage.getItem(key);
-    } catch {
-      return this.fallbackStorage.get(key) ?? null;
-    }
-  }
-
-  private setItem(key: string, value: string): void {
-    if (typeof window === "undefined") {
-      this.fallbackStorage.set(key, value);
-      return;
-    }
-
-    try {
-      window.localStorage.setItem(key, value);
-    } catch {
-      this.fallbackStorage.set(key, value);
-    }
-  }
-}
-
-function parseErrorReports(value: string | null): ReadonlyArray<ApplicationErrorReport> {
-  if (value === null) {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(value) as unknown;
-
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed
-      .map(item => parseErrorReport(item))
-      .filter((report): report is ApplicationErrorReport => report !== null);
-  } catch {
-    return [];
+    return snapshot.exists() ? parseVersionConfiguration(snapshot.data()) : null;
   }
 }
 
@@ -127,41 +99,31 @@ function parseErrorReport(value: unknown): ApplicationErrorReport | null {
   };
 }
 
-function parseVersionConfiguration(value: string | null): VersionConfiguration | null {
-  if (value === null) {
+function parseVersionConfiguration(value: unknown): VersionConfiguration | null {
+  if (!isRecord(value)) {
     return null;
   }
 
-  try {
-    const parsed = JSON.parse(value) as unknown;
+  const currentVersion = value.currentVersion;
+  const latestVersion = value.latestVersion;
+  const minimumSupportedVersion = value.minimumSupportedVersion;
+  const updatedAt = value.updatedAt;
 
-    if (!isRecord(parsed)) {
-      return null;
-    }
-
-    const currentVersion = parsed.currentVersion;
-    const latestVersion = parsed.latestVersion;
-    const minimumSupportedVersion = parsed.minimumSupportedVersion;
-    const updatedAt = parsed.updatedAt;
-
-    if (
-      typeof currentVersion !== "string" ||
-      typeof latestVersion !== "string" ||
-      typeof minimumSupportedVersion !== "string" ||
-      typeof updatedAt !== "string"
-    ) {
-      return null;
-    }
-
-    return {
-      currentVersion,
-      latestVersion,
-      minimumSupportedVersion,
-      updatedAt
-    };
-  } catch {
+  if (
+    typeof currentVersion !== "string" ||
+    typeof latestVersion !== "string" ||
+    typeof minimumSupportedVersion !== "string" ||
+    typeof updatedAt !== "string"
+  ) {
     return null;
   }
+
+  return {
+    currentVersion,
+    latestVersion,
+    minimumSupportedVersion,
+    updatedAt
+  };
 }
 
 function isApplicationUserAction(value: unknown): value is ApplicationUserAction {

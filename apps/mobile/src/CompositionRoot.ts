@@ -148,10 +148,16 @@ export function createCompositionRoot(): CompositionRoot {
 
   const versionCheckController = CreateVersionCheckController({
     loadVersionConfiguration: async () => {
-      throw new Error("No remote version configuration source is available.");
+      const configuration = await observabilityPersistence.getVersionConfiguration();
+
+      if (configuration === null) {
+        throw new Error("No remote version configuration source is available.");
+      }
+
+      return configuration;
     },
     loadLastKnownVersionConfiguration: async () => {
-      const configuration = await observabilityPersistence.getVersionConfiguration();
+      const configuration = await observabilityPersistence.getLastKnownVersionConfiguration();
 
       if (configuration === null) {
         throw new Error("No last known version configuration is available.");
@@ -489,6 +495,7 @@ export function createCompositionRoot(): CompositionRoot {
         persistence.initialize(),
         ocrClient.loadModel()
       ]);
+      void observabilityPersistence.flushPendingErrorReports();
       const preferences = await persistence.getPreferences();
       const locale = normalizeLocale(preferences.language);
 

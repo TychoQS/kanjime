@@ -22,6 +22,8 @@
     "test": "npm run build:shared && npm run test -w @kanjime/mobile && npm run test -w @kanjime/admin",
     "test:admin": "npm run test -w @kanjime/admin",
     "test:all": "npm run build:shared && npm run test:all -w @kanjime/mobile && npm run test -w @kanjime/admin",
+    "test:all:admin": "npm run build:shared && npm run test -w @kanjime/admin",
+    "test:all:mobile": "npm run build:shared && npm run test:all -w @kanjime/mobile",
     "test:e2e": "npm run test:e2e:mobile -- && npm run test:e2e:admin --",
     "test:e2e:admin": "npm run test:e2e -w @kanjime/admin --",
     "test:e2e:mobile": "npm run build:shared && npm run test:e2e -w @kanjime/mobile --",

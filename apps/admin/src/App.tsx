@@ -1,14 +1,18 @@
 import { IonApp } from "@ionic/react";
+import { useMemo } from "react";
 
-import { AdminPlaceholderView } from "./Features/Shell/AdminPlaceholderView";
+import { createAdminCompositionRoot } from "./CompositionRoot";
+import { AdminShellView } from "./Features/Shell/AdminShellView";
 
 /**
  * Administration application root.
  */
 function App(): JSX.Element {
+  const composition = useMemo(() => createAdminCompositionRoot(), []);
+
   return (
     <IonApp>
-      <AdminPlaceholderView />
+      <AdminShellView composition={composition} />
     </IonApp>
   );
 }

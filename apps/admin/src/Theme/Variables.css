@@ -95,3 +95,111 @@ ion-title {
   color: var(--app-muted);
   line-height: 1.5;
 }
+
+.admin-shell {
+  box-sizing: border-box;
+  width: min(100%, 920px);
+  margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+.admin-navigation {
+  display: flex;
+  gap: 2px;
+}
+
+.admin-panel {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  background: var(--app-surface);
+  padding: 18px;
+}
+
+.admin-panel + .admin-panel {
+  margin-top: 16px;
+}
+
+.admin-panel h2,
+.admin-dashboard h2,
+.admin-panel h3 {
+  margin: 0 0 14px;
+  color: var(--ion-text-color);
+  letter-spacing: 0;
+}
+
+.admin-panel h2,
+.admin-dashboard h2 {
+  font-size: 1.25rem;
+}
+
+.admin-panel h3 {
+  font-size: 1rem;
+}
+
+.admin-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.admin-definition-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.admin-definition-list div {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-definition-list dt {
+  color: var(--app-muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.admin-definition-list dd {
+  margin: 0;
+  color: var(--ion-text-color);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.admin-form-grid {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.admin-muted {
+  color: var(--app-muted);
+}
+
+.admin-list {
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  overflow: hidden;
+}
+
+.admin-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+@media (max-width: 680px) {
+  ion-toolbar .admin-navigation {
+    width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .admin-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

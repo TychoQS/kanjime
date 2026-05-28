@@ -37,7 +37,7 @@ describe("AdminVersionFormProps", () => {
 
     const state = controller.validateVersionConfiguration(invalidConfiguration);
 
-    expect(state.latestVersion).toBe(INVALID_VERSION);
+    expect(state.latestVersion, "The form did not receive the invalid version value.").toBe(INVALID_VERSION);
   });
 
   /**
@@ -64,7 +64,7 @@ describe("AdminVersionFormProps", () => {
       onSaveRequested: () => undefined
     };
 
-    expect(props.state.canSave).toBe(false);
+    expect(props.state.canSave, "The form allows saving an invalid version configuration.").toBe(false);
   });
 
   /**
@@ -84,6 +84,6 @@ describe("AdminVersionFormProps", () => {
 
     const state = controller.validateVersionConfiguration(invalidConfiguration);
 
-    expect(state.validationMessage).toBe(VALIDATION_MESSAGE);
+    expect(state.validationMessage, "The form does not show a clear validation message for the invalid version format.").toBe(VALIDATION_MESSAGE);
   });
 });

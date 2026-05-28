@@ -31,30 +31,8 @@ describe("AdminVersionsProps", () => {
 
     const summary = await controller.getVersionSummary(VERSION_CONFIGURATION);
 
-    expect(summary.updatedAt).toBe(CONFIGURATION_DATE);
-  });
-
-  /**
-   * Requirement: R26
-   * Type: Unit
-   * Condition: Invariant
-   */
-  it(buildRequirementTitle("R26", "Unit", "Invariant", "differentiates version values and configuration date"), async () => {
-    const readCurrentDate = createValueRecorder(CONFIGURATION_DATE);
-    const controller = CreateAdminVersionsController({
-      readCurrentDate: readCurrentDate.handler
-    });
-
-    const summary = await controller.getVersionSummary(VERSION_CONFIGURATION);
-    const props: AdminVersionsProps = {
-      summary,
-      isLoading: false,
-      errorMessage: null
-    };
-
-    expect(props.summary.currentVersion).toBe(CURRENT_VERSION);
-    expect(props.summary.latestVersion).toBe(LATEST_VERSION);
-    expect(props.summary.updatedAt).toBe(CONFIGURATION_DATE);
+    expect(summary, "The versions screen summary was not created from the valid version configuration.").toBeDefined();
+    expect(summary.updatedAt, "The versions screen does not receive the configuration update date.").toBe(CONFIGURATION_DATE);
   });
 
   /**
@@ -70,6 +48,9 @@ describe("AdminVersionsProps", () => {
 
     const summary = await controller.getVersionSummary(VERSION_CONFIGURATION);
 
-    expect(summary.minimumSupportedVersion).toBe(MINIMUM_SUPPORTED_VERSION);
+    expect(summary.currentVersion, "The versions screen does not show the current version.").toBe(CURRENT_VERSION);
+    expect(summary.latestVersion, "The versions screen does not show the latest available version.").toBe(LATEST_VERSION);
+    expect(summary.minimumSupportedVersion, "The versions screen does not show the minimum supported version.").toBe(MINIMUM_SUPPORTED_VERSION);
+    expect(summary.updatedAt, "The versions screen does not show the configuration update date.").toBe(CONFIGURATION_DATE);
   });
 });

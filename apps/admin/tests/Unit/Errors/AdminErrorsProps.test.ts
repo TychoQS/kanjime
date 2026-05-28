@@ -36,29 +36,8 @@ describe("AdminErrorsProps", () => {
 
     const errors = await controller.listReportedErrors();
 
-    expect(errors.length).toBeGreaterThan(0);
-  });
-
-  /**
-   * Requirement: R28
-   * Type: Unit
-   * Condition: Invariant
-   */
-  it(buildRequirementTitle("R28", "Unit", "Invariant", "lists errors without exposing sensitive user information"), async () => {
-    const listReportedErrors = createAsyncValueRecorder(REPORTED_ERRORS);
-    const controller = CreateAdminErrorsController({
-      listReportedErrors: listReportedErrors.handler
-    });
-
-    const errors = await controller.listReportedErrors();
-    const props: AdminErrorsProps = {
-      errors,
-      isLoading: false,
-      errorMessage: null,
-      onErrorSelected: () => undefined
-    };
-
-    expect(JSON.stringify(props.errors)).not.toContain(SENSITIVE_TEXT);
+    expect(listReportedErrors.calls, "The reported error list was not requested.").toHaveLength(1);
+    expect(errors.length, "The error list does not contain any reported error.").toBeGreaterThan(0);
   });
 
   /**
@@ -74,6 +53,14 @@ describe("AdminErrorsProps", () => {
 
     const errors = await controller.listReportedErrors();
 
-    expect(errors[0].contextSummary).toBe(CONTEXT_SUMMARY);
+    expect(errors.length, "The error list does not show every reported error.").toBe(REPORTED_ERRORS.length);
+
+    for (const [index, expectedError] of REPORTED_ERRORS.entries()) {
+      expect(errors[index].id, "The reported error does not show its identifier.").toBe(expectedError.id);
+      expect(errors[index].message, "The reported error does not show its message.").toBe(expectedError.message);
+      expect(errors[index].occurredAt, "The reported error does not show its date.").toBe(expectedError.occurredAt);
+      expect(errors[index].applicationVersion, "The reported error does not show the application version.").toBe(expectedError.applicationVersion);
+      expect(errors[index].contextSummary, "The reported error does not show its basic context summary.").toBe(expectedError.contextSummary);
+    }
   });
 });

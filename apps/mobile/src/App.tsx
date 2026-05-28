@@ -14,7 +14,7 @@ import {
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 import { moon, phonePortrait, sunny } from "ionicons/icons";
-import { useEffect, useLayoutEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { Redirect, Route, useHistory, useLocation } from "react-router-dom";
 
 import { AboutScreen } from "./Features/About/AboutScreen";
@@ -27,11 +27,13 @@ import { ClassificationScreen } from "./Features/Classification/ClassificationSc
 import { HistoryScreen } from "./Features/History/HistoryScreen";
 import { KanjiDetailScreen } from "./Features/Kanji/KanjiDetailScreen";
 import { AppViewModelProvider, useAppViewModelContext } from "./Shared/AppViewModelContext";
+import { ErrorBoundary } from "./Features/Error/View/ErrorBoundary";
 import { SearchScreen } from "./Features/Search/SearchScreen";
 import { LoadingScreenView } from "./Features/Shell/LoadingScreenView";
 import { NavigationView } from "./Features/Shell/NavigationView";
+import { UpdateAvailableView } from "./Features/Version/View/UpdateAvailableView";
 import { createCompositionRoot, type CompositionRoot } from "./CompositionRoot";
-import type { ApplicationTheme } from "@kanjime/shared";
+import type { ApplicationTheme, UpdateAvailabilityState } from "@kanjime/shared";
 import { LANGUAGE_NAMES, SUPPORTED_LOCALES, normalizeLocale, translate, type TranslationKey } from "./Shared/I18n";
 
 /**
@@ -43,7 +45,9 @@ function App(): JSX.Element {
   return (
     <IonReactRouter>
       <AppViewModelProvider root={root}>
-        <AppRoot />
+        <ErrorBoundary captureUnexpectedError={error => root.captureUnexpectedError(error)}>
+          <AppRoot />
+        </ErrorBoundary>
       </AppViewModelProvider>
     </IonReactRouter>
   );
@@ -81,9 +85,29 @@ function AppShell(): JSX.Element {
   const location = useLocation();
   const currentPage = getCurrentPage(location.pathname);
   const { preferences, root } = useAppViewModelContext();
+  const [updateAvailability, setUpdateAvailability] = useState<UpdateAvailabilityState>(createHiddenUpdateState());
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void root.checkForAvailableUpdate().then(nextState => {
+      if (isMounted) {
+        setUpdateAvailability(nextState);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [root]);
 
   useEffect(() => {
     root.registerNavigationDelegate((page, character) => {
+      root.recordUserAction({
+        type: "navigation:opened",
+        page,
+        occurredAt: new Date().toISOString()
+      });
       const menu = document.querySelector("ion-menu");
       if (menu !== null) {
         void (menu as HTMLIonMenuElement).close();
@@ -153,12 +177,26 @@ function AppShell(): JSX.Element {
                 }
               }}
               onNavigateRequested={page => {
+                root.recordUserAction({
+                  type: "navigation:opened",
+                  page,
+                  occurredAt: new Date().toISOString()
+                });
                 root.navigationController.navigateTo(page);
               }}
             />
           </div>
         </IonContent>
       </IonMenu>
+
+      <UpdateAvailableView
+        isVisible={updateAvailability.isVisible}
+        message={updateAvailability.message}
+        currentVersion={updateAvailability.currentVersion}
+        latestVersion={updateAvailability.latestVersion}
+        canContinueUsingApplication={updateAvailability.canContinueUsingApplication}
+        onDismissRequested={() => setUpdateAvailability(createHiddenUpdateState())}
+      />
 
       <IonRouterOutlet id="main-content">
         <Route exact path="/">
@@ -254,6 +292,16 @@ function themeIcon(theme: ApplicationTheme): string {
   }
 
   return phonePortrait;
+}
+
+function createHiddenUpdateState(): UpdateAvailabilityState {
+  return {
+    isVisible: false,
+    currentVersion: "",
+    latestVersion: "",
+    message: "",
+    canContinueUsingApplication: true
+  };
 }
 
 function toApplicationTheme(value: unknown): ApplicationTheme {

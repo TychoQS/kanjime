@@ -237,6 +237,36 @@ ion-action-sheet .action-sheet-button-inner {
   width: 1px;
 }
 
+.controlled-error-view {
+  align-items: stretch;
+  background: var(--ion-background-color);
+  color: var(--ion-text-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-gap);
+  min-height: 100%;
+  padding: max(24px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+}
+
+.controlled-error-view p,
+.update-available-view p {
+  margin: 0;
+}
+
+.update-available-view {
+  align-items: center;
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
+  color: var(--ion-text-color);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  min-height: var(--app-hit-size);
+  padding: 8px max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left));
+  position: relative;
+  z-index: 11;
+}
+
 .mode-segment {
   flex: 0 0 auto;
 }

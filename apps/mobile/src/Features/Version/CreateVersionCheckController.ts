@@ -9,6 +9,7 @@ import { createVersionCheckViewModel } from "./ViewModel/VersionCheckViewModel";
 export interface CreateVersionCheckControllerDependencies {
   readonly loadVersionConfiguration: () => Promise<VersionConfiguration>;
   readonly loadLastKnownVersionConfiguration: () => Promise<VersionConfiguration>;
+  readonly saveVersionConfiguration?: (configuration: VersionConfiguration) => Promise<void>;
 }
 
 /**

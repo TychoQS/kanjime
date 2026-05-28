@@ -3,7 +3,7 @@ import type { ApplicationErrorContext, ApplicationErrorReport } from "@kanjime/s
 import type { ErrorObservabilityInterface } from "../Contracts/ErrorObservabilityInterface";
 import type { CreateErrorObservabilityControllerDependencies } from "../CreateErrorObservabilityController";
 
-const NOT_IMPLEMENTED_MESSAGE = "Not implemented yet";
+const MAX_REPORTED_ACTIONS = 10;
 
 /**
  * Creates the error observability view model.
@@ -11,11 +11,20 @@ const NOT_IMPLEMENTED_MESSAGE = "Not implemented yet";
 export function createErrorObservabilityViewModel(
   dependencies: CreateErrorObservabilityControllerDependencies
 ): ErrorObservabilityInterface {
-  void dependencies;
-
   return {
-    async createErrorReport(_error: Error, _context: ApplicationErrorContext): Promise<ApplicationErrorReport> {
-      throw new Error(NOT_IMPLEMENTED_MESSAGE);
+    async createErrorReport(error: Error, context: ApplicationErrorContext): Promise<ApplicationErrorReport> {
+      const lastActions = context.lastActions.slice(-MAX_REPORTED_ACTIONS);
+
+      return {
+        id: dependencies.createReportId(),
+        message: error.message,
+        occurredAt: dependencies.readCurrentDate(),
+        applicationVersion: context.applicationVersion,
+        webEngine: context.webEngine,
+        webEngineVersion: context.webEngineVersion,
+        lastActions,
+        isReadyForObservability: true
+      };
     }
   };
 }

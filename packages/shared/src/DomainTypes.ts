@@ -341,6 +341,11 @@ export interface ApplicationErrorContext {
 }
 
 /**
+ * Iteration 3 execution context alias shared by mobile and administration code.
+ */
+export type ErrorExecutionContext = ApplicationErrorContext;
+
+/**
  * Structured report generated when a controlled error is captured.
  */
 export interface ApplicationErrorReport {
@@ -353,6 +358,11 @@ export interface ApplicationErrorReport {
   readonly lastActions: ReadonlyArray<ApplicationUserAction>;
   readonly isReadyForObservability: boolean;
 }
+
+/**
+ * Iteration 3 error report alias shared by mobile and administration code.
+ */
+export type ErrorReport = ApplicationErrorReport;
 
 /**
  * Technical summary displayed in the administration dashboard.

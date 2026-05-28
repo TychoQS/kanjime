@@ -1,5 +1,8 @@
 import packageMetadata from "../package.json";
 
+import { App as CapacitorApp } from "@capacitor/app";
+import { Device } from "@capacitor/device";
+
 import { CreateAboutController } from "./Features/About/CreateAboutController";
 import type { AboutInterface } from "./Features/About/Contracts/AboutInterface";
 import { CreateCalligraphyCanvasController } from "./Features/Calligraphy/CreateCalligraphyCanvasController";
@@ -34,25 +37,38 @@ import { CreateDisplayKanjiController } from "./Features/Kanji/CreateDisplayKanj
 import type { DisplayKanjiInterface } from "./Features/Kanji/Contracts/DisplayKanjiInterface";
 import { CreateUserPreferenceController } from "./Features/Preferences/CreateUserPreferenceController";
 import type { UserPreferenceInterface } from "./Features/Preferences/Contracts/UserPreferenceInterface";
+import { CreateErrorController } from "./Features/Error/CreateErrorController";
+import type { ErrorInterface } from "./Features/Error/Contracts/ErrorInterface";
+import { CreateErrorObservabilityController } from "./Features/Error/CreateErrorObservabilityController";
+import type { ErrorObservabilityInterface } from "./Features/Error/Contracts/ErrorObservabilityInterface";
 import { CreateSearchController } from "./Features/Search/CreateSearchController";
 import type { SearchInterface } from "./Features/Search/Contracts/SearchInterface";
 import { CreateNavigationController } from "./Features/Shell/CreateNavigationController";
 import type { NavigationInterface } from "./Features/Shell/Contracts/NavigationInterface";
+import { CreateUpdateAvailableController } from "./Features/Version/CreateUpdateAvailableController";
+import type { UpdateAvailableInterface } from "./Features/Version/Contracts/UpdateAvailableInterface";
+import { CreateVersionCheckController } from "./Features/Version/CreateVersionCheckController";
+import type { VersionCheckInterface } from "./Features/Version/Contracts/VersionCheckInterface";
 import { AppPersistence } from "./Shared/AppPersistence";
 import type {
   AboutInformationItem,
+  ApplicationErrorContext,
   ApplicationTheme,
+  ApplicationUserAction,
   ClassificationMode,
   DetailedKanjiEntry,
   HistoryCategory,
   HistoryGroup,
   NavigationPage,
-  Stroke
+  Stroke,
+  UpdateAvailabilityState
 } from "@kanjime/shared";
 import { getMeaningLanguagePriority, normalizeLocale, type SupportedLocale } from "./Shared/I18n";
 import { KanjiRepository, type KanjiSummary, type SourceAttribution } from "./Shared/KanjiRepository";
 import { OcrWorkerClient } from "./Shared/OcrWorkerClient";
 import { ImageError } from "@kanjime/shared";
+import { ObservabilityPersistence } from "./Shared/ObservabilityPersistence";
+import { UserActionTracker } from "./Shared/UserActionTracker";
 
 export interface AboutDisplayItem {
   readonly label: string;
@@ -70,6 +86,7 @@ let preferenceDelegate: ((preferences: ApplicationPreferences) => void) | null =
 export interface CompositionRoot {
   readonly kanjiRepository: KanjiRepository;
   readonly persistence: AppPersistence;
+  readonly observabilityPersistence: ObservabilityPersistence;
   readonly ocrClient: OcrWorkerClient;
   readonly canvasController: CanvasInterface;
   readonly inferenceController: InferenceInterface;
@@ -83,7 +100,15 @@ export interface CompositionRoot {
   readonly calligraphyCanvasController: CalligraphyCanvasInterface;
   readonly kanjiPracticeController: KanjiPracticeInterface;
   readonly calligraphyEvaluationController: CalligraphyEvaluationInterface;
+  readonly errorObservabilityController: ErrorObservabilityInterface;
+  readonly errorController: ErrorInterface;
+  readonly versionCheckController: VersionCheckInterface;
+  readonly updateAvailableController: UpdateAvailableInterface;
   initialize(): Promise<ApplicationPreferences>;
+  checkForAvailableUpdate(): Promise<UpdateAvailabilityState>;
+  captureUnexpectedError(error: Error): Promise<{ readonly message: string; readonly isControlled: boolean }>;
+  createErrorContext(): Promise<ApplicationErrorContext>;
+  recordUserAction(action: ApplicationUserAction): void;
   loadHistoryGroups(): Promise<ReadonlyArray<HistoryGroup>>;
   loadKanjiDetails(character: string, language: string, recordVisit?: boolean): Promise<DetailedKanjiEntry>;
   readonly aboutController: AboutInterface;
@@ -103,8 +128,57 @@ export interface CompositionRoot {
 export function createCompositionRoot(): CompositionRoot {
   const kanjiRepository = new KanjiRepository();
   const persistence = new AppPersistence();
+  const observabilityPersistence = new ObservabilityPersistence();
+  const userActionTracker = new UserActionTracker();
   const ocrClient = new OcrWorkerClient();
   let canvasController: CanvasInterface;
+
+  const recordUserAction = (action: ApplicationUserAction): void => {
+    userActionTracker.record(action);
+  };
+
+  const errorObservabilityController = CreateErrorObservabilityController({
+    createReportId: () => createReportId(),
+    readCurrentDate: () => new Date().toISOString()
+  });
+
+  const errorController = CreateErrorController({
+    createUserFacingMessage: () => "An unexpected error has occurred. You can keep using the application."
+  });
+
+  const versionCheckController = CreateVersionCheckController({
+    loadVersionConfiguration: async () => {
+      throw new Error("No remote version configuration source is available.");
+    },
+    loadLastKnownVersionConfiguration: async () => {
+      const configuration = await observabilityPersistence.getVersionConfiguration();
+
+      if (configuration === null) {
+        throw new Error("No last known version configuration is available.");
+      }
+
+      return configuration;
+    },
+    saveVersionConfiguration: configuration => observabilityPersistence.saveVersionConfiguration(configuration)
+  });
+
+  const updateAvailableController = CreateUpdateAvailableController({
+    createUpdateMessage: () => "A newer version is available. You can keep using the application."
+  });
+
+  const createErrorContext = async (): Promise<ApplicationErrorContext> => {
+    const [applicationVersion, deviceInfo] = await Promise.all([
+      loadCurrentApplicationVersion(),
+      loadDeviceInfo()
+    ]);
+
+    return {
+      applicationVersion: applicationVersion ?? packageMetadata.version,
+      webEngine: deviceInfo.webEngine,
+      webEngineVersion: deviceInfo.webEngineVersion,
+      lastActions: userActionTracker.listRecentActions()
+    };
+  };
 
   const loadKanjiDetailsByLanguage = async (character: string, language: string): Promise<DetailedKanjiEntry> => {
     const details = await kanjiRepository.getDetails(character);
@@ -134,12 +208,22 @@ export function createCompositionRoot(): CompositionRoot {
       const preferences = await persistence.getPreferences();
       const nextPreferences = { ...preferences, language: normalizeLocale(language) };
       await persistence.savePreferences(nextPreferences);
+      recordUserAction({
+        type: "preferences:changed",
+        preference: "language",
+        occurredAt: new Date().toISOString()
+      });
       preferenceDelegate?.(nextPreferences);
     },
     applyTheme: async (theme: ApplicationTheme) => {
       const preferences = await persistence.getPreferences();
       const nextPreferences = { ...preferences, theme };
       await persistence.savePreferences(nextPreferences);
+      recordUserAction({
+        type: "preferences:changed",
+        preference: "theme",
+        occurredAt: new Date().toISOString()
+      });
       preferenceDelegate?.(nextPreferences);
     }
   });
@@ -167,6 +251,10 @@ export function createCompositionRoot(): CompositionRoot {
       return summary ? createHistorySummary(summary) : character;
     },
     navigateToKanjiEntry: async (character: string) => {
+      recordUserAction({
+        type: "kanji:detail-opened",
+        occurredAt: new Date().toISOString()
+      });
       navigationDelegate?.("kanjiEntry", character);
     }
   });
@@ -175,6 +263,10 @@ export function createCompositionRoot(): CompositionRoot {
     queryTerm: (term: string) => kanjiRepository.search(term),
     historyController,
     navigateToKanjiEntry: async (character: string) => {
+      recordUserAction({
+        type: "kanji:detail-opened",
+        occurredAt: new Date().toISOString()
+      });
       navigationDelegate?.("kanjiEntry", character);
     }
   });
@@ -219,6 +311,11 @@ export function createCompositionRoot(): CompositionRoot {
 
   canvasController = CreateCanvasController({
     requestDrawingInference: async (stroke: Stroke) => {
+      recordUserAction({
+        type: "classification:stroke-completed",
+        mode: "drawing",
+        occurredAt: new Date().toISOString()
+      });
       const predictions = await inferenceController.classifyInput({
         sourceId: `drawing-${stroke.endedAt}`,
         inputUrl: "drawing://canvas",
@@ -231,6 +328,10 @@ export function createCompositionRoot(): CompositionRoot {
 
   const displayInferencesController = CreateDisplayInferencesController({
     navigateToKanjiEntry: async character => {
+      recordUserAction({
+        type: "kanji:detail-opened",
+        occurredAt: new Date().toISOString()
+      });
       navigationDelegate?.("kanjiEntry", character);
     },
     saveHistoryEntry: async (character: string, category: HistoryCategory) => {
@@ -244,11 +345,22 @@ export function createCompositionRoot(): CompositionRoot {
   });
 
   const classificationController = CreateClassificationController({
-    onModeChanged: async (_mode: ClassificationMode) => undefined
+    onModeChanged: async (mode: ClassificationMode) => {
+      recordUserAction({
+        type: "classification:mode-selected",
+        mode,
+        occurredAt: new Date().toISOString()
+      });
+    }
   });
 
   const toggleClassificationModeController = CreateToggleClassificationModeController({
     clearCurrentModeState: async (mode: ClassificationMode) => {
+      recordUserAction({
+        type: "classification:canvas-cleared",
+        mode,
+        occurredAt: new Date().toISOString()
+      });
       if (mode === "image") {
         imageController.clearImage();
       } else {
@@ -264,7 +376,12 @@ export function createCompositionRoot(): CompositionRoot {
 
   const calligraphyController = CreateCalligraphyController({
     getCategories: () => kanjiRepository.getCachedCalligraphyCategories(),
-    navigateToCategory: async (_categoryId: string) => undefined
+    navigateToCategory: async (_categoryId: string) => {
+      recordUserAction({
+        type: "calligraphy:category-opened",
+        occurredAt: new Date().toISOString()
+      });
+    }
   });
 
   const categoryController = CreateCategoryController({
@@ -299,6 +416,7 @@ export function createCompositionRoot(): CompositionRoot {
   return {
     kanjiRepository,
     persistence,
+    observabilityPersistence,
     ocrClient,
     canvasController,
     inferenceController,
@@ -361,6 +479,10 @@ export function createCompositionRoot(): CompositionRoot {
     calligraphyCanvasController,
     kanjiPracticeController,
     calligraphyEvaluationController,
+    errorObservabilityController,
+    errorController,
+    versionCheckController,
+    updateAvailableController,
     async initialize(): Promise<ApplicationPreferences> {
       await Promise.all([
         kanjiRepository.initialize(),
@@ -377,6 +499,40 @@ export function createCompositionRoot(): CompositionRoot {
         language: locale,
         theme: preferences.theme
       };
+    },
+    async checkForAvailableUpdate(): Promise<UpdateAvailabilityState> {
+      try {
+        const currentVersion = await loadCurrentApplicationVersion();
+        const result = await versionCheckController.checkCurrentVersion(currentVersion);
+        return updateAvailableController.getUpdateAvailability(result);
+      } catch {
+        return createHiddenUpdateAvailability();
+      }
+    },
+    async captureUnexpectedError(error: Error): Promise<{ readonly message: string; readonly isControlled: boolean }> {
+      try {
+        recordUserAction({
+          type: "error:captured",
+          occurredAt: new Date().toISOString()
+        });
+        const controlledState = await errorController.captureUnexpectedError(error);
+        const context = await createErrorContext();
+        const report = await errorObservabilityController.createErrorReport(error, context);
+        await observabilityPersistence.saveErrorReport(report);
+
+        return controlledState;
+      } catch {
+        return {
+          message: "An unexpected error has occurred. You can keep using the application.",
+          isControlled: true
+        };
+      }
+    },
+    async createErrorContext(): Promise<ApplicationErrorContext> {
+      return createErrorContext();
+    },
+    recordUserAction(action: ApplicationUserAction): void {
+      recordUserAction(action);
     },
     loadHistoryGroups(): Promise<ReadonlyArray<HistoryGroup>> {
       return persistence.loadHistoryGroups();
@@ -437,6 +593,55 @@ function formatAttributions(attributions: ReadonlyArray<SourceAttribution>): Rea
     label: source.id,
     value: `${source.attribution}. ${source.license}. ${source.id === "etl9b" ? "modelSourceDetail" : "databaseSourceDetail"}`
   }));
+}
+
+function createHiddenUpdateAvailability(): UpdateAvailabilityState {
+  return {
+    isVisible: false,
+    currentVersion: "",
+    latestVersion: "",
+    message: "",
+    canContinueUsingApplication: true
+  };
+}
+
+function createReportId(): string {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `error-${Date.now().toString(36)}`;
+}
+
+async function loadCurrentApplicationVersion(): Promise<string | null> {
+  try {
+    const appInfo = await CapacitorApp.getInfo();
+    return appInfo.version.trim().length > 0 ? appInfo.version : null;
+  } catch {
+    return packageMetadata.version;
+  }
+}
+
+async function loadDeviceInfo(): Promise<{ readonly webEngine: string; readonly webEngineVersion: string }> {
+  try {
+    const deviceInfo = await Device.getInfo();
+    const webEngine = deviceInfo.operatingSystem.trim().length > 0
+      ? deviceInfo.operatingSystem
+      : "web";
+    const webEngineVersion = typeof deviceInfo.webViewVersion === "string" && deviceInfo.webViewVersion.trim().length > 0
+      ? deviceInfo.webViewVersion
+      : deviceInfo.osVersion;
+
+    return {
+      webEngine,
+      webEngineVersion
+    };
+  } catch {
+    return {
+      webEngine: "web",
+      webEngineVersion: "unknown"
+    };
+  }
 }
 
 function loadImageDimensions(uri: string): Promise<{ readonly width: number; readonly height: number }> {

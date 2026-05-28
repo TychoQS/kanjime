@@ -203,3 +203,55 @@ ion-title {
     flex-direction: column;
   }
 }
+
+/* ── IonCard admin utility classes ──────────────────────────────────────── */
+
+.admin-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-card-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px;
+}
+
+.admin-item-label {
+  margin: 0 0 2px;
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.admin-item-value {
+  margin: 0;
+  color: var(--ion-text-color);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.admin-version-badge {
+  margin-top: 4px;
+  font-size: 0.875rem;
+}
+
+.admin-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-validation-message {
+  margin: 0 0 12px;
+}
+
+.admin-action-list {
+  border-top: 1px solid var(--app-border);
+}
+

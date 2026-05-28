@@ -1,4 +1,14 @@
-import { IonText } from "@ionic/react";
+import {
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonItem,
+  IonLabel,
+  IonNote,
+  IonSpinner,
+  IonText
+} from "@ionic/react";
 
 import type { AdminDashboardProps } from "../Contracts/AdminDashboardProps";
 
@@ -7,56 +17,92 @@ import type { AdminDashboardProps } from "../Contracts/AdminDashboardProps";
  */
 export function AdminDashboardView(props: AdminDashboardProps): JSX.Element {
   if (props.isLoading) {
-    return <p className="admin-muted">Loading technical summary.</p>;
+    return (
+      <IonCard>
+        <IonCardContent className="admin-card-loading">
+          <IonSpinner name="crescent" />
+          <IonText color="medium">
+            <p>Loading technical summary.</p>
+          </IonText>
+        </IonCardContent>
+      </IonCard>
+    );
   }
 
   if (props.errorMessage !== null) {
     return (
-      <IonText color="danger">
-        <p role="alert">{props.errorMessage}</p>
-      </IonText>
+      <IonCard color="danger">
+        <IonCardContent>
+          <IonText>
+            <p role="alert">{props.errorMessage}</p>
+          </IonText>
+        </IonCardContent>
+      </IonCard>
     );
   }
 
   if (props.summary === null) {
-    return <p className="admin-muted">No technical summary is available.</p>;
+    return (
+      <IonCard>
+        <IonCardContent>
+          <IonText color="medium">
+            <p>No technical summary is available.</p>
+          </IonText>
+        </IonCardContent>
+      </IonCard>
+    );
   }
 
   return (
-    <section className="admin-dashboard" aria-labelledby="admin-dashboard-title">
-      <h2 id="admin-dashboard-title">Technical overview</h2>
-      <div className="admin-dashboard-grid">
-        <section className="admin-panel" aria-labelledby="admin-dashboard-version-title">
-          <h3 id="admin-dashboard-version-title">Version configuration</h3>
-          <dl className="admin-definition-list">
-            <div>
-              <dt>Current version</dt>
-              <dd>{props.summary.versionConfiguration.currentVersion}</dd>
-            </div>
-            <div>
-              <dt>Latest version</dt>
-              <dd>{props.summary.versionConfiguration.latestVersion}</dd>
-            </div>
-            <div>
-              <dt>Minimum supported version</dt>
-              <dd>{props.summary.versionConfiguration.minimumSupportedVersion}</dd>
-            </div>
-          </dl>
-        </section>
-        <section className="admin-panel" aria-labelledby="admin-dashboard-errors-title">
-          <h3 id="admin-dashboard-errors-title">Reported errors</h3>
-          <dl className="admin-definition-list">
-            <div>
-              <dt>Total reports</dt>
-              <dd>{props.summary.reportedErrorCount}</dd>
-            </div>
-            <div>
-              <dt>Latest report</dt>
-              <dd>{props.summary.latestReportedErrorAt ?? "No reports"}</dd>
-            </div>
-          </dl>
-        </section>
-      </div>
-    </section>
+    <div className="admin-dashboard-grid" aria-labelledby="admin-dashboard-title">
+      <IonCard aria-labelledby="admin-dashboard-version-title">
+        <IonCardHeader>
+          <IonCardTitle id="admin-dashboard-version-title">Version configuration</IonCardTitle>
+        </IonCardHeader>
+        <IonItem lines="inset">
+          <IonLabel>
+            <p className="admin-item-label">Current version</p>
+            <p className="admin-item-value">{props.summary.versionConfiguration.currentVersion}</p>
+          </IonLabel>
+        </IonItem>
+        <IonItem lines="inset">
+          <IonLabel>
+            <p className="admin-item-label">Latest version</p>
+            <p className="admin-item-value">{props.summary.versionConfiguration.latestVersion}</p>
+          </IonLabel>
+        </IonItem>
+        <IonItem lines="none">
+          <IonLabel>
+            <p className="admin-item-label">Minimum supported version</p>
+            <p className="admin-item-value">
+              {props.summary.versionConfiguration.minimumSupportedVersion}
+            </p>
+          </IonLabel>
+        </IonItem>
+      </IonCard>
+
+      <IonCard aria-labelledby="admin-dashboard-errors-title">
+        <IonCardHeader>
+          <IonCardTitle id="admin-dashboard-errors-title">Reported errors</IonCardTitle>
+        </IonCardHeader>
+        <IonItem lines="inset">
+          <IonLabel>
+            <p className="admin-item-label">Total reports</p>
+            <p className="admin-item-value">{props.summary.reportedErrorCount}</p>
+          </IonLabel>
+        </IonItem>
+        <IonItem lines="none">
+          <IonLabel>
+            <p className="admin-item-label">Latest report</p>
+            <p className="admin-item-value">
+              {props.summary.latestReportedErrorAt ?? (
+                <IonNote>No reports yet</IonNote>
+              )}
+            </p>
+          </IonLabel>
+        </IonItem>
+      </IonCard>
+    </div>
   );
 }
+

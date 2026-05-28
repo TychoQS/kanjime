@@ -1,25 +1,35 @@
-import { IonButton, IonText } from "@ionic/react";
+import { IonAlert } from "@ionic/react";
 
+import { translate } from "../../../Shared/I18n";
 import type { ErrorProps } from "../Contracts/ErrorProps";
 
 /**
- * Controlled user-facing error interface.
+ * Controlled user-facing error interface rendered as a native alert overlay.
  */
-export function ErrorView(props: ErrorProps): JSX.Element | null {
-  if (!props.isVisible) {
-    return null;
-  }
+export function ErrorView(props: ErrorProps): JSX.Element {
+  const language =
+    typeof document !== "undefined" && document.documentElement.lang
+      ? document.documentElement.lang
+      : "en-US";
 
   return (
-    <div className="controlled-error-view" data-testid="controlled-error-view" role="alert">
-      <IonText>
-        <p data-testid="controlled-error-message">{props.message}</p>
-      </IonText>
-      {props.canContinue ? (
-        <IonButton data-testid="controlled-error-dismiss-button" onClick={props.onDismissRequested}>
-          Continue
-        </IonButton>
-      ) : null}
-    </div>
+    <IonAlert
+      isOpen={props.isVisible}
+      data-testid="controlled-error-view"
+      message={`<p data-testid="controlled-error-message">${props.message}</p>`}
+      buttons={
+        props.canContinue
+          ? [
+              {
+                text: translate(language, "ok"),
+                role: "cancel",
+                htmlAttributes: { "data-testid": "controlled-error-dismiss-button" }
+              }
+            ]
+          : []
+      }
+      onDidDismiss={props.onDismissRequested}
+    />
   );
 }
+

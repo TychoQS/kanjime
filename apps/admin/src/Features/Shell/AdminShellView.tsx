@@ -25,10 +25,9 @@ import type { AdminAuthenticatedUser } from "../../Shared/FirebaseClient";
 import { AdminDashboardView } from "../Dashboard/View/AdminDashboardView";
 import { AdminErrorDetailView } from "../Errors/View/AdminErrorDetailView";
 import { AdminErrorsView } from "../Errors/View/AdminErrorsView";
-import { AdminVersionFormView } from "../Versions/View/AdminVersionFormView";
 import { AdminVersionsView } from "../Versions/View/AdminVersionsView";
 
-type AdminSection = "dashboard" | "versions" | "versionForm" | "errors" | "errorDetail";
+type AdminSection = "dashboard" | "versions" | "errors" | "errorDetail";
 
 interface AdminShellViewProps {
   readonly composition: AdminCompositionRoot;
@@ -181,7 +180,7 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
       void loadDashboard();
     }
 
-    if (activeSection === "versions" || activeSection === "versionForm") {
+    if (activeSection === "versions") {
       void loadVersions();
     }
 
@@ -273,7 +272,6 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
           <IonButtons slot="end" className="admin-navigation">
             <IonButton onClick={() => setActiveSection("dashboard")}>Dashboard</IonButton>
             <IonButton onClick={() => setActiveSection("versions")}>Versions</IonButton>
-            <IonButton onClick={() => setActiveSection("versionForm")}>Edit version</IonButton>
             <IonButton onClick={() => setActiveSection("errors")}>Errors</IonButton>
             <IonButton onClick={() => {
               void signOut();
@@ -297,10 +295,6 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
               summary={versionSummary}
               isLoading={isVersionsLoading}
               errorMessage={versionsError}
-            />
-          ) : null}
-          {activeSection === "versionForm" ? (
-            <AdminVersionFormView
               state={formState}
               onCurrentVersionChanged={value =>
                 setVersionConfiguration(current => ({ ...current, currentVersion: value }))

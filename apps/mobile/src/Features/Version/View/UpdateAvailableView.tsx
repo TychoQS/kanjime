@@ -1,29 +1,36 @@
-import { IonButton, IonText } from "@ionic/react";
+import { IonToast } from "@ionic/react";
 
+import { translate } from "../../../Shared/I18n";
 import type { UpdateAvailableProps } from "../Contracts/UpdateAvailableProps";
 
 /**
- * Non-blocking update availability notice.
+ * Non-blocking update availability notice rendered as a bottom toast.
  */
-export function UpdateAvailableView(props: UpdateAvailableProps): JSX.Element | null {
-  if (!props.isVisible) {
-    return null;
-  }
+export function UpdateAvailableView(props: UpdateAvailableProps): JSX.Element {
+  const language =
+    typeof document !== "undefined" && document.documentElement.lang
+      ? document.documentElement.lang
+      : "en-US";
 
   return (
-    <section className="update-available-view" data-testid="update-available-view" aria-live="polite">
-      <IonText>
-        <p data-testid="update-available-message">{props.message}</p>
-      </IonText>
-      {props.canContinueUsingApplication ? (
-        <IonButton
-          fill="clear"
-          data-testid="update-available-dismiss-button"
-          onClick={props.onDismissRequested}
-        >
-          Continue
-        </IonButton>
-      ) : null}
-    </section>
+    <IonToast
+      isOpen={props.isVisible}
+      message={props.message}
+      position="bottom"
+      data-testid="update-available-view"
+      buttons={
+        props.canContinueUsingApplication
+          ? [
+              {
+                text: translate(language, "ok"),
+                role: "cancel",
+                htmlAttributes: { "data-testid": "update-available-dismiss-button" }
+              }
+            ]
+          : []
+      }
+      onDidDismiss={props.onDismissRequested}
+    />
   );
 }
+

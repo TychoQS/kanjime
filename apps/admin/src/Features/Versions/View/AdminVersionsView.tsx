@@ -1,44 +1,167 @@
-import { IonText } from "@ionic/react";
+import {
+  IonBadge,
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonSpinner,
+  IonText
+} from "@ionic/react";
+import { useState } from "react";
 
+import type { AdminVersionFormProps } from "../Contracts/AdminVersionFormProps";
 import type { AdminVersionsProps } from "../Contracts/AdminVersionsProps";
 
+interface AdminVersionsPanelProps extends AdminVersionsProps, AdminVersionFormProps {}
+
 /**
- * Displays the current application version configuration.
+ * Displays the current version configuration and provides inline editing.
+ * The form is hidden by default and activated by the Edit button.
  */
-export function AdminVersionsView(props: AdminVersionsProps): JSX.Element {
+export function AdminVersionsView(props: AdminVersionsPanelProps): JSX.Element {
+  const [isEditing, setIsEditing] = useState(false);
+
   if (props.isLoading) {
-    return <p className="admin-muted">Loading version configuration.</p>;
+    return (
+      <IonCard>
+        <IonCardContent className="admin-card-loading">
+          <IonSpinner name="crescent" />
+          <IonText color="medium">
+            <p>Loading version configuration.</p>
+          </IonText>
+        </IonCardContent>
+      </IonCard>
+    );
   }
 
   if (props.errorMessage !== null) {
     return (
-      <IonText color="danger">
-        <p role="alert">{props.errorMessage}</p>
-      </IonText>
+      <IonCard color="danger">
+        <IonCardContent>
+          <IonText>
+            <p role="alert">{props.errorMessage}</p>
+          </IonText>
+        </IonCardContent>
+      </IonCard>
     );
   }
 
   return (
-    <section className="admin-panel" aria-labelledby="admin-versions-title">
-      <h2 id="admin-versions-title">Version configuration</h2>
-      <dl className="admin-definition-list">
-        <div>
-          <dt>Current version</dt>
-          <dd>{props.summary.currentVersion}</dd>
-        </div>
-        <div>
-          <dt>Latest version</dt>
-          <dd>{props.summary.latestVersion}</dd>
-        </div>
-        <div>
-          <dt>Minimum supported version</dt>
-          <dd>{props.summary.minimumSupportedVersion}</dd>
-        </div>
-        <div>
-          <dt>Updated at</dt>
-          <dd>{props.summary.updatedAt}</dd>
-        </div>
-      </dl>
-    </section>
+    <IonCard aria-labelledby="admin-versions-title">
+      <IonCardHeader className="admin-card-header">
+        <IonCardTitle id="admin-versions-title">Version configuration</IonCardTitle>
+        {!isEditing ? (
+          <IonButton
+            fill="outline"
+            size="small"
+            data-testid="admin-versions-edit-button"
+            onClick={() => setIsEditing(true)}
+          >
+            Edit
+          </IonButton>
+        ) : (
+          <IonButton
+            fill="clear"
+            size="small"
+            color="medium"
+            data-testid="admin-versions-cancel-button"
+            onClick={() => setIsEditing(false)}
+          >
+            Cancel
+          </IonButton>
+        )}
+      </IonCardHeader>
+
+      <IonItem lines="inset">
+        <IonLabel>
+          <p className="admin-item-label">Current version</p>
+          {isEditing ? (
+            <IonInput
+              value={props.state.currentVersion}
+              placeholder="e.g. 1.0.0"
+              onIonInput={event => props.onCurrentVersionChanged(String(event.detail.value ?? ""))}
+              data-testid="admin-version-current-input"
+            />
+          ) : (
+            <IonBadge color="primary" className="admin-version-badge">
+              {props.summary.currentVersion || "—"}
+            </IonBadge>
+          )}
+        </IonLabel>
+      </IonItem>
+
+      <IonItem lines="inset">
+        <IonLabel>
+          <p className="admin-item-label">Latest version</p>
+          {isEditing ? (
+            <IonInput
+              value={props.state.latestVersion}
+              placeholder="e.g. 1.1.0"
+              onIonInput={event => props.onLatestVersionChanged(String(event.detail.value ?? ""))}
+              data-testid="admin-version-latest-input"
+            />
+          ) : (
+            <IonBadge color="secondary" className="admin-version-badge">
+              {props.summary.latestVersion || "—"}
+            </IonBadge>
+          )}
+        </IonLabel>
+      </IonItem>
+
+      <IonItem lines="inset">
+        <IonLabel>
+          <p className="admin-item-label">Minimum supported version</p>
+          {isEditing ? (
+            <IonInput
+              value={props.state.minimumSupportedVersion}
+              placeholder="e.g. 0.9.0"
+              onIonInput={event =>
+                props.onMinimumSupportedVersionChanged(String(event.detail.value ?? ""))
+              }
+              data-testid="admin-version-minimum-input"
+            />
+          ) : (
+            <IonBadge color="medium" className="admin-version-badge">
+              {props.summary.minimumSupportedVersion || "—"}
+            </IonBadge>
+          )}
+        </IonLabel>
+      </IonItem>
+
+      <IonItem lines="none">
+        <IonLabel>
+          <p className="admin-item-label">Updated at</p>
+          <p className="admin-item-value">{props.summary.updatedAt || "—"}</p>
+        </IonLabel>
+      </IonItem>
+
+      {isEditing ? (
+        <IonCardContent>
+          {props.state.validationMessage !== null ? (
+            <IonText color="danger">
+              <p role="alert" className="admin-validation-message">
+                {props.state.validationMessage}
+              </p>
+            </IonText>
+          ) : null}
+          <IonButton
+            expand="block"
+            disabled={!props.state.canSave}
+            data-testid="admin-version-save-button"
+            onClick={() => {
+              props.onSaveRequested();
+              setIsEditing(false);
+            }}
+          >
+            Save configuration
+          </IonButton>
+        </IonCardContent>
+      ) : null}
+    </IonCard>
   );
 }
+

@@ -335,12 +335,15 @@ export function createInferenceViewModel(
 ): InferenceInterface {
   const drawingWidth = dependencies.drawingWidth ?? DRAWING_CANVAS_SIZE;
   const drawingHeight = dependencies.drawingHeight ?? DRAWING_CANVAS_SIZE;
-  const modelInputSize = dependencies.modelInputSize ?? MODEL_INPUT_SIZE;
 
-  assertPositiveInteger(
-    modelInputSize,
-    "The model could not be initialized."
-  );
+  const resolveModelInputSize = (): number => {
+    if (dependencies.modelLoader) {
+      return dependencies.modelLoader.getModelConfiguration().inputWidth;
+    }
+
+    return MODEL_INPUT_SIZE;
+  };
+
   assertPositiveInteger(
     drawingWidth,
     "The drawing area could not be prepared for identification."
@@ -397,7 +400,7 @@ export function createInferenceViewModel(
       }
 
       assertValidModelDimensions(input.modelInputWidth, input.modelInputHeight);
-      assertMatchesRuntimeModelSize(input.modelInputWidth, input.modelInputHeight, modelInputSize);
+      assertMatchesRuntimeModelSize(input.modelInputWidth, input.modelInputHeight, resolveModelInputSize());
 
       if (dependencies.preprocessDrawing && dependencies.getCurrentStrokes) {
         const strokes = cloneStrokes(dependencies.getCurrentStrokes());
@@ -429,7 +432,7 @@ export function createInferenceViewModel(
       }
 
       assertValidModelDimensions(input.modelInputWidth, input.modelInputHeight);
-      assertMatchesRuntimeModelSize(input.modelInputWidth, input.modelInputHeight, modelInputSize);
+      assertMatchesRuntimeModelSize(input.modelInputWidth, input.modelInputHeight, resolveModelInputSize());
 
       if (input.crop) {
         assertValidCrop(input.crop);

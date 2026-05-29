@@ -26,6 +26,8 @@ import { CreateDisplayInferencesController } from "./Features/Classification/Inf
 import type { DisplayInferencesInterface } from "./Features/Classification/Inference/Contracts/DisplayInferencesInterface";
 import { CreateInferenceController } from "./Features/Classification/Inference/CreateInferenceController";
 import type { InferenceInterface } from "./Features/Classification/Inference/Contracts/InferenceInterface";
+import { CreateModelLoaderController } from "./Features/Classification/Inference/CreateModelLoaderController";
+import type { ModelLoaderInterface } from "./Features/Classification/Inference/Contracts/ModelLoaderInterface";
 import { DRAWING_CANVAS_SIZE, MODEL_INPUT_SIZE } from "./Features/Classification/Inference/InferenceRuntimeConfig";
 import { CreateClassificationController } from "./Features/Classification/Mode/CreateClassificationController";
 import type { ClassificationInterface } from "./Features/Classification/Mode/Contracts/ClassificationInterface";
@@ -59,6 +61,7 @@ import type {
   DetailedKanjiEntry,
   HistoryCategory,
   HistoryGroup,
+  ModelConfiguration,
   NavigationPage,
   Stroke,
   UpdateAvailabilityState
@@ -89,6 +92,7 @@ export interface CompositionRoot {
   readonly observabilityPersistence: ObservabilityPersistence;
   readonly ocrClient: OcrWorkerClient;
   readonly canvasController: CanvasInterface;
+  readonly modelLoaderController: ModelLoaderInterface;
   readonly inferenceController: InferenceInterface;
   readonly imageController: ImageInterface;
   readonly photoController: PhotoInterface;
@@ -131,6 +135,16 @@ export function createCompositionRoot(): CompositionRoot {
   const observabilityPersistence = new ObservabilityPersistence();
   const userActionTracker = new UserActionTracker();
   const ocrClient = new OcrWorkerClient();
+  const modelLoaderController = CreateModelLoaderController({
+    initializeModelRuntime: async (): Promise<ModelConfiguration> => {
+      await ocrClient.loadModel();
+      return {
+        inputWidth: MODEL_INPUT_SIZE,
+        inputHeight: MODEL_INPUT_SIZE,
+        isLoaded: true
+      };
+    }
+  });
   // eslint-disable-next-line prefer-const
   let canvasController: CanvasInterface;
 
@@ -322,7 +336,7 @@ export function createCompositionRoot(): CompositionRoot {
     })),
     drawingWidth: DRAWING_CANVAS_SIZE,
     drawingHeight: DRAWING_CANVAS_SIZE,
-    modelInputSize: MODEL_INPUT_SIZE,
+    modelLoader: modelLoaderController,
     resolveStrokeCount: async character => {
       const summary = await kanjiRepository.getSummary(character);
       return summary?.strokeCount ?? 0;
@@ -438,6 +452,7 @@ export function createCompositionRoot(): CompositionRoot {
     persistence,
     observabilityPersistence,
     ocrClient,
+    modelLoaderController,
     canvasController,
     inferenceController,
     imageController,
@@ -507,7 +522,7 @@ export function createCompositionRoot(): CompositionRoot {
       await Promise.all([
         kanjiRepository.initialize(),
         persistence.initialize(),
-        ocrClient.loadModel()
+        modelLoaderController.loadModel()
       ]);
       void observabilityPersistence.flushPendingErrorReports();
       const preferences = await persistence.getPreferences();

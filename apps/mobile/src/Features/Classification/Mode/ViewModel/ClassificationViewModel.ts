@@ -7,6 +7,7 @@ import type { ImageInterface } from "../../Image/Contracts/ImageInterface";
 import type { PhotoInterface } from "../../Image/Contracts/PhotoInterface";
 import type { DisplayInferencesInterface } from "../../Inference/Contracts/DisplayInferencesInterface";
 import type { InferenceInterface } from "../../Inference/Contracts/InferenceInterface";
+import type { ModelLoaderInterface } from "../../Inference/Contracts/ModelLoaderInterface";
 import { PHOTO_SELECTION_CANCELLED_MESSAGE } from "../../Image/ViewModel/PhotoViewModel";
 import type { ClassificationInterface } from "../Contracts/ClassificationInterface";
 import type { CreateClassificationControllerDependencies } from "../CreateClassificationController";
@@ -34,6 +35,7 @@ export interface ClassificationScreenViewModel {
   readonly activeCrop: CropRegion | null;
   readonly results: ReadonlyArray<CharacterSummary>;
   readonly isProcessing: boolean;
+  readonly isModelReady: boolean;
   readonly errorMessage: string | null;
   readonly activeStroke: CanvasInteractionViewModel["activeStroke"];
   dismissError(): void;
@@ -80,6 +82,7 @@ export interface ClassificationScreenViewModelDependencies {
   readonly displayInferencesController: DisplayInferencesInterface;
   readonly classificationController: ClassificationInterface;
   readonly toggleClassificationModeController: ToggleClassificationModeInterface;
+  readonly modelLoader: ModelLoaderInterface;
   readonly canvasInteraction: CanvasInteractionViewModel;
 }
 
@@ -248,6 +251,7 @@ export function useClassificationScreenViewModel(
     activeCrop,
     results,
     isProcessing,
+    isModelReady: dependencies.modelLoader.isModelReady(),
     errorMessage,
     activeStroke: dependencies.canvasInteraction.activeStroke,
     dismissError(): void {

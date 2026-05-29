@@ -1,5 +1,6 @@
 import type { CropRegion, Stroke } from "@kanjime/shared";
 import type { InferenceInterface } from "./Contracts/InferenceInterface";
+import type { ModelLoaderInterface } from "./Contracts/ModelLoaderInterface";
 import { createInferenceViewModel } from "./ViewModel/InferenceViewModel";
 
 /**
@@ -31,7 +32,7 @@ export interface CreateInferenceControllerDependencies {
   readonly getCurrentStrokes?: () => ReadonlyArray<Stroke>;
   readonly drawingWidth?: number;
   readonly drawingHeight?: number;
-  readonly modelInputSize?: number;
+  readonly modelLoader?: ModelLoaderInterface;
   readonly resolveStrokeCount?: (character: string) => Promise<number>;
 }
 

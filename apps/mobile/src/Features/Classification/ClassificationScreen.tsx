@@ -31,6 +31,14 @@ export function ClassificationScreen(): JSX.Element {
   return (
     <MobilePage title={translate(preferences.preferences.language, "recognition")} testId="classification-screen">
       <div className="screen-shell">
+        {!classification.isModelReady ? (
+          <div className="model-loading-overlay" data-testid="model-loading-overlay">
+            <IonSpinner name="crescent" />
+            <IonText color="medium">
+              <p>{translate(preferences.preferences.language, "loadingModel")}</p>
+            </IonText>
+          </div>
+        ) : null}
         <IonAlert
           isOpen={classification.errorMessage !== null}
           message={classification.errorMessage ?? ""}

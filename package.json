@@ -32,6 +32,7 @@
     "test:integration:mobile": "npm run build:shared && npm run test:integration -w @kanjime/mobile",
     "test:unit": "npm run build:shared && npm run test:unit -w @kanjime/mobile && npm run test:unit -w @kanjime/admin",
     "test:unit:admin": "npm run test:unit -w @kanjime/admin",
-    "test:unit:mobile": "npm run build:shared && npm run test:unit -w @kanjime/mobile"
+    "test:unit:mobile": "npm run build:shared && npm run test:unit -w @kanjime/mobile",
+    "lint": "npm run lint -w @kanjime/mobile"
   }
 }

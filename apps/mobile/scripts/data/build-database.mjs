@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import initSqlJs from "sql.js";
 import { XMLParser } from "fast-xml-parser";
+import { createRequire } from 'module';
 
 import {
   ensureDirectory,
@@ -423,8 +424,10 @@ function parseTanosJlptOverrides(jlptSource, targetCharacters) {
  * @returns {Promise<import("sql.js").SqlJsStatic>}
  */
 async function loadSqlJs() {
+  const require = createRequire(import.meta.url);
+  const sqlWasmPath = require.resolve('sql.js/dist/sql-wasm.wasm');
   return initSqlJs({
-    locateFile: (file) => resolve(PATHS.projectRoot, "node_modules", "sql.js", "dist", file)
+    locateFile: (file) => file === 'sql-wasm.wasm' ? sqlWasmPath : file
   });
 }
 

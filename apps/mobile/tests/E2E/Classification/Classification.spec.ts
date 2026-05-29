@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../Support/Fixtures";
 import { getContrast } from "polished";
 
 import { drawSingleStroke, canvasHasVisibleStroke } from "../../Support/E2ECanvasHelpers";

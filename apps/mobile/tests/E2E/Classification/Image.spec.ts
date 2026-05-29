@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../Support/Fixtures";
 
 import { loadImageFromStorage, performCrop } from "../../Support/ImageHelper";
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";

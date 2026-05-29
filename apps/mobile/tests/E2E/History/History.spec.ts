@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../Support/Fixtures";
 
 import { drawSingleStroke } from "../../Support/E2ECanvasHelpers";
 import { loadImageFromStorage } from "../../Support/ImageHelper";

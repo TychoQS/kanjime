@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../../Support/Fixtures";
 
 import { E2ECalligraphyPage } from "../../../Support/E2ECalligraphyPage";
 import {

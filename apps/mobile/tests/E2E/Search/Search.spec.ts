@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../Support/Fixtures";
 
 import { E2EApplicationPage } from "../../Support/E2EApplicationPage";
 import { TEST_KANJI_DAY, TEST_KANJI_MOON, TEST_READING_HI, TEST_READING_NICHI } from "../../Support/TestData";

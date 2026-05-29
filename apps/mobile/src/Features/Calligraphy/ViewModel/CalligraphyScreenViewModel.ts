@@ -119,7 +119,7 @@ export function useCalligraphyScreenViewModel(
               setStrokes(dependencies.calligraphyCanvasController.getStrokeHistory());
               setMode("practice");
             }
-          } catch (e) {
+          } catch {
             if (isMounted) {
               setErrorMessage("calligraphyError");
             }
@@ -138,7 +138,7 @@ export function useCalligraphyScreenViewModel(
               setFeedback(null);
               setMode("category");
             }
-          } catch (e) {
+          } catch {
             if (isMounted) {
               setErrorMessage("calligraphyError");
             }
@@ -157,7 +157,7 @@ export function useCalligraphyScreenViewModel(
               setActiveGrouping(dependencies.calligraphyController.getActiveGrouping());
               setCategories(dependencies.calligraphyController.getVisibleCategories());
             }
-          } catch (e) {
+          } catch {
             // no-op
           }
         }

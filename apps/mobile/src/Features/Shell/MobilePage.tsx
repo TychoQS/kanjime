@@ -8,6 +8,7 @@ import {
   IonToolbar
 } from "@ionic/react";
 import type { ReactNode } from "react";
+import { translate } from "../../Shared/I18n";
 
 interface MobilePageProps {
   readonly title: string;
@@ -19,12 +20,16 @@ interface MobilePageProps {
 
 
 export function MobilePage(props: MobilePageProps): JSX.Element {
+  const language = typeof document !== "undefined" && document.documentElement.lang
+    ? document.documentElement.lang
+    : "en-US";
+
   return (
     <IonPage id={props.contentId}>
       <IonHeader translucent={false}>
         <IonToolbar>
           <IonButtons slot="start">
-            <IonMenuButton data-testid="menu-button" aria-label="Open menu" />
+            <IonMenuButton data-testid="menu-button" aria-label={translate(language, "openMenu")} />
           </IonButtons>
           <IonTitle>{props.title}</IonTitle>
           {props.endControls ? <IonButtons slot="end">{props.endControls}</IonButtons> : null}

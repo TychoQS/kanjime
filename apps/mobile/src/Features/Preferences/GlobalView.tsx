@@ -2,6 +2,7 @@ import React from "react";
 import { useLayoutEffect, useRef } from "react";
 
 import type { GlobalProps } from "./Contracts/GlobalProps";
+import { translate } from "../../Shared/I18n";
 
 const TITLE_TRANSLATIONS = new Map<string, string>([
   ["en-US", "History"],
@@ -67,7 +68,7 @@ export function GlobalView(props: GlobalProps): JSX.Element {
       lang={props.language}
       style={surfaceStyle}
     >
-      {props.translationsReady ? localizeChildren(props.children, props.language) : <p>Loading language</p>}
+      {props.translationsReady ? localizeChildren(props.children, props.language) : <p>{translate(props.language, "loadingLanguage")}</p>}
     </div>
   );
 }

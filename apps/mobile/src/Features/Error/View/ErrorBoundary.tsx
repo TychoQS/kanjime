@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Component, type ReactNode } from "react";
 
 import { ErrorView } from "./ErrorView";
 
@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     };
   }
 
-  componentDidCatch(error: Error, _errorInfo: ErrorInfo): void {
+  componentDidCatch(error: Error): void {
     void this.props.captureUnexpectedError(error)
       .then(state => {
         this.setState({

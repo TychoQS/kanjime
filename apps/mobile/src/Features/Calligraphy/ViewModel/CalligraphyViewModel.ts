@@ -57,6 +57,10 @@ export function createCalligraphyViewModel(
     async openCategory(categoryId: string): Promise<void> {
       const loadedCategories = categories.length > 0 ? categories : await refreshCategories();
       const currentCategories = loadedCategories.length > 0 ? loadedCategories : fallbackCategories;
+      const targetCategory = currentCategories.find(c => c.id === categoryId);
+      if (!targetCategory) {
+        throw new ApplicationError("The category does not exist.");
+      }
       await dependencies.navigateToCategory(categoryId);
     }
   };

@@ -6,9 +6,7 @@ import type { CreateErrorControllerDependencies } from "../CreateErrorController
  */
 export function createErrorViewModel(dependencies: CreateErrorControllerDependencies): ErrorInterface {
   return {
-    async captureUnexpectedError(
-      _error: Error
-    ): Promise<{ readonly message: string; readonly isControlled: boolean }> {
+    async captureUnexpectedError(): Promise<{ readonly message: string; readonly isControlled: boolean }> {
       return {
         message: dependencies.createUserFacingMessage(),
         isControlled: true

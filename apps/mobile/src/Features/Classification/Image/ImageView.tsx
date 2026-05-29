@@ -1,9 +1,14 @@
 import type { ImageProps } from "./Contracts/ImageProps";
+import { translate } from "../../../Shared/I18n";
 
 /**
  * Image preview for image-based classification.
  */
 export function ImageView(props: ImageProps): JSX.Element | null {
+  const language = typeof document !== "undefined" && document.documentElement.lang
+    ? document.documentElement.lang
+    : "en-US";
+
   if (!props.image) {
     return null;
   }
@@ -19,7 +24,7 @@ export function ImageView(props: ImageProps): JSX.Element | null {
         src={props.image.uri}
         width={props.image.width}
       />
-      <button aria-label="Clear image" onClick={props.onClearImage} type="button">
+      <button aria-label={translate(language, "clearImage")} onClick={props.onClearImage} type="button">
       </button>
     </>
   );

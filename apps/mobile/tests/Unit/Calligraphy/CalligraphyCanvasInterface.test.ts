@@ -11,7 +11,7 @@ describe("CalligraphyCanvasInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R51", "Unit", "Invariant", "strokes preserve capture order in canvas history"), () => {
-    const controller = CreateCalligraphyCanvasController({});
+    const controller = CreateCalligraphyCanvasController();
 
     controller.registerStroke(TEST_STROKE);
     controller.registerStroke(TEST_SECOND_STROKE);
@@ -28,7 +28,7 @@ describe("CalligraphyCanvasInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R51", "Unit", "Postcondition", "each new stroke is registered in canvas history"), () => {
-    const controller = CreateCalligraphyCanvasController({});
+    const controller = CreateCalligraphyCanvasController();
 
     controller.registerStroke(TEST_STROKE);
     controller.registerStroke(TEST_SECOND_STROKE);
@@ -46,7 +46,7 @@ describe("CalligraphyCanvasInterface", () => {
    * Condition: Precondition - valid
    */
   it(buildRequirementTitle("R52", "Unit", "Precondition", "reset attempt throws when no strokes are registered"), () => {
-    const controller = CreateCalligraphyCanvasController({});
+    const controller = CreateCalligraphyCanvasController();
 
     expect(() => {
       controller.resetAttempt();
@@ -59,7 +59,7 @@ describe("CalligraphyCanvasInterface", () => {
    * Condition: Precondition - invalid
    */
   it(buildRequirementTitle("R52", "Unit", "Precondition", "attempt can only be reset when strokes are registered"), () => {
-    const controller = CreateCalligraphyCanvasController({});
+    const controller = CreateCalligraphyCanvasController();
 
     controller.registerStroke(TEST_STROKE);
 
@@ -74,7 +74,7 @@ describe("CalligraphyCanvasInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R52", "Unit", "Invariant", "canvas remains operational after resetting attempt"), () => {
-    const controller = CreateCalligraphyCanvasController({});
+    const controller = CreateCalligraphyCanvasController();
 
     controller.registerStroke(TEST_STROKE);
     controller.resetAttempt();
@@ -90,7 +90,7 @@ describe("CalligraphyCanvasInterface", () => {
    * Condition: Postcondition
    */
   it(buildRequirementTitle("R52", "Unit", "Postcondition", "all strokes are removed from current attempt after reset"), () => {
-    const controller = CreateCalligraphyCanvasController({});
+    const controller = CreateCalligraphyCanvasController();
 
     controller.registerStroke(TEST_STROKE);
     controller.resetAttempt();

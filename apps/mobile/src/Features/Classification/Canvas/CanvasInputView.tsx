@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import type { Stroke } from "@kanjime/shared";
+import { translate } from "../../../Shared/I18n";
 import { DRAWING_CANVAS_SIZE } from "../Inference/InferenceRuntimeConfig";
 import type { CanvasInputProps } from "./Contracts/CanvasInputProps";
 
@@ -11,6 +12,9 @@ const CANVAS_SIZE = DRAWING_CANVAS_SIZE;
  */
 export const CanvasInputView: React.FC<CanvasInputProps> = props => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const language = typeof document !== "undefined" && document.documentElement.lang
+    ? document.documentElement.lang
+    : "en-US";
 
   useEffect(() => {
     drawCanvas(canvasRef.current, props.strokes, props.activeStroke, props.backgroundColor, props.strokeColor);
@@ -52,7 +56,7 @@ export const CanvasInputView: React.FC<CanvasInputProps> = props => {
         </svg>
         <canvas
           ref={canvasRef}
-          aria-label="Drawing area"
+          aria-label={translate(language, "drawingArea")}
           className="drawing-canvas"
           data-background={props.backgroundColor}
           data-stroke={props.strokeColor}

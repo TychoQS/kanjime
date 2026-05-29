@@ -1,5 +1,5 @@
 import type { ImageInterface } from "./Contracts/ImageInterface";
-import type { CropRegion, ImageDescriptor, ImageState } from "@kanjime/shared";
+import type { CropRegion, ImageDescriptor } from "@kanjime/shared";
 import { createImageViewModel } from "./ViewModel/ImageViewModel";
 
 /**

@@ -3,7 +3,6 @@ import type { CreatePhotoControllerDependencies } from "../CreatePhotoController
 import type { ImageDescriptor } from "@kanjime/shared";
 import { ApplicationError, ImageError } from "@kanjime/shared";
 
-let cameraDenialCount = 0;
 export const PHOTO_SELECTION_CANCELLED_MESSAGE = "PHOTO_SELECTION_CANCELLED";
 
 function assertValidAcquiredImage(image: ImageDescriptor): void {
@@ -41,8 +40,6 @@ export function createPhotoViewModel(dependencies: CreatePhotoControllerDependen
       const stack = new ApplicationError("Stack trace capture").stack ?? "";
 
       if (normalizedMessage.includes("permission")) {
-        cameraDenialCount += 1;
-
         if (stack.includes("PhotoInterface")) {
           return null as unknown as ImageDescriptor;
         }

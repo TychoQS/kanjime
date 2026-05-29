@@ -19,11 +19,11 @@ test("[R8][E2E] NavigationProps closes the menu with the visible control", async
   await app.openMenu();
 
   // @inv The close control remains visible while the menu is open.
-  await expect(page.getByRole("button", { name: "Close navigation" })).toBeVisible();
+  await expect(page.locator(".menu-close-button")).toBeVisible();
 
   // @post Activating the control closes the menu.
   await app.closeMenu();
-  await expect(page.getByRole("button", { name: "Close navigation" })).toBeHidden({
+  await expect(page.locator(".menu-close-button")).toBeHidden({
     timeout: 10_000,
   });
   await expect(page.getByTestId("navigation-view")).toBeHidden({

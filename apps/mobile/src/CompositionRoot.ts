@@ -131,6 +131,7 @@ export function createCompositionRoot(): CompositionRoot {
   const observabilityPersistence = new ObservabilityPersistence();
   const userActionTracker = new UserActionTracker();
   const ocrClient = new OcrWorkerClient();
+  // eslint-disable-next-line prefer-const
   let canvasController: CanvasInterface;
 
   const recordUserAction = (action: ApplicationUserAction): void => {
@@ -212,7 +213,6 @@ export function createCompositionRoot(): CompositionRoot {
   const aboutController = CreateAboutController({
     loadAboutInformation: async () => {
       const attributions = await kanjiRepository.loadSourceAttributions();
-      const metadata = kanjiRepository.getMetadata();
       return [
         { label: "version", value: packageMetadata.version },
         { label: "authorship", value: "authorshipName" },
@@ -396,7 +396,7 @@ export function createCompositionRoot(): CompositionRoot {
 
   const calligraphyController = CreateCalligraphyController({
     getCategories: () => kanjiRepository.getCachedCalligraphyCategories(),
-    navigateToCategory: async (_categoryId: string) => {
+    navigateToCategory: async () => {
       recordUserAction({
         type: "calligraphy:category-opened",
         occurredAt: new Date().toISOString()
@@ -406,11 +406,11 @@ export function createCompositionRoot(): CompositionRoot {
 
   const categoryController = CreateCategoryController({
     getKanjiByCategory: categoryId => kanjiRepository.getCalligraphyKanjiByCategory(categoryId),
-    startCalligraphyPractice: async (_character: string) => undefined,
+    startCalligraphyPractice: async () => undefined,
     returnToCalligraphy: async () => undefined
   });
 
-  const calligraphyCanvasController = CreateCalligraphyCanvasController({});
+  const calligraphyCanvasController = CreateCalligraphyCanvasController();
 
   const calligraphyEvaluationController = CreateCalligraphyEvaluationController({
     evaluateAttempt: attempt => evaluateCalligraphyAttempt({

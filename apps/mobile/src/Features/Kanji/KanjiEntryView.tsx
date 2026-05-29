@@ -46,6 +46,9 @@ export function KanjiEntryView(props: KanjiEntryProps): JSX.Element {
   const contextValue = useContext(KanjiEntryRenderContext);
   const requestCopy = props.onCopyRequested as unknown as (character: string) => void;
   const [animationKey, setAnimationKey] = useState(0);
+  const language = typeof document !== "undefined" && document.documentElement.lang
+    ? document.documentElement.lang
+    : "en-US";
 
   useEffect(() => {
     if (contextValue?.details?.strokeOrder && contextValue.details.strokeCount > 0) {
@@ -142,7 +145,7 @@ export function KanjiEntryView(props: KanjiEntryProps): JSX.Element {
       <article>
         {props.canGoBack ? (
           <button onClick={props.onBackRequested} type="button">
-            Back
+            {translate(language, "back")}
           </button>
         ) : null}
         <h1>{props.character}</h1>
@@ -159,7 +162,7 @@ export function KanjiEntryView(props: KanjiEntryProps): JSX.Element {
         {props.levels.length > 0 ? <p>{props.levels.join(" ")}</p> : null}
         {props.canCopy && props.character.trim().length > 0 ? (
           <button onClick={() => requestCopy(props.character)} type="button">
-            Copy
+            {translate(language, "copyKanji")}
           </button>
         ) : null}
       </article>

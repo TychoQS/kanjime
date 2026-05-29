@@ -136,7 +136,11 @@ export const CALLIGRAPHY_TRANSLATION_KEYS = [
   "recommendStrokeOrder",
   "recommendDirection",
   "recommendSimilarity",
-  "calligraphyError"
+  "calligraphyError",
+  "drawingArea",
+  "loadingLanguage",
+  "applicationNavigation",
+  "closeNavigation"
 ] as const;
 
 export const TRANSLATION_KEYS = [
@@ -258,7 +262,11 @@ export const ENGLISH_TRANSLATIONS: TranslationMap = {
   recommendStrokeOrder: "Focus on drawing the strokes in the reference order.",
   recommendDirection: "Focus on the start and end direction of each stroke.",
   recommendSimilarity: "Focus on the overall shape and position of the character.",
-  calligraphyError: "An unexpected error has occurred and the practice could not be evaluated."
+  calligraphyError: "An unexpected error has occurred and the practice could not be evaluated.",
+  drawingArea: "Drawing area",
+  loadingLanguage: "Loading language",
+  applicationNavigation: "Application navigation",
+  closeNavigation: "Close navigation"
 };
 
 export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
@@ -405,7 +413,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeCount: "Céntrate en dibujar el mismo número de trazos que la referencia.",
     recommendStrokeOrder: "Céntrate en dibujar los trazos en el orden de referencia.",
     recommendDirection: "Céntrate en la dirección de inicio y fin de cada trazo.",
-    recommendSimilarity: "Céntrate en la forma general y la posición del carácter."
+    recommendSimilarity: "Céntrate en la forma general y la posición del carácter.",
+    drawingArea: "Área de dibujo",
+    loadingLanguage: "Cargando idioma",
+    applicationNavigation: "Navegación de la aplicación",
+    closeNavigation: "Cerrar navegación"
   },
   "fr-FR": {
     appName: "KanjiMe",
@@ -514,7 +526,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "Concentrez-vous sur le tracé des traits dans l'ordre de référence.",
     recommendDirection: "Concentrez-vous sur la direction de début et de fin de chaque trait.",
     recommendSimilarity: "Concentrez-vous sur la forme générale et la position du caractère.",
-    calligraphy: "Calligraphie"
+    calligraphy: "Calligraphie",
+    drawingArea: "Zone de dessin",
+    loadingLanguage: "Chargement de la langue",
+    applicationNavigation: "Navigation de l'application",
+    closeNavigation: "Fermer la navigation"
   },
   "de-DE": {
     appName: "KanjiMe",
@@ -623,7 +639,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "Konzentrieren Sie sich darauf, die Striche in der Referenzreihenfolge zu zeichnen.",
     recommendDirection: "Konzentrieren Sie sich auf die Start- und Endrichtung jedes Strichs.",
     recommendSimilarity: "Konzentrieren Sie sich auf die allgemeine Form und Position des Zeichens.",
-    calligraphy: "Kalligrafie"
+    calligraphy: "Kalligrafie",
+    drawingArea: "Zeichenbereich",
+    loadingLanguage: "Sprache wird geladen",
+    applicationNavigation: "Anwendungsnavigation",
+    closeNavigation: "Navigation schließen"
   },
   "it-IT": {
     appName: "KanjiMe",
@@ -732,7 +752,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "Concentrati sul disegnare i tratti nell'ordine di riferimento.",
     recommendDirection: "Concentrati sulla direzione iniziale e finale di ogni tratto.",
     recommendSimilarity: "Concentrati sulla forma generale e sulla posizione del carattere.",
-    calligraphy: "Calligrafia"
+    calligraphy: "Calligrafia",
+    drawingArea: "Area di disegno",
+    loadingLanguage: "Caricamento della lingua",
+    applicationNavigation: "Navigazione dell'applicazione",
+    closeNavigation: "Chiudi navigazione"
   },
   "pt-PT": {
     appName: "KanjiMe",
@@ -841,7 +865,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "Concentre-se em desenhar os traços na ordem de referência.",
     recommendDirection: "Concentre-se na direção inicial e final de cada traço.",
     recommendSimilarity: "Concentre-se na forma geral e na posição do caractere.",
-    calligraphy: "Caligrafia"
+    calligraphy: "Caligrafia",
+    drawingArea: "Área de desenho",
+    loadingLanguage: "A carregar o idioma",
+    applicationNavigation: "Navegação da aplicação",
+    closeNavigation: "Fechar navegação"
   },
   "ja-JP": {
     appName: "KanjiMe",
@@ -950,7 +978,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "参照の順序で画を描くことに集中してください。",
     recommendDirection: "各画の開始と終了の方向に集中してください。",
     recommendSimilarity: "文字の全体的な形状と位置に集中してください。",
-    calligraphy: "書道"
+    calligraphy: "書道",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   },
   "zh-CN": {
     appName: "KanjiMe",
@@ -1059,7 +1091,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "专注于按参考顺序绘制笔画。",
     recommendDirection: "专注于每笔的开始和结束方向。",
     recommendSimilarity: "专注于字符的整体形状和位置。",
-    calligraphy: "书法"
+    calligraphy: "书法",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   },
   "zh-TW": {
     appName: "KanjiMe",
@@ -1168,7 +1204,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "專注於按參考順序繪製筆畫。",
     recommendDirection: "專注於每筆的開始和結束方向。",
     recommendSimilarity: "專注於字符的整體形狀和位置。",
-    calligraphy: "書法"
+    calligraphy: "書法",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   },
   "ko-KR": {
     appName: "KanjiMe",
@@ -1277,7 +1317,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "기준 순서대로 획을 그리는 데 집중하십시오.",
     recommendDirection: "각 획의 시작 및 끝 방향에 집중하십시오.",
     recommendSimilarity: "문자의 전체 모양과 위치에 집중하십시오.",
-    calligraphy: "서예"
+    calligraphy: "서예",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   },
   "hi-IN": {
     appName: "KanjiMe",
@@ -1386,7 +1430,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "संदर्भ क्रम में स्ट्रोक खींचने पर ध्यान दें।",
     recommendDirection: "प्रत्येक स्ट्रोक की शुरुआत और अंत की दिशा पर ध्यान दें।",
     recommendSimilarity: "अक्षर के समग्र आकार और स्थिति पर ध्यान दें।",
-    calligraphy: "सुलेख"
+    calligraphy: "सुलेख",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   },
   "ar-SA": {
     appName: "KanjiMe",
@@ -1495,7 +1543,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "ركز على رسم الخطوات بالترتيب المرجعي.",
     recommendDirection: "ركز على اتجاه البداية والنهاية لكل خطوة.",
     recommendSimilarity: "ركز على الشكل العام وموضع الحرف.",
-    calligraphy: "الخط"
+    calligraphy: "الخط",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   },
   "sw-KE": {
     appName: "KanjiMe",
@@ -1604,7 +1656,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "Zingatia kuchora vipigo katika mfuatano wa rejeleo.",
     recommendDirection: "Zingatia mwelekeo wa mwanzo na mwisho wa kila kipigo.",
     recommendSimilarity: "Zingatia umbo la jumla na nafasi ya herufi.",
-    calligraphy: "Kaligrafia"
+    calligraphy: "Kaligrafia",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   },
   "am-ET": {
     appName: "KanjiMe",
@@ -1713,7 +1769,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "በማመሳከሪያው ቅደም ተከተል መሠረት ምቶቹን መሳል ላይ ያተኩሩ።",
     recommendDirection: "በእያንዳንዱ የጭረት መጀመሪያ እና መጨረሻ አቅጣጫ ላይ ያተኩሩ።",
     recommendSimilarity: "በገጸ ባህሪው አጠቃላይ ቅርፅ እና አቀማመጥ ላይ ያተኩሩ።",
-    calligraphy: "ካሊግራፊ"
+    calligraphy: "ካሊግራፊ",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   },
   "ha-NG": {
     appName: "KanjiMe",
@@ -1822,7 +1882,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "Ka mayar da hankali kan zana shanyewar a cikin tsarin da aka bayar.",
     recommendDirection: "Ka mayar da hankali kan farko da ƙarshen alkiblar kowane shanyewa.",
     recommendSimilarity: "Ka mayar da hankali kan sifar gaba ɗaya da matsayin harafin.",
-    calligraphy: "Kira"
+    calligraphy: "Kira",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   },
   "yo-NG": {
     appName: "KanjiMe",
@@ -1931,7 +1995,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "Fojusi lori yiya awọn igbesẹ ni aṣẹ itọkasi.",
     recommendDirection: "Fojusi lori ibẹrẹ ati ipari itọsọna ti igbesẹ kọọkan.",
     recommendSimilarity: "Fojusi lori apẹrẹ gbogbogbo ati ipo ohun kikọ naa.",
-    calligraphy: "Akọsilẹ"
+    calligraphy: "Akọsilẹ",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   },
   "zu-ZA": {
     appName: "KanjiMe",
@@ -2040,7 +2108,11 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "Gxila ekudwebeni imigqa ngokulandelana kwesethenjwa.",
     recommendDirection: "Gxila esiqondisweni sokuqala nesokuphela komugqa ngamunye.",
     recommendSimilarity: "Gxila esimweni sangempela nendawo yohlamvu.",
-    calligraphy: "I-Calligraphy"
+    calligraphy: "I-Calligraphy",
+    drawingArea: "Drawing area",
+    loadingLanguage: "Loading language",
+    applicationNavigation: "Application navigation",
+    closeNavigation: "Close navigation"
   }
 };
 

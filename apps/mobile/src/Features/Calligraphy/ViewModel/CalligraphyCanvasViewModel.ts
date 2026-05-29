@@ -1,4 +1,3 @@
-import type { CreateCalligraphyCanvasControllerDependencies } from "../CreateCalligraphyCanvasController";
 import type { CalligraphyCanvasInterface } from "../Contracts/CalligraphyCanvasInterface";
 import type { Stroke } from "@kanjime/shared";
 import { StrokeError } from "@kanjime/shared";
@@ -6,9 +5,7 @@ import { StrokeError } from "@kanjime/shared";
 /**
  * Creates the calligraphy canvas view model.
  */
-export function createCalligraphyCanvasViewModel(
-  _dependencies: CreateCalligraphyCanvasControllerDependencies
-): CalligraphyCanvasInterface {
+export function createCalligraphyCanvasViewModel(): CalligraphyCanvasInterface {
   const strokes: Stroke[] = [];
 
   return {

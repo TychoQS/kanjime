@@ -411,11 +411,11 @@ test("[R2][E2E] InferenceInterface keeps the UI responsive during OCR inference"
   await app.openMenu();
 
   await expect(page.getByTestId("navigation-view")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Close navigation" })).toBeVisible();
+  await expect(page.locator(".menu-close-button")).toBeVisible();
 
   await app.closeMenu();
 
-  await expect(page.getByRole("button", { name: "Close navigation" })).toBeHidden({
+  await expect(page.locator(".menu-close-button")).toBeHidden({
     timeout: 10_000,
   });
   await expect(page.getByTestId("navigation-view")).toBeHidden({

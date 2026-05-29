@@ -23,7 +23,7 @@ export class E2EApplicationPage {
   }
 
   async closeMenu(): Promise<void> {
-    await this.page.getByRole("button", { name: "Close navigation" }).click();
+    await this.page.locator(".menu-close-button").click();
     await expect(this.page.getByTestId("navigation-view")).toBeHidden();
   }
 

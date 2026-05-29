@@ -32,7 +32,7 @@ export function KanjiDetailScreen(): JSX.Element {
             <IonButton
               data-testid="kanji-back-button"
               onClick={() => kanji.returnToPreviousScreen()}
-              aria-label="Back"
+              aria-label={translate(preferences.preferences.language, "back")}
             >
               <IonIcon icon={arrowBack} slot="icon-only" />
             </IonButton>

@@ -8,7 +8,6 @@ import {
   IonMenu,
   IonSelect,
   IonSelectOption,
-  IonTitle,
   IonToolbar,
   IonRouterOutlet
 } from "@ionic/react";
@@ -32,7 +31,7 @@ import { SearchScreen } from "./Features/Search/SearchScreen";
 import { LoadingScreenView } from "./Features/Shell/LoadingScreenView";
 import { NavigationView } from "./Features/Shell/NavigationView";
 import { UpdateAvailableView } from "./Features/Version/View/UpdateAvailableView";
-import { createCompositionRoot, type CompositionRoot } from "./CompositionRoot";
+import { createCompositionRoot } from "./CompositionRoot";
 import type { ApplicationTheme, UpdateAvailabilityState } from "@kanjime/shared";
 import { LANGUAGE_NAMES, SUPPORTED_LOCALES, normalizeLocale, translate, type TranslationKey } from "./Shared/I18n";
 
@@ -304,9 +303,7 @@ function createHiddenUpdateState(): UpdateAvailabilityState {
   };
 }
 
-function toApplicationTheme(value: unknown): ApplicationTheme {
-  return value === "light" || value === "dark" || value === "system" ? value : "system";
-}
+
 
 function resolveEffectiveTheme(theme: ApplicationTheme): "light" | "dark" {
   if (theme !== "system") {

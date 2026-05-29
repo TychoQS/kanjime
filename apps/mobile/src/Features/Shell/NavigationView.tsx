@@ -23,7 +23,7 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
 
   return (
     <div data-testid="navigation-view" className="menu-shell">
-      <nav aria-label="Application navigation">
+      <nav aria-label={translate(language, "applicationNavigation")}>
         <ul role="menu" className="menu-list">
           {props.availablePages.map(page => (
             <li key={page.id} className={props.currentPage === page.id ? "menu-item-active" : ""}>
@@ -44,7 +44,7 @@ export function NavigationView(props: NavigationProps): JSX.Element | null {
         </ul>
       </nav>
       <button
-        aria-label="Close navigation"
+        aria-label={translate(language, "closeNavigation")}
         className="menu-close-button"
         onClick={props.onCloseRequested}
         type="button"

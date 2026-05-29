@@ -221,10 +221,6 @@ function toFrameCrop(
   };
 }
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
 interface CanvasThemeColors {
   readonly backgroundColor: string;
   readonly strokeColor: string;

@@ -63,7 +63,7 @@ import type {
   Stroke,
   UpdateAvailabilityState
 } from "@kanjime/shared";
-import { getMeaningLanguagePriority, normalizeLocale, type SupportedLocale } from "./Shared/I18n";
+import { getMeaningLanguagePriority, normalizeLocale, translate, type SupportedLocale } from "./Shared/I18n";
 import { KanjiRepository, type KanjiSummary, type SourceAttribution } from "./Shared/KanjiRepository";
 import { OcrWorkerClient } from "./Shared/OcrWorkerClient";
 import { ImageError } from "@kanjime/shared";
@@ -143,7 +143,14 @@ export function createCompositionRoot(): CompositionRoot {
   });
 
   const errorController = CreateErrorController({
-    createUserFacingMessage: () => "An unexpected error has occurred. You can keep using the application."
+    createUserFacingMessage: () => {
+      const language =
+        typeof document !== "undefined" && document.documentElement.lang
+          ? document.documentElement.lang
+          : "en-US";
+
+      return translate(language, "unexpectedError");
+    }
   });
 
   const versionCheckController = CreateVersionCheckController({
@@ -169,7 +176,14 @@ export function createCompositionRoot(): CompositionRoot {
   });
 
   const updateAvailableController = CreateUpdateAvailableController({
-    createUpdateMessage: () => "A newer version is available. You can keep using the application."
+    createUpdateMessage: () => {
+      const language =
+        typeof document !== "undefined" && document.documentElement.lang
+          ? document.documentElement.lang
+          : "en-US";
+
+      return translate(language, "updateAvailable");
+    }
   });
 
   const createErrorContext = async (): Promise<ApplicationErrorContext> => {
@@ -433,10 +447,10 @@ export function createCompositionRoot(): CompositionRoot {
         const photo = await Camera.getPhoto({
           allowEditing: false,
           correctOrientation: true,
-          quality: 80,
+          quality: 50,
           resultType: CameraResultType.Uri,
           source: CameraSource.Camera,
-          width: 1024
+          width: 720
         });
 
         if (!photo.webPath) {

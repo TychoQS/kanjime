@@ -191,7 +191,7 @@ function AppShell(): JSX.Element {
 
       <UpdateAvailableView
         isVisible={updateAvailability.isVisible}
-        message={updateAvailability.message}
+        message={translate(preferences.preferences.language, "updateAvailable")}
         currentVersion={updateAvailability.currentVersion}
         latestVersion={updateAvailability.latestVersion}
         canContinueUsingApplication={updateAvailability.canContinueUsingApplication}

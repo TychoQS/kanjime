@@ -7,10 +7,10 @@
     "dev": "vite --host 0.0.0.0 --port 5174",
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
-    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
-    "test:unit": "vitest run tests/Unit --passWithNoTests",
-    "test:integration": "vitest run tests/Integration --passWithNoTests",
-    "test:e2e": "playwright test --pass-with-no-tests"
+    "test": "npm run build && npm run test:unit && npm run test:integration && npm run test:e2e",
+    "test:unit": "npm run build && vitest run tests/Unit --passWithNoTests",
+    "test:integration": "npm run build && vitest run tests/Integration --passWithNoTests",
+    "test:e2e": "npm run build && playwright test --pass-with-no-tests"
   },
   "dependencies": {
     "@ionic/react": "^8.8.4",

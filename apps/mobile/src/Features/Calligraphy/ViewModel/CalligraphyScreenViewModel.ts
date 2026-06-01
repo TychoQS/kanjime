@@ -106,7 +106,7 @@ export function useCalligraphyScreenViewModel(
         const char = decodeURIComponent(practiceMatch.params.character);
         if (targetCharacter !== char || mode !== "practice") {
           try {
-            await dependencies.categoryController.startPractice(char);
+            await dependencies.categoryController.startPractice(char, activeGrouping);
             if (isMounted) {
               try {
                 dependencies.calligraphyCanvasController.resetAttempt();

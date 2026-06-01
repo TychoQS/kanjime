@@ -1,5 +1,5 @@
 import type { SearchInterface } from "./Contracts/SearchInterface";
-import type { CharacterSummary } from "@kanjime/shared";
+import type { CharacterSummary, ApplicationUserAction } from "@kanjime/shared";
 import type { HistoryInterface } from "../History/Contracts/HistoryInterface";
 import { createSearchViewModel } from "./ViewModel/SearchViewModel";
 
@@ -10,6 +10,7 @@ export interface CreateSearchControllerDependencies {
   readonly queryTerm: (term: string) => Promise<ReadonlyArray<CharacterSummary>>;
   readonly historyController: HistoryInterface;
   readonly navigateToKanjiEntry: (character: string) => Promise<void>;
+  readonly recordUserAction?: (action: ApplicationUserAction) => void;
 }
 
 /**

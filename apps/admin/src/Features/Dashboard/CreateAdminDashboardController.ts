@@ -8,6 +8,7 @@ import { createAdminDashboardViewModel } from "./ViewModel/AdminDashboardViewMod
  */
 export interface CreateAdminDashboardControllerDependencies {
   readonly loadTechnicalSummary: () => Promise<AdminTechnicalSummary>;
+  readonly subscribeToSummary?: (callback: (summary: AdminTechnicalSummary) => void) => () => void;
 }
 
 /**

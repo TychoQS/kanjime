@@ -1,6 +1,6 @@
 import type { CalligraphyInterface } from "./Contracts/CalligraphyInterface";
 import { createCalligraphyViewModel } from "./ViewModel/CalligraphyViewModel";
-import type { CalligraphyCategory } from "@kanjime/shared";
+import type { CalligraphyCategory, CalligraphyGrouping } from "@kanjime/shared";
 
 /**
  * External collaborators consumed by the calligraphy controller.
@@ -8,7 +8,7 @@ import type { CalligraphyCategory } from "@kanjime/shared";
 export interface CreateCalligraphyControllerDependencies {
   readonly getCategories: () => Promise<ReadonlyArray<CalligraphyCategory>> | ReadonlyArray<CalligraphyCategory>;
 
-  readonly navigateToCategory: (categoryId: string) => Promise<void>;
+  readonly navigateToCategory: (categoryId: string, grouping: CalligraphyGrouping) => Promise<void>;
 }
 
 /**

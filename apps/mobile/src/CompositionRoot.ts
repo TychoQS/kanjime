@@ -287,6 +287,7 @@ export function createCompositionRoot(): CompositionRoot {
     navigateToKanjiEntry: async (character: string) => {
       recordUserAction({
         type: "kanji:detail-opened",
+        character,
         occurredAt: new Date().toISOString()
       });
       navigationDelegate?.("kanjiEntry", character);
@@ -296,9 +297,11 @@ export function createCompositionRoot(): CompositionRoot {
   const searchController = CreateSearchController({
     queryTerm: (term: string) => kanjiRepository.search(term),
     historyController,
+    recordUserAction,
     navigateToKanjiEntry: async (character: string) => {
       recordUserAction({
         type: "kanji:detail-opened",
+        character,
         occurredAt: new Date().toISOString()
       });
       navigationDelegate?.("kanjiEntry", character);
@@ -311,10 +314,20 @@ export function createCompositionRoot(): CompositionRoot {
       return loadKanjiDetailsByLanguage(character, language);
     },
     copyToClipboard: async (character: string) => {
+      recordUserAction({
+        type: "kanji:copied",
+        character,
+        occurredAt: new Date().toISOString()
+      });
       const { Clipboard } = await import("@capacitor/clipboard");
       await Clipboard.write({ string: character });
     },
     navigateBack: () => {
+      recordUserAction({
+        type: "navigation:back",
+        page: "kanjiEntry",
+        occurredAt: new Date().toISOString()
+      });
       window.history.back();
     }
   });
@@ -364,6 +377,7 @@ export function createCompositionRoot(): CompositionRoot {
     navigateToKanjiEntry: async character => {
       recordUserAction({
         type: "kanji:detail-opened",
+        character,
         occurredAt: new Date().toISOString()
       });
       navigationDelegate?.("kanjiEntry", character);
@@ -410,9 +424,10 @@ export function createCompositionRoot(): CompositionRoot {
 
   const calligraphyController = CreateCalligraphyController({
     getCategories: () => kanjiRepository.getCachedCalligraphyCategories(),
-    navigateToCategory: async () => {
+    navigateToCategory: async (categoryId, grouping) => {
       recordUserAction({
         type: "calligraphy:category-opened",
+        grouping,
         occurredAt: new Date().toISOString()
       });
     }
@@ -420,7 +435,13 @@ export function createCompositionRoot(): CompositionRoot {
 
   const categoryController = CreateCategoryController({
     getKanjiByCategory: categoryId => kanjiRepository.getCalligraphyKanjiByCategory(categoryId),
-    startCalligraphyPractice: async () => undefined,
+    startCalligraphyPractice: async (character, grouping) => {
+      recordUserAction({
+        type: "calligraphy:practice-started",
+        grouping: grouping ?? "jlpt",
+        occurredAt: new Date().toISOString()
+      });
+    },
     returnToCalligraphy: async () => undefined
   });
 

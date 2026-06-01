@@ -15,4 +15,12 @@ export interface AdminErrorsInterface {
    * @post The administrator can see reported errors with basic analysis for information.
    */
   listReportedErrors(): Promise<ReadonlyArray<AdminErrorSummary>>;
+
+  /**
+   * Subscribes to real-time updates of reported application errors.
+   *
+   * @pre The administrator accesses the error reporting screen.
+   * @post The callback is notified when new error reports arrive in the system.
+   */
+  subscribeToErrors(callback: (errors: ReadonlyArray<AdminErrorSummary>) => void): () => void;
 }

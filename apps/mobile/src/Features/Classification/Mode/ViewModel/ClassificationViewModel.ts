@@ -13,7 +13,7 @@ import type { ClassificationInterface } from "../Contracts/ClassificationInterfa
 import type { CreateClassificationControllerDependencies } from "../CreateClassificationController";
 import type { ToggleClassificationModeInterface } from "../Contracts/ToggleClassificationModeInterface";
 import type { ClassificationMode } from "@kanjime/shared";
-import type { CharacterSummary, CropRegion, ImageState, StrokePoint } from "@kanjime/shared";
+import type { CharacterSummary, CropRegion, ImageState, StrokePoint, ApplicationUserAction } from "@kanjime/shared";
 import { InferenceError } from "@kanjime/shared";
 
 interface CropDraft {
@@ -84,6 +84,7 @@ export interface ClassificationScreenViewModelDependencies {
   readonly toggleClassificationModeController: ToggleClassificationModeInterface;
   readonly modelLoader: ModelLoaderInterface;
   readonly canvasInteraction: CanvasInteractionViewModel;
+  readonly recordUserAction: (action: ApplicationUserAction) => void;
 }
 
 function isClassificationMode(mode: string): mode is ClassificationMode {
@@ -202,6 +203,13 @@ export function useClassificationScreenViewModel(
         ? await dependencies.inferenceController.classifyCrop({ sourceId, sourceUri, crop })
         : await dependencies.inferenceController.classifyFullImage({ sourceId, sourceUri });
 
+      dependencies.recordUserAction({
+        type: "classification:inference-requested",
+        mode: "image",
+        hadResults: predictions.length > 0,
+        occurredAt: new Date().toISOString()
+      });
+
       if (thisSourceId !== currentSourceIdRef.current) {
         return;
       }
@@ -218,7 +226,7 @@ export function useClassificationScreenViewModel(
     } finally {
       setIsProcessing(false);
     }
-  }, [dependencies.displayInferencesController, dependencies.inferenceController, refreshResults, imageState.image]);
+  }, [dependencies.displayInferencesController, dependencies.inferenceController, dependencies.recordUserAction, refreshResults, imageState.image]);
 
   useEffect(() => {
     if (!isEnabled || mode !== "image" || imageState.image === null) {
@@ -259,6 +267,11 @@ export function useClassificationScreenViewModel(
     },
     async takePhoto(): Promise<void> {
       setErrorMessage(null);
+      dependencies.recordUserAction({
+        type: "classification:photo-requested",
+        mode: "image",
+        occurredAt: new Date().toISOString()
+      });
 
       try {
         const image = await dependencies.photoController.capturePhoto();
@@ -269,6 +282,11 @@ export function useClassificationScreenViewModel(
         refreshResults();
       } catch (error) {
         if (isCancelledPhotoSelection(error)) {
+          dependencies.recordUserAction({
+            type: "classification:photo-cancelled",
+            mode: "image",
+            occurredAt: new Date().toISOString()
+          });
           return;
         }
 
@@ -277,6 +295,11 @@ export function useClassificationScreenViewModel(
     },
     async chooseImage(): Promise<void> {
       setErrorMessage(null);
+      dependencies.recordUserAction({
+        type: "classification:photo-requested",
+        mode: "image",
+        occurredAt: new Date().toISOString()
+      });
 
       try {
         const image = await dependencies.photoController.pickPhotoFromLibrary();
@@ -287,6 +310,11 @@ export function useClassificationScreenViewModel(
         refreshResults();
       } catch (error) {
         if (isCancelledPhotoSelection(error)) {
+          dependencies.recordUserAction({
+            type: "classification:photo-cancelled",
+            mode: "image",
+            occurredAt: new Date().toISOString()
+          });
           return;
         }
 
@@ -387,6 +415,12 @@ export function useClassificationScreenViewModel(
 
       void predictionsPromise
         .then(predictions => {
+          dependencies.recordUserAction({
+            type: "classification:inference-requested",
+            mode: "drawing",
+            hadResults: predictions.length > 0,
+            occurredAt: new Date().toISOString()
+          });
           return Promise.resolve(
             predictions.length > 0
               ? dependencies.displayInferencesController.updateResultsFromDrawingInference(predictions)

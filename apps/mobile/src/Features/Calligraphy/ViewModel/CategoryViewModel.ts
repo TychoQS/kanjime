@@ -32,12 +32,12 @@ export function createCategoryViewModel(
         }))
         .sort((left, right) => left.strokeCount - right.strokeCount);
     },
-    async startPractice(character: string): Promise<void> {
+    async startPractice(character: string, grouping?: CalligraphyGrouping): Promise<void> {
       if (character.trim().length === 0) {
         throw new ApplicationError("Select a kanji before starting practice.");
       }
 
-      await dependencies.startCalligraphyPractice(character);
+      await dependencies.startCalligraphyPractice(character, grouping);
     },
     returnToCalligraphyHome(): Promise<void> {
       return dependencies.returnToCalligraphy();

@@ -17,4 +17,12 @@ export interface AdminDashboardInterface {
    * @post The returned summary describes technical state of the application.
    */
   loadTechnicalSummary(): Promise<AdminTechnicalSummary>;
+
+  /**
+   * Subscribes to real-time updates of technical summary information.
+   *
+   * @pre The administrator accesses the administration dashboard.
+   * @post The callback is notified when technical metrics or errors are updated.
+   */
+  subscribeToSummary(callback: (summary: AdminTechnicalSummary) => void): () => void;
 }

@@ -56,6 +56,15 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
         currentTerm = effectiveTerm;
         visibleResults = copySummaries(results);
 
+        if (isNewTerm) {
+          dependencies.recordUserAction?.({
+            type: "search:submitted",
+            queryLength: effectiveTerm.length,
+            hadResults: results.length > 0,
+            occurredAt: new Date().toISOString()
+          });
+        }
+
         if (isNewTerm && results.length > 0) {
           dependencies.historyController.saveEntry({
             character: effectiveTerm,

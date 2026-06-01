@@ -59,4 +59,49 @@ describe("AdminErrorsInterface", () => {
       expect(errors[index].contextSummary, "The reported error does not show its basic context summary.").toBe(expectedError.contextSummary);
     }
   });
+
+  /**
+   * Requirement: R65
+   * Type: Regression
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R65", "Regression", "Postcondition", "Ensures observability of error reports in admin app"), async () => {
+    let subscriberCallback: ((errors: ReadonlyArray<AdminErrorSummary>) => void) | null = null;
+    const subscribeToErrors = (callback: (errors: ReadonlyArray<AdminErrorSummary>) => void) => {
+      subscriberCallback = callback;
+      return () => {
+        subscriberCallback = null;
+      };
+    };
+
+    const controller = CreateAdminErrorsController({
+      listReportedErrors: async () => REPORTED_ERRORS,
+      subscribeToErrors
+    });
+
+    let notifiedErrors: ReadonlyArray<AdminErrorSummary> = [];
+    const unsubscribe = controller.subscribeToErrors!(errors => {
+      notifiedErrors = errors;
+    });
+
+    expect(subscriberCallback).not.toBeNull();
+
+    const updatedErrors = [
+      ...REPORTED_ERRORS,
+      {
+        id: "error-report-2",
+        message: "Another error",
+        occurredAt: ERROR_DATE,
+        applicationVersion: APPLICATION_VERSION,
+        contextSummary: "Calligraphy screen"
+      }
+    ];
+
+    subscriberCallback!(updatedErrors);
+
+    expect(notifiedErrors).toEqual(updatedErrors);
+
+    unsubscribe();
+    expect(subscriberCallback).toBeNull();
+  });
 });

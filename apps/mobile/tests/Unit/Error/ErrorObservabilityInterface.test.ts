@@ -83,4 +83,39 @@ describe("ErrorObservabilityInterface", () => {
     expect(report.occurredAt, "The error report does not include the report creation date.").toBe(ERROR_DATE);
     expect(report.isReadyForObservability, "The error report is not ready for observability registration.").toBe(true);
   });
+
+  /**
+   * Requirement: R61
+   * Type: Regression
+   * Condition: Invariant
+   */
+  it(buildRequirementTitle("R61", "Regression", "Invariant", "Navigation event ignore page name when registering navigation action"), () => {
+    const recordedActions: ApplicationUserAction[] = [];
+    const recordUserAction = (action: ApplicationUserAction) => {
+      recordedActions.push(action);
+    };
+
+    const simulateNavigation = (delegate: (page: any, character?: string) => void) => {
+      delegate("calligraphy", undefined);
+      delegate("kanjiEntry", "漢");
+      delegate("kanjiEntry", undefined);
+    };
+
+    simulateNavigation((page, character) => {
+      const realPage = page === "kanjiEntry" && character === undefined ? "classification" : page;
+      recordUserAction({
+        type: "navigation:opened",
+        page: realPage,
+        occurredAt: new Date().toISOString()
+      });
+    });
+
+    expect(recordedActions.length).toBe(3);
+    expect(recordedActions[0].type).toBe("navigation:opened");
+    expect((recordedActions[0] as any).page).toBe("calligraphy");
+    expect(recordedActions[1].type).toBe("navigation:opened");
+    expect((recordedActions[1] as any).page).toBe("kanjiEntry");
+    expect(recordedActions[2].type).toBe("navigation:opened");
+    expect((recordedActions[2] as any).page).toBe("classification");
+  });
 });

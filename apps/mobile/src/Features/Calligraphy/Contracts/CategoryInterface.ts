@@ -1,4 +1,4 @@
-import type { CalligraphyKanjiSummary } from "@kanjime/shared";
+import type { CalligraphyKanjiSummary, CalligraphyGrouping } from "@kanjime/shared";
 
 /**
  * Contract for a selected calligraphy category list.
@@ -26,7 +26,7 @@ export interface CategoryInterface {
    * @pre The user is on the kanji list screen for a selected calligraphy category.
    * @post The selected kanji becomes the target of the calligraphy practice.
    */
-  startPractice(character: string): Promise<void>;
+  startPractice(character: string, grouping?: CalligraphyGrouping): Promise<void>;
 
   /**
    * Returns to the main calligraphy screen.

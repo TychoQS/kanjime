@@ -22,6 +22,12 @@ export function createAdminErrorsViewModel(
         applicationVersion: error.applicationVersion,
         contextSummary: error.contextSummary
       }));
+    },
+    subscribeToErrors(callback: (errors: ReadonlyArray<AdminErrorSummary>) => void): () => void {
+      if (dependencies.subscribeToErrors) {
+        return dependencies.subscribeToErrors(callback);
+      }
+      return () => {};
     }
   };
 }

@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, orderBy, query, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, orderBy, query, setDoc, onSnapshot } from "firebase/firestore";
 
 import type {
   ApplicationErrorReport,
@@ -56,6 +56,18 @@ export class AdminObservabilityRepository implements ObservabilityRepository {
     );
 
     return snapshot.exists() ? parseVersionConfiguration(snapshot.data()) : null;
+  }
+
+  subscribeToErrors(callback: (errors: ReadonlyArray<ApplicationErrorReport>) => void): () => void {
+    return onSnapshot(
+      query(collection(getFirebaseFirestore(), ERRORS_COLLECTION), orderBy("occurredAt", "desc")),
+      snapshot => {
+        const reports = snapshot.docs
+          .map(documentSnapshot => parseErrorReport(documentSnapshot.data()))
+          .filter((report): report is ApplicationErrorReport => report !== null);
+        callback(reports);
+      }
+    );
   }
 }
 

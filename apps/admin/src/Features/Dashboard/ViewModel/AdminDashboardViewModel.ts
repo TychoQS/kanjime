@@ -25,6 +25,12 @@ export function createAdminDashboardViewModel(
         reportedErrorCount: summary.reportedErrorCount,
         latestReportedErrorAt: summary.latestReportedErrorAt
       };
+    },
+    subscribeToSummary(callback: (summary: AdminTechnicalSummary) => void): () => void {
+      if (dependencies.subscribeToSummary) {
+        return dependencies.subscribeToSummary(callback);
+      }
+      return () => {};
     }
   };
 }

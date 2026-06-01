@@ -102,9 +102,10 @@ function AppShell(): JSX.Element {
 
   useEffect(() => {
     root.registerNavigationDelegate((page, character) => {
+      const realPage = page === "kanjiEntry" && character === undefined ? "classification" : page;
       root.recordUserAction({
         type: "navigation:opened",
-        page,
+        page: realPage,
         occurredAt: new Date().toISOString()
       });
       const menu = document.querySelector("ion-menu");
@@ -132,7 +133,24 @@ function AppShell(): JSX.Element {
 
   return (
     <>
-      <IonMenu contentId="main-content" side="start" type="overlay" data-testid="app-menu">
+      <IonMenu
+        contentId="main-content"
+        side="start"
+        type="overlay"
+        data-testid="app-menu"
+        onIonDidOpen={() => {
+          root.recordUserAction({
+            type: "navigation:menu-opened",
+            occurredAt: new Date().toISOString()
+          });
+        }}
+        onIonDidClose={() => {
+          root.recordUserAction({
+            type: "navigation:menu-closed",
+            occurredAt: new Date().toISOString()
+          });
+        }}
+      >
         <IonHeader>
           <IonToolbar>
             <IonButtons slot="start" className="toolbar-start-controls">
@@ -176,11 +194,6 @@ function AppShell(): JSX.Element {
                 }
               }}
               onNavigateRequested={page => {
-                root.recordUserAction({
-                  type: "navigation:opened",
-                  page,
-                  occurredAt: new Date().toISOString()
-                });
                 root.navigationController.navigateTo(page);
               }}
             />

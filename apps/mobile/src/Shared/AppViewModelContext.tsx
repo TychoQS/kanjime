@@ -93,7 +93,8 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
     classificationController: props.root.classificationController,
     toggleClassificationModeController: props.root.toggleClassificationModeController,
     modelLoader: props.root.modelLoaderController,
-    canvasInteraction
+    canvasInteraction,
+    recordUserAction: props.root.recordUserAction
   }, isReady && isClassificationActive);
   const calligraphy = useCalligraphyScreenViewModel({
     calligraphyController: props.root.calligraphyController,

@@ -8,7 +8,7 @@
  */
 export function buildRequirementTitle(
   requirementId: string,
-  testType: "Unit" | "Integration",
+  testType: "Unit" | "Integration" | "Regression",
   condition: "Precondition" | "Invariant" | "Postcondition" | "All",
   summary: string
 ): string {

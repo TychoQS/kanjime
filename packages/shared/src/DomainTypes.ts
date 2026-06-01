@@ -285,36 +285,72 @@ interface BaseUserAction {
   readonly occurredAt: string;
 }
 
-export interface NavigationUserAction extends BaseUserAction {
-  readonly type: "navigation:opened";
+export type NavigationUserAction =
+  | NavigationPageAction
+  | NavigationMenuAction;
+
+interface NavigationPageAction extends BaseUserAction {
+  readonly type: "navigation:opened" | "navigation:back";
   readonly page: NavigationPage;
 }
 
-export interface ClassificationUserAction extends BaseUserAction {
+interface NavigationMenuAction extends BaseUserAction {
+  readonly type: "navigation:menu-opened" | "navigation:menu-closed";
+}
+
+export type ClassificationUserAction =
+  | ClassificationInferenceUserAction
+  | ClassificationStandardUserAction;
+
+interface ClassificationInferenceUserAction extends BaseUserAction {
+  readonly type: "classification:inference-requested";
+  readonly mode: ClassificationMode;
+  readonly hadResults?: boolean;
+}
+
+interface ClassificationStandardUserAction extends BaseUserAction {
   readonly type:
       | "classification:mode-selected"
       | "classification:image-selected"
       | "classification:crop-confirmed"
       | "classification:stroke-completed"
-      | "classification:inference-requested"
-      | "classification:canvas-cleared";
+      | "classification:canvas-cleared"
+      | "classification:photo-requested"
+      | "classification:photo-cancelled";
   readonly mode: ClassificationMode;
 }
 
 export interface SearchUserAction extends BaseUserAction {
   readonly type: "search:submitted";
   readonly queryLength: number;
+  readonly hadResults?: boolean;
 }
 
-export interface KanjiUserAction extends BaseUserAction {
+export type KanjiUserAction =
+  | KanjiDetailOpenedUserAction
+  | KanjiCopiedUserAction;
+
+interface KanjiDetailOpenedUserAction extends BaseUserAction {
   readonly type: "kanji:detail-opened";
+  readonly character?: string;
 }
 
-export interface CalligraphyUserAction extends BaseUserAction {
+interface KanjiCopiedUserAction extends BaseUserAction {
+  readonly type: "kanji:copied";
+  readonly character?: string;
+}
+
+export type CalligraphyUserAction =
+  | CalligraphyGroupingRequiredAction
+  | CalligraphyGroupingOptionalAction;
+
+interface CalligraphyGroupingRequiredAction extends BaseUserAction {
+  readonly type: "calligraphy:category-opened" | "calligraphy:practice-started" | "calligraphy:grouping-selected";
+  readonly grouping?: CalligraphyGrouping;
+}
+
+interface CalligraphyGroupingOptionalAction extends BaseUserAction {
   readonly type:
-      | "calligraphy:grouping-selected"
-      | "calligraphy:category-opened"
-      | "calligraphy:practice-started"
       | "calligraphy:stroke-completed"
       | "calligraphy:attempt-reset"
       | "calligraphy:evaluation-requested";

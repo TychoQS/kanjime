@@ -1,6 +1,6 @@
 import type { CategoryInterface } from "./Contracts/CategoryInterface";
 import { createCategoryViewModel } from "./ViewModel/CategoryViewModel";
-import type { CategoryKanjiEntry } from "@kanjime/shared";
+import type { CategoryKanjiEntry, CalligraphyGrouping } from "@kanjime/shared";
 
 /**
  * External collaborators consumed by the category controller.
@@ -9,7 +9,7 @@ export interface CreateCategoryControllerDependencies {
   readonly getKanjiByCategory: (
       categoryId: string
   ) => Promise<ReadonlyArray<CategoryKanjiEntry>>;
-  readonly startCalligraphyPractice: (character: string) => Promise<void>;
+  readonly startCalligraphyPractice: (character: string, grouping?: CalligraphyGrouping) => Promise<void>;
   readonly returnToCalligraphy: () => Promise<void>;
 }
 

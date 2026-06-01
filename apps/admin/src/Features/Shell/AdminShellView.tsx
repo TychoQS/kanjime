@@ -178,6 +178,11 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
 
     if (activeSection === "dashboard") {
       void loadDashboard();
+      if (composition.dashboardController.subscribeToSummary) {
+        return composition.dashboardController.subscribeToSummary(updatedSummary => {
+          setDashboardSummary(updatedSummary);
+        });
+      }
     }
 
     if (activeSection === "versions") {
@@ -186,8 +191,13 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
 
     if (activeSection === "errors") {
       void loadErrors();
+      if (composition.errorsController.subscribeToErrors) {
+        return composition.errorsController.subscribeToErrors(updatedErrors => {
+          setErrors(updatedErrors);
+        });
+      }
     }
-  }, [activeSection, authUser, loadDashboard, loadErrors, loadVersions]);
+  }, [activeSection, authUser, loadDashboard, loadErrors, loadVersions, composition]);
 
   const saveVersionConfiguration = async (): Promise<void> => {
     if (!formState.canSave || authUser === null) {

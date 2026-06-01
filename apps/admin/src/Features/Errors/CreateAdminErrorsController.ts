@@ -8,6 +8,7 @@ import { createAdminErrorsViewModel } from "./ViewModel/AdminErrorsViewModel";
  */
 export interface CreateAdminErrorsControllerDependencies {
   readonly listReportedErrors: () => Promise<ReadonlyArray<AdminErrorSummary>>;
+  readonly subscribeToErrors?: (callback: (errors: ReadonlyArray<AdminErrorSummary>) => void) => () => void;
 }
 
 /**

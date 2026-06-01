@@ -61,7 +61,7 @@ export function createCalligraphyViewModel(
       if (!targetCategory) {
         throw new ApplicationError("The category does not exist.");
       }
-      await dependencies.navigateToCategory(categoryId);
+      await dependencies.navigateToCategory(categoryId, targetCategory.grouping);
     }
   };
 }

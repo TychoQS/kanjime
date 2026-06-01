@@ -65,6 +65,11 @@ export function createAdminCompositionRoot(): AdminCompositionRoot {
     listReportedErrors: async () => {
       const reports = await repository.listErrorReports();
       return reports.map(report => createErrorSummary(report));
+    },
+    subscribeToErrors: callback => {
+      return repository.subscribeToErrors!(reports => {
+        callback(reports.map(report => createErrorSummary(report)));
+      });
     }
   });
 
@@ -92,6 +97,18 @@ export function createAdminCompositionRoot(): AdminCompositionRoot {
       }
 
       return createTechnicalSummary(configuration, reports);
+    },
+    subscribeToSummary: callback => {
+      return repository.subscribeToErrors!(async reports => {
+        try {
+          const configuration = await repository.getVersionConfiguration();
+          if (configuration !== null) {
+            callback(createTechnicalSummary(configuration, reports));
+          }
+        } catch {
+          // no-op
+        }
+      });
     }
   });
 

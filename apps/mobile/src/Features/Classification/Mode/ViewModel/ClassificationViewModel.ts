@@ -85,6 +85,7 @@ export interface ClassificationScreenViewModelDependencies {
   readonly modelLoader: ModelLoaderInterface;
   readonly canvasInteraction: CanvasInteractionViewModel;
   readonly recordUserAction: (action: ApplicationUserAction) => void;
+  readonly captureUnexpectedError: (error: Error) => Promise<{ readonly message: string; readonly isControlled: boolean }>;
 }
 
 function isClassificationMode(mode: string): mode is ClassificationMode {
@@ -122,7 +123,7 @@ export function useClassificationScreenViewModel(
   const [canvasStrokes, setCanvasStrokes] = useState(dependencies.canvasController.getStrokeHistory());
   const [cropDraft, setCropDraft] = useState<CropDraft | null>(null);
   const [results, setResults] = useState<ReadonlyArray<CharacterSummary>>(
-    safeGetVisibleResults(dependencies.displayInferencesController)
+    safeGetVisibleResults(dependencies.displayInferencesController, dependencies.captureUnexpectedError)
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -130,8 +131,8 @@ export function useClassificationScreenViewModel(
   const activeCrop = useMemo(() => cropDraftToRegion(cropDraft) ?? imageState.crop, [cropDraft, imageState.crop]);
 
   const refreshResults = useCallback(() => {
-    setResults(safeGetVisibleResults(dependencies.displayInferencesController));
-  }, [dependencies.displayInferencesController]);
+    setResults(safeGetVisibleResults(dependencies.displayInferencesController, dependencies.captureUnexpectedError));
+  }, [dependencies.displayInferencesController, dependencies.captureUnexpectedError]);
 
   const refreshImageState = useCallback(() => {
     setImageState(dependencies.imageController.getImageState());
@@ -145,8 +146,9 @@ export function useClassificationScreenViewModel(
     registeredClassificationScreenClear = () => {
       try {
         dependencies.canvasController.clearCanvas();
-      } catch {
-        // no-op: empty canvas clears are ignored
+      } catch (error) {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void dependencies.captureUnexpectedError(errorObj);
       }
 
       dependencies.imageController.clearImage();
@@ -155,7 +157,7 @@ export function useClassificationScreenViewModel(
       setImageState(dependencies.imageController.getImageState());
       setCanvasStrokes(dependencies.canvasController.getStrokeHistory());
       setCropDraft(null);
-      setResults(safeGetVisibleResults(dependencies.displayInferencesController));
+      setResults(safeGetVisibleResults(dependencies.displayInferencesController, dependencies.captureUnexpectedError));
       setIsProcessing(false);
       setErrorMessage(null);
       lastImageSourceIdRef.current = "";
@@ -172,7 +174,8 @@ export function useClassificationScreenViewModel(
     dependencies.canvasInteraction,
     dependencies.classificationController,
     dependencies.displayInferencesController,
-    dependencies.imageController
+    dependencies.imageController,
+    dependencies.captureUnexpectedError
   ]);
 
   useEffect(() => {
@@ -221,12 +224,14 @@ export function useClassificationScreenViewModel(
       await Promise.resolve(dependencies.displayInferencesController.updateResultsFromImageSource(sourceId, predictions));
       lastImageSourceIdRef.current = sourceId;
       refreshResults();
-    } catch {
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      void dependencies.captureUnexpectedError(errorObj);
       setErrorMessage("An unexpected error has occurred and the character could not be identified.");
     } finally {
       setIsProcessing(false);
     }
-  }, [dependencies.displayInferencesController, dependencies.inferenceController, dependencies.recordUserAction, refreshResults, imageState.image]);
+  }, [dependencies.displayInferencesController, dependencies.inferenceController, dependencies.recordUserAction, dependencies.captureUnexpectedError, refreshResults, imageState.image]);
 
   useEffect(() => {
     if (!isEnabled || mode !== "image" || imageState.image === null) {
@@ -290,6 +295,8 @@ export function useClassificationScreenViewModel(
           return;
         }
 
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void dependencies.captureUnexpectedError(errorObj);
         setErrorMessage("The photo could not be captured.");
       }
     },
@@ -318,6 +325,8 @@ export function useClassificationScreenViewModel(
           return;
         }
 
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void dependencies.captureUnexpectedError(errorObj);
         setErrorMessage("The image could not be selected.");
       }
     },
@@ -345,8 +354,9 @@ export function useClassificationScreenViewModel(
     clearDrawing(): void {
       try {
         dependencies.canvasController.clearCanvas();
-      } catch {
-        // no-op: empty canvas clears are ignored in UI
+      } catch (error) {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void dependencies.captureUnexpectedError(errorObj);
       }
 
       dependencies.displayInferencesController.clearResults();
@@ -357,7 +367,9 @@ export function useClassificationScreenViewModel(
     async openResult(character: string): Promise<void> {
       try {
         await dependencies.displayInferencesController.openKanjiEntry(character);
-      } catch {
+      } catch (error) {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void dependencies.captureUnexpectedError(errorObj);
         setErrorMessage("An unexpected error has occurred and the character could not be identified.");
       }
     },
@@ -432,6 +444,8 @@ export function useClassificationScreenViewModel(
           });
         })
         .catch((error: unknown) => {
+          const errorObj = error instanceof Error ? error : new Error(String(error));
+          void dependencies.captureUnexpectedError(errorObj);
           if (error instanceof Error) {
             setErrorMessage(error.message);
           } else {
@@ -511,10 +525,17 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-function safeGetVisibleResults(displayInferencesController: DisplayInferencesInterface): ReadonlyArray<CharacterSummary> {
+function safeGetVisibleResults(
+  displayInferencesController: DisplayInferencesInterface,
+  captureUnexpectedError?: (error: Error) => Promise<{ readonly message: string; readonly isControlled: boolean }>
+): ReadonlyArray<CharacterSummary> {
   try {
     return displayInferencesController.getVisibleResults();
-  } catch {
+  } catch (error) {
+    if (captureUnexpectedError) {
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      void captureUnexpectedError(errorObj);
+    }
     return [];
   }
 }

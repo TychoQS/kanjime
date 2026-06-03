@@ -1,9 +1,10 @@
-import { IonAlert, IonButton, IonIcon, IonText } from "@ionic/react";
+import { IonButton, IonIcon, IonText } from "@ionic/react";
 import { arrowBack } from "ionicons/icons";
 
 import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
 import { translate, type TranslationKey } from "../../Shared/I18n";
 import { MobilePage } from "../Shell/MobilePage";
+import { ErrorView } from "../Error/View/ErrorView";
 import { CalligraphyEvaluationView } from "./View/CalligraphyEvaluationView";
 import { CalligraphyPracticeView } from "./View/CalligraphyPracticeView";
 import { CalligraphyView } from "./View/CalligraphyView";
@@ -19,14 +20,11 @@ export function CalligraphyScreen(): JSX.Element {
     <MobilePage title={translate(language, "calligraphy")} testId="calligraphy-screen">
       <div className="screen-shell">
         <div className="route-ready-sentinel" data-testid="classification-screen" aria-hidden="true" />
-        <IonAlert
-          isOpen={calligraphy.errorMessage !== null}
+        <ErrorView
+          isVisible={calligraphy.errorMessage !== null}
           message={calligraphy.errorMessage ? translate(language, calligraphy.errorMessage as TranslationKey) : ""}
-          buttons={[{
-            text: translate(language, "ok"),
-            role: "cancel"
-          }]}
-          onDidDismiss={() => calligraphy.dismissError()}
+          canContinue={true}
+          onDismissRequested={() => calligraphy.dismissError()}
         />
 
         <CalligraphyView
@@ -104,14 +102,11 @@ export function CalligraphyPracticeScreen(): JSX.Element {
     <MobilePage title={translate(language, "calligraphy")} testId="calligraphy-practice-screen">
       <div className="screen-shell">
         <div className="route-ready-sentinel" data-testid="classification-screen" aria-hidden="true" />
-        <IonAlert
-          isOpen={calligraphy.errorMessage !== null}
+        <ErrorView
+          isVisible={calligraphy.errorMessage !== null}
           message={calligraphy.errorMessage ? translate(language, calligraphy.errorMessage as TranslationKey) : ""}
-          buttons={[{
-            text: translate(language, "ok"),
-            role: "cancel"
-          }]}
-          onDidDismiss={() => calligraphy.dismissError()}
+          canContinue={true}
+          onDismissRequested={() => calligraphy.dismissError()}
         />
         {calligraphy.targetCharacter !== null ? (
           <div className="calligraphy-practice-shell">

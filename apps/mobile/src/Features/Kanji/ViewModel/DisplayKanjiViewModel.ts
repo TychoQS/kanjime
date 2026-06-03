@@ -79,7 +79,8 @@ export function useKanjiDetailScreenViewModel(
   character: string | null,
   language: string,
   refreshKey: string,
-  isEnabled: boolean
+  isEnabled: boolean,
+  captureUnexpectedError: (error: Error) => Promise<{ readonly message: string; readonly isControlled: boolean }>
 ): KanjiDetailScreenViewModel {
   const [details, setDetails] = useState<DetailedKanjiEntry | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -101,12 +102,14 @@ export function useKanjiDetailScreenViewModel(
         setDetails(nextDetails);
         setIsLoading(false);
       })
-      .catch(() => {
+      .catch(error => {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void captureUnexpectedError(errorObj);
         setDetails(null);
         setErrorMessage("The character details could not be loaded.");
         setIsLoading(false);
       });
-  }, [character, displayKanjiController, isEnabled, language, refreshKey]);
+  }, [character, displayKanjiController, isEnabled, language, refreshKey, captureUnexpectedError]);
 
   return {
     details,
@@ -120,14 +123,18 @@ export function useKanjiDetailScreenViewModel(
 
       try {
         await displayKanjiController.copyKanjiCharacter(character);
-      } catch {
+      } catch (error) {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void captureUnexpectedError(errorObj);
         setErrorMessage("An unexpected error has occurred and the character could not be identified.");
       }
     },
     returnToPreviousScreen(): void {
       try {
         displayKanjiController.returnToPreviousScreen();
-      } catch {
+      } catch (error) {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void captureUnexpectedError(errorObj);
         window.history.back();
       }
     }

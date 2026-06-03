@@ -74,15 +74,16 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
   const isHistoryActive = location.pathname === "/history";
   const isCalligraphyActive = location.pathname.startsWith("/calligraphy");
 
-  const about = useAboutScreenViewModel(props.root.aboutController, language, isReady);
-  const search = useSearchScreenViewModel(props.root.searchController, isReady && isSearchActive);
-  const history = useHistoryScreenViewModel(props.root.historyController, isReady && isHistoryActive);
+  const about = useAboutScreenViewModel(props.root.aboutController, language, isReady, props.root.captureUnexpectedError);
+  const search = useSearchScreenViewModel(props.root.searchController, isReady && isSearchActive, props.root.captureUnexpectedError);
+  const history = useHistoryScreenViewModel(props.root.historyController, isReady && isHistoryActive, props.root.captureUnexpectedError);
   const kanji = useKanjiDetailScreenViewModel(
     props.root.displayKanjiController,
     currentCharacter,
     language,
     location.key ?? location.pathname,
-    isReady
+    isReady,
+    props.root.captureUnexpectedError
   );
   const classification = useClassificationScreenViewModel({
     canvasController: props.root.canvasController,
@@ -94,7 +95,8 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
     toggleClassificationModeController: props.root.toggleClassificationModeController,
     modelLoader: props.root.modelLoaderController,
     canvasInteraction,
-    recordUserAction: props.root.recordUserAction
+    recordUserAction: props.root.recordUserAction,
+    captureUnexpectedError: props.root.captureUnexpectedError
   }, isReady && isClassificationActive);
   const calligraphy = useCalligraphyScreenViewModel({
     calligraphyController: props.root.calligraphyController,
@@ -102,7 +104,8 @@ export function AppViewModelProvider(props: AppViewModelProviderProps): JSX.Elem
     calligraphyCanvasController: props.root.calligraphyCanvasController,
     kanjiPracticeController: props.root.kanjiPracticeController,
     calligraphyEvaluationController: props.root.calligraphyEvaluationController,
-    canvasInteraction
+    canvasInteraction,
+    captureUnexpectedError: props.root.captureUnexpectedError
   }, isReady && isCalligraphyActive);
 
   const contextValue = useMemo<AppViewModelContextValue>(() => ({

@@ -169,7 +169,8 @@ export function createHistoryViewModel(dependencies: CreateHistoryControllerDepe
 
 export function useHistoryScreenViewModel(
   historyController: HistoryInterface,
-  isEnabled: boolean
+  isEnabled: boolean,
+  captureUnexpectedError: (error: Error) => Promise<{ readonly message: string; readonly isControlled: boolean }>
 ): HistoryScreenViewModel {
   const [groups, setGroups] = useState<ReadonlyArray<HistoryGroup>>([]);
   const [category, setCategory] = useState<HistoryCategory>("search");
@@ -204,7 +205,11 @@ export function useHistoryScreenViewModel(
     const load = () => {
       void historyController.getEntriesByCategory()
         .then(nextGroups => setGroups(nextGroups as ReadonlyArray<HistoryGroup>))
-        .catch(() => setGroups([]));
+        .catch(error => {
+          const errorObj = error instanceof Error ? error : new Error(String(error));
+          void captureUnexpectedError(errorObj);
+          setGroups([]);
+        });
     };
 
     load();
@@ -213,7 +218,7 @@ export function useHistoryScreenViewModel(
     return () => {
       unsubscribe();
     };
-  }, [historyController, isEnabled]);
+  }, [historyController, isEnabled, captureUnexpectedError]);
 
   const activeGroups = useMemo(() => groups.filter(group => group.category === category), [category, groups]);
   const isEmpty = activeGroups.length === 0 || activeGroups[0].entries.length === 0;

@@ -35,7 +35,8 @@ export function createAboutViewModel(dependencies: CreateAboutControllerDependen
 export function useAboutScreenViewModel(
   aboutController: AboutInterface,
   language: string,
-  isEnabled: boolean
+  isEnabled: boolean,
+  captureUnexpectedError: (error: Error) => Promise<{ readonly message: string; readonly isControlled: boolean }>
 ): AboutScreenViewModel {
   const [items, setItems] = useState<ReadonlyArray<AboutInformationItem>>([]);
 
@@ -52,7 +53,9 @@ export function useAboutScreenViewModel(
           setItems(nextItems);
         }
       })
-      .catch(() => {
+      .catch(error => {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void captureUnexpectedError(errorObj);
         if (isMounted) {
           setItems([]);
         }
@@ -61,7 +64,7 @@ export function useAboutScreenViewModel(
     return () => {
       isMounted = false;
     };
-  }, [aboutController, isEnabled, language]);
+  }, [aboutController, isEnabled, language, captureUnexpectedError]);
 
   return {
     items

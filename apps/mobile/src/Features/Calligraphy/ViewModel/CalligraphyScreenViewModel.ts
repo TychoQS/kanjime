@@ -25,6 +25,7 @@ export interface CalligraphyScreenViewModelDependencies {
   readonly kanjiPracticeController: KanjiPracticeInterface;
   readonly calligraphyEvaluationController: CalligraphyEvaluationInterface;
   readonly canvasInteraction: CanvasInteractionViewModel;
+  readonly captureUnexpectedError: (error: Error) => Promise<{ readonly message: string; readonly isControlled: boolean }>;
 }
 
 export interface CalligraphyScreenViewModel {
@@ -110,8 +111,9 @@ export function useCalligraphyScreenViewModel(
             if (isMounted) {
               try {
                 dependencies.calligraphyCanvasController.resetAttempt();
-              } catch {
-                // no-op
+              } catch (error) {
+                const errorObj = error instanceof Error ? error : new Error(String(error));
+                void dependencies.captureUnexpectedError(errorObj);
               }
               dependencies.canvasInteraction.cancelStroke();
               setTargetCharacter(char);
@@ -119,7 +121,9 @@ export function useCalligraphyScreenViewModel(
               setStrokes(dependencies.calligraphyCanvasController.getStrokeHistory());
               setMode("practice");
             }
-          } catch {
+          } catch (error) {
+            const errorObj = error instanceof Error ? error : new Error(String(error));
+            void dependencies.captureUnexpectedError(errorObj);
             if (isMounted) {
               setErrorMessage("calligraphyError");
             }
@@ -138,7 +142,9 @@ export function useCalligraphyScreenViewModel(
               setFeedback(null);
               setMode("category");
             }
-          } catch {
+          } catch (error) {
+            const errorObj = error instanceof Error ? error : new Error(String(error));
+            void dependencies.captureUnexpectedError(errorObj);
             if (isMounted) {
               setErrorMessage("calligraphyError");
             }
@@ -157,8 +163,9 @@ export function useCalligraphyScreenViewModel(
               setActiveGrouping(dependencies.calligraphyController.getActiveGrouping());
               setCategories(dependencies.calligraphyController.getVisibleCategories());
             }
-          } catch {
-            // no-op
+          } catch (error) {
+            const errorObj = error instanceof Error ? error : new Error(String(error));
+            void dependencies.captureUnexpectedError(errorObj);
           }
         }
       }
@@ -224,7 +231,9 @@ export function useCalligraphyScreenViewModel(
         });
 
         setFeedback(dependencies.calligraphyEvaluationController.createFeedback(result));
-      } catch {
+      } catch (error) {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void dependencies.captureUnexpectedError(errorObj);
         setErrorMessage("calligraphyError");
       }
     },

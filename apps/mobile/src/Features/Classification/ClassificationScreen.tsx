@@ -1,5 +1,4 @@
 import {
-  IonAlert,
   IonButton,
   IonIcon,
   IonLabel,
@@ -15,6 +14,7 @@ import type { ApplicationTheme, CropRegion } from "@kanjime/shared";
 import { translate } from "../../Shared/I18n";
 import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
 import { MobilePage } from "../Shell/MobilePage";
+import { ErrorView } from "../Error/View/ErrorView";
 import { CanvasInputView } from "./Canvas/CanvasInputView";
 import { ImageView } from "./Image/ImageView";
 import { CropOverlayView } from "./Image/CropOverlayView";
@@ -39,14 +39,11 @@ export function ClassificationScreen(): JSX.Element {
             </IonText>
           </div>
         ) : null}
-        <IonAlert
-          isOpen={classification.errorMessage !== null}
+        <ErrorView
+          isVisible={classification.errorMessage !== null}
           message={classification.errorMessage ?? ""}
-          buttons={[{
-            text: translate(preferences.preferences.language, "ok"),
-            role: "cancel"
-          }]}
-          onDidDismiss={() => classification.dismissError()}
+          canContinue={true}
+          onDismissRequested={() => classification.dismissError()}
         />
         <IonSegment
           className="mode-segment"

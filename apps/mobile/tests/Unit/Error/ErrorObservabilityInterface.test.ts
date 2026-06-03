@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { CreateErrorObservabilityController } from "../../../src/Features/Error/CreateErrorObservabilityController";
@@ -117,5 +119,98 @@ describe("ErrorObservabilityInterface", () => {
     expect((recordedActions[1] as any).page).toBe("kanjiEntry");
     expect(recordedActions[2].type).toBe("navigation:opened");
     expect((recordedActions[2] as any).page).toBe("classification");
+  });
+
+  /**
+   * Requirement: R61
+   * Type: Regression
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R61", "Regression", "Postcondition", "All catch blocks in involved ViewModels must call captureUnexpectedError and screens must use ErrorView"), () => {
+    const getAbsolutePath = (relativePath: string): string => {
+      const cwd = process.cwd();
+      const base = cwd.endsWith("apps/mobile") ? cwd : path.join(cwd, "apps/mobile");
+      return path.join(base, relativePath);
+    };
+
+    const getAllFiles = (dir: string): string[] => {
+      let results: string[] = [];
+      if (!fs.existsSync(dir)) {
+        return [];
+      }
+      const list = fs.readdirSync(dir);
+      for (const file of list) {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+        if (stat && stat.isDirectory()) {
+          results = results.concat(getAllFiles(filePath));
+        } else {
+          results.push(filePath);
+        }
+      }
+      return results;
+    };
+
+    const featuresDir = getAbsolutePath("src/Features");
+    const allFiles = getAllFiles(featuresDir);
+
+    const isScreenViewModel = (filePath: string): boolean => {
+      const normalized = filePath.replace(/\\/g, "/");
+      const featuresIdx = normalized.indexOf("src/Features/");
+      if (featuresIdx === -1) {
+        return false;
+      }
+      
+      // Exclude utility sub-component ViewModels under Image, Canvas, or Inference folders
+      if (
+        normalized.includes("/Image/ViewModel/") ||
+        normalized.includes("/Canvas/ViewModel/") ||
+        normalized.includes("/Inference/ViewModel/")
+      ) {
+        return false;
+      }
+
+      const relativePath = normalized.substring(featuresIdx + "src/Features/".length);
+      const featureName = relativePath.split("/")[0];
+      const featureDir = path.join(featuresDir, featureName);
+
+      const files = getAllFiles(featureDir);
+      return files.some(file => file.endsWith("Screen.tsx"));
+    };
+
+    const viewModels = allFiles
+      .filter(file => file.endsWith("ViewModel.ts"))
+      .filter(isScreenViewModel);
+    const screens = allFiles.filter(file => file.endsWith("Screen.tsx"));
+
+    expect(viewModels.length, "Should dynamically find at least one ViewModel").toBeGreaterThan(0);
+    expect(screens.length, "Should dynamically find at least one Screen").toBeGreaterThan(0);
+
+    for (const filePath of viewModels) {
+      const code = fs.readFileSync(filePath, "utf-8");
+
+      // Find all catch blocks (using regex to search for catch keyword)
+      const catchRegex = /\bcatch\b/g;
+      let match;
+      while ((match = catchRegex.exec(code)) !== null) {
+        const startIndex = match.index;
+        // Get content up to the next catch block or 800 characters
+        const block = code.substring(startIndex, startIndex + 800);
+        
+        expect(block, `Catch block at index ${startIndex} in ${path.basename(filePath)} must invoke captureUnexpectedError`).toContain("captureUnexpectedError");
+      }
+    }
+
+    for (const filePath of screens) {
+      const code = fs.readFileSync(filePath, "utf-8");
+
+      // Verify that screen files do not render IonAlert directly
+      expect(code, `Screen ${path.basename(filePath)} should not use IonAlert directly`).not.toContain("<IonAlert");
+      
+      // If the screen is one of the ones that historically used IonAlert for errors, verify it uses ErrorView
+      if (filePath.includes("CalligraphyScreen.tsx") || filePath.includes("ClassificationScreen.tsx")) {
+        expect(code, `Screen ${path.basename(filePath)} must use ErrorView for displaying errors`).toContain("ErrorView");
+      }
+    }
   });
 });

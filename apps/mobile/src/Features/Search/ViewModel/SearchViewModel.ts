@@ -114,7 +114,8 @@ export function createSearchViewModel(dependencies: CreateSearchControllerDepend
 
 export function useSearchScreenViewModel(
   searchController: SearchInterface,
-  isEnabled: boolean
+  isEnabled: boolean,
+  captureUnexpectedError: (error: Error) => Promise<{ readonly message: string; readonly isControlled: boolean }>
 ): SearchScreenViewModel {
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<ReadonlyArray<CharacterSummary>>([]);
@@ -124,8 +125,9 @@ export function useSearchScreenViewModel(
     registeredSearchScreenClear = () => {
       try {
         searchController.clearSearch();
-      } catch {
-        // no-op: the screen can already be empty
+      } catch (error) {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void captureUnexpectedError(errorObj);
       }
 
       setTerm("");
@@ -138,7 +140,7 @@ export function useSearchScreenViewModel(
         registeredSearchScreenClear = null;
       }
     };
-  }, [searchController]);
+  }, [searchController, captureUnexpectedError]);
 
   useEffect(() => {
     if (!isEnabled || !shouldClearSearchScreenOnEnable) {
@@ -169,14 +171,16 @@ export function useSearchScreenViewModel(
           setResults(nextResults);
           setIsSearching(false);
         })
-        .catch(() => {
+        .catch(error => {
+          const errorObj = error instanceof Error ? error : new Error(String(error));
+          void captureUnexpectedError(errorObj);
           setResults([]);
           setIsSearching(false);
         });
     }, SEARCH_DELAY_MS);
 
     return () => window.clearTimeout(timeout);
-  }, [isEnabled, searchController, term]);
+  }, [isEnabled, searchController, term, captureUnexpectedError]);
 
   return {
     term,

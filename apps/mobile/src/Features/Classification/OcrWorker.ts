@@ -115,6 +115,7 @@ async function handleMessage(event: MessageEvent<OcrWorkerRequest>): Promise<voi
     postResponse({
       id: request.id,
       type: "error",
+      // eslint-disable-next-line custom-i18n/no-hardcoded-text -- Worker thread has no DOM access; this message is an internal error detail wrapped by InferenceError on the main thread. The user-facing message is produced by errorController.captureUnexpectedError().
       message: "An unexpected error has occurred and the character could not be identified."
     });
   }

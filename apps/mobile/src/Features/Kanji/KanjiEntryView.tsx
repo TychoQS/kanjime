@@ -106,7 +106,7 @@ export function KanjiEntryView(props: KanjiEntryProps): JSX.Element {
               <InfoItem label={translate(language, "components")} value={details.components.join(" ")} />
             ) : null}
             <InfoItem label={translate(language, "strokeCount")} value={String(details.strokeCount)} />
-            {levels.length > 0 ? <InfoItem label="JLPT / Joyo" value={levels.join(" · ")} /> : null}
+            {levels.length > 0 ? <InfoItem label={`${translate(language, "jlpt")} / ${translate(language, "joyo")}`} value={levels.join(" · ")} /> : null}
           </dl>
         </section>
 

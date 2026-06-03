@@ -16,7 +16,7 @@ export function ErrorView(props: ErrorProps): JSX.Element {
     <IonAlert
       isOpen={props.isVisible}
       data-testid="controlled-error-view"
-      message={`<p data-testid="controlled-error-message">${props.message}</p>`}
+      message={props.message}
       buttons={
         props.canContinue
           ? [

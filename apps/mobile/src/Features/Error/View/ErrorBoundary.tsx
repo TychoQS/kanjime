@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from "react";
 
+import { translate } from "../../../Shared/I18n";
 import { ErrorView } from "./ErrorView";
 
 interface ErrorBoundaryProps {
@@ -15,7 +16,14 @@ interface ErrorBoundaryState {
   readonly canContinue: boolean;
 }
 
-const DEFAULT_ERROR_MESSAGE = "An unexpected error has occurred. You can keep using the application.";
+/**
+ * Returns the current document language or falls back to "en-US".
+ */
+function resolveLanguage(): string {
+  return typeof document !== "undefined" && document.documentElement.lang
+    ? document.documentElement.lang
+    : "en-US";
+}
 
 /**
  * Captures uncontrolled React render errors and renders a controlled fallback.
@@ -23,14 +31,14 @@ const DEFAULT_ERROR_MESSAGE = "An unexpected error has occurred. You can keep us
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   readonly state: ErrorBoundaryState = {
     hasError: false,
-    message: DEFAULT_ERROR_MESSAGE,
+    message: translate(resolveLanguage(), "unexpectedError"),
     canContinue: true
   };
 
   static getDerivedStateFromError(): ErrorBoundaryState {
     return {
       hasError: true,
-      message: DEFAULT_ERROR_MESSAGE,
+      message: translate(resolveLanguage(), "unexpectedError"),
       canContinue: true
     };
   }
@@ -47,7 +55,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       .catch(() => {
         this.setState({
           hasError: true,
-          message: DEFAULT_ERROR_MESSAGE,
+          message: translate(resolveLanguage(), "unexpectedError"),
           canContinue: true
         });
       });
@@ -66,7 +74,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         onDismissRequested={() => {
           this.setState({
             hasError: false,
-            message: DEFAULT_ERROR_MESSAGE,
+            message: translate(resolveLanguage(), "unexpectedError"),
             canContinue: true
           });
         }}

@@ -579,8 +579,12 @@ export function createCompositionRoot(): CompositionRoot {
 
         return controlledState;
       } catch {
+        const fallbackLanguage =
+          typeof document !== "undefined" && document.documentElement.lang
+            ? document.documentElement.lang
+            : "en-US";
         return {
-          message: "An unexpected error has occurred. You can keep using the application.",
+          message: translate(fallbackLanguage, "unexpectedError"),
           isControlled: true
         };
       }

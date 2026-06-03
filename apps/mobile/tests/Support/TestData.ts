@@ -892,3 +892,61 @@ export const TEST_CALLIGRAPHY_E2E_MESSAGES = {
   resultTextReadable: "The visible result metadata should expose a readable stroke count.",
   strokeCount: "All drawn strokes should remain visible on the canvas.",
 } as const;
+
+export const TEST_MOBILE_E2E_STORAGE_KEYS = {
+  remoteVersionConfiguration: "kanjime.e2e.versionConfiguration",
+  lastKnownVersionConfiguration: "kanjime.e2e.lastKnownVersionConfiguration",
+  versionCheckShouldFail: "kanjime.e2e.versionCheckShouldFail",
+  errorReports: "kanjime.e2e.errorReports"
+} as const;
+
+export const TEST_MOBILE_E2E_TEST_IDS = {
+  loadingScreen: "loading-screen-view",
+  classificationScreen: "classification-screen",
+  updateAvailableView: "update-available-view",
+  updateAvailableDismissButton: "update-available-dismiss-button",
+  controlledErrorView: "controlled-error-view",
+  controlledErrorDismissButton: "controlled-error-dismiss-button",
+  triggerUnexpectedErrorButton: "e2e-trigger-unexpected-error-button",
+  menuButton: "menu-button",
+  navigationView: "navigation-view",
+  navSearch: "nav-search",
+  navHistory: "nav-history",
+  navAbout: "nav-about"
+} as const;
+
+export const TEST_MOBILE_E2E_ROUTES = {
+  root: "/",
+  classification: "/classification",
+  search: "/search",
+  history: "/history",
+  about: "/about"
+} as const;
+
+export const TEST_MOBILE_E2E_VERSION_CONFIGURATION_OLD = {
+  currentVersion: "1.0.0",
+  latestVersion: "1.1.0",
+  minimumSupportedVersion: "0.9.0",
+  updatedAt: "2026-06-01T12:00:00.000Z"
+} as const;
+
+export const TEST_MOBILE_E2E_VERSION_CONFIGURATION_CURRENT = {
+  currentVersion: "1.0.0",
+  latestVersion: "1.0.0",
+  minimumSupportedVersion: "0.9.0",
+  updatedAt: "2026-06-01T13:00:00.000Z"
+} as const;
+
+export const TEST_MOBILE_E2E_LAST_KNOWN_VERSION_CONFIGURATION = {
+  currentVersion: "1.0.0",
+  latestVersion: "1.0.2",
+  minimumSupportedVersion: "0.9.0",
+  updatedAt: "2026-05-31T08:30:00.000Z"
+} as const;
+
+export const TEST_MOBILE_E2E_FORCED_ERROR_MESSAGE = "E2E forced unexpected error.";
+export const TEST_MOBILE_E2E_UNEXPECTED_ERROR_MESSAGE = "An unexpected error has occurred. You can keep using the application.";
+export const TEST_MOBILE_E2E_SENSITIVE_MESSAGE_FRAGMENT = "Error:";
+export const TEST_MOBILE_E2E_MAX_REPORTED_ACTIONS = 10;
+export const TEST_MOBILE_E2E_REPORT_EXPECTED_WEB_ENGINE = "web";
+export const TEST_MOBILE_E2E_REPORT_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;

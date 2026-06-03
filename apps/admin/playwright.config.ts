@@ -22,6 +22,11 @@ export default defineConfig({
   },
   reporter: [["html", { outputFolder: "playwright-report" }]],
   outputDir: "test-results",
+  webServer: {
+    command: "VITE_ENABLE_E2E_MOCKS=true npm run preview -- --host 127.0.0.1 --port 4174",
+    reuseExistingServer: !process.env.CI,
+    url: "http://127.0.0.1:4174"
+  },
   projects: [
     {
       name: "admin-desktop",

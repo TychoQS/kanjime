@@ -33,6 +33,7 @@ import { NavigationView } from "./Features/Shell/NavigationView";
 import { UpdateAvailableView } from "./Features/Version/View/UpdateAvailableView";
 import { createCompositionRoot } from "./CompositionRoot";
 import type { ApplicationTheme, UpdateAvailabilityState } from "@kanjime/shared";
+import { isMobileE2EMocksEnabled } from "./Shared/E2EMocks";
 import { LANGUAGE_NAMES, SUPPORTED_LOCALES, normalizeLocale, translate, type TranslationKey } from "./Shared/I18n";
 
 /**
@@ -85,6 +86,7 @@ function AppShell(): JSX.Element {
   const currentPage = getCurrentPage(location.pathname);
   const { preferences, root } = useAppViewModelContext();
   const [updateAvailability, setUpdateAvailability] = useState<UpdateAvailabilityState>(createHiddenUpdateState());
+  const [shouldTriggerUnexpectedError, setShouldTriggerUnexpectedError] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -133,6 +135,7 @@ function AppShell(): JSX.Element {
 
   return (
     <>
+      {shouldTriggerUnexpectedError ? <E2EUnexpectedErrorTrigger /> : null}
       <IonMenu
         contentId="main-content"
         side="start"
@@ -239,8 +242,27 @@ function AppShell(): JSX.Element {
           <KanjiDetailScreen />
         </Route>
       </IonRouterOutlet>
+      {isMobileE2EMocksEnabled() ? (
+        <button
+          type="button"
+          data-testid="e2e-trigger-unexpected-error-button"
+          aria-hidden="true"
+          onClick={() => setShouldTriggerUnexpectedError(true)}
+          style={{
+            position: "fixed",
+            left: "-9999px",
+            width: "1px",
+            height: "1px",
+            opacity: 0
+          }}
+        />
+      ) : null}
     </>
   );
+}
+
+function E2EUnexpectedErrorTrigger(): never {
+  throw new Error("E2E forced unexpected error.");
 }
 
 function getPageKey(page: string): string {

@@ -7,6 +7,14 @@ import type {
   ObservabilityRepository,
   VersionConfiguration
 } from "@kanjime/shared";
+import {
+  isMobileE2EMocksEnabled,
+  readMobileE2EErrorReports,
+  readMobileE2ELastKnownVersionConfiguration,
+  readMobileE2ERemoteVersionConfiguration,
+  writeMobileE2EErrorReports,
+  writeMobileE2ELastKnownVersionConfiguration
+} from "./E2EMocks";
 import { getFirebaseFirestore } from "./FirebaseClient";
 
 const ERROR_REPORTS_KEY = "kanjime.observability.errorReports";
@@ -21,6 +29,15 @@ const CURRENT_VERSION_CONFIGURATION_DOCUMENT = "current";
  */
 export class ObservabilityPersistence implements ObservabilityRepository {
   async saveErrorReport(report: ApplicationErrorReport): Promise<void> {
+    if (isMobileE2EMocksEnabled()) {
+      const nextReports = [
+        ...readMobileE2EErrorReports().filter(candidate => candidate.id !== report.id),
+        report
+      ].sort((left, right) => right.occurredAt.localeCompare(left.occurredAt));
+      writeMobileE2EErrorReports(nextReports);
+      return;
+    }
+
     try {
       await setDoc(doc(getFirebaseFirestore(), ERRORS_COLLECTION, report.id), report);
       await removePendingErrorReport(report.id);
@@ -30,6 +47,10 @@ export class ObservabilityPersistence implements ObservabilityRepository {
   }
 
   async flushPendingErrorReports(): Promise<void> {
+    if (isMobileE2EMocksEnabled()) {
+      return;
+    }
+
     const pendingReports = await readPendingErrorReports();
 
     for (const report of pendingReports) {
@@ -43,6 +64,10 @@ export class ObservabilityPersistence implements ObservabilityRepository {
   }
 
   async listErrorReports(): Promise<ReadonlyArray<ApplicationErrorReport>> {
+    if (isMobileE2EMocksEnabled()) {
+      return readMobileE2EErrorReports();
+    }
+
     try {
       const snapshot = await getDocs(query(collection(getFirebaseFirestore(), ERRORS_COLLECTION)));
       return snapshot.docs
@@ -55,6 +80,10 @@ export class ObservabilityPersistence implements ObservabilityRepository {
   }
 
   async getErrorReport(id: string): Promise<ApplicationErrorReport | null> {
+    if (isMobileE2EMocksEnabled()) {
+      return readMobileE2EErrorReports().find(report => report.id === id) ?? null;
+    }
+
     try {
       const snapshot = await getDoc(doc(getFirebaseFirestore(), ERRORS_COLLECTION, id));
       return snapshot.exists() ? parseErrorReport(snapshot.data()) : null;
@@ -65,6 +94,11 @@ export class ObservabilityPersistence implements ObservabilityRepository {
   }
 
   async saveVersionConfiguration(config: VersionConfiguration): Promise<void> {
+    if (isMobileE2EMocksEnabled()) {
+      writeMobileE2ELastKnownVersionConfiguration(config);
+      return;
+    }
+
     await Preferences.set({
       key: VERSION_CONFIGURATION_KEY,
       value: JSON.stringify(config)
@@ -72,6 +106,10 @@ export class ObservabilityPersistence implements ObservabilityRepository {
   }
 
   async getVersionConfiguration(): Promise<VersionConfiguration | null> {
+    if (isMobileE2EMocksEnabled()) {
+      return readMobileE2ERemoteVersionConfiguration();
+    }
+
     const snapshot = await getDoc(
       doc(
         getFirebaseFirestore(),
@@ -88,6 +126,10 @@ export class ObservabilityPersistence implements ObservabilityRepository {
   }
 
   async getLastKnownVersionConfiguration(): Promise<VersionConfiguration | null> {
+    if (isMobileE2EMocksEnabled()) {
+      return readMobileE2ELastKnownVersionConfiguration();
+    }
+
     try {
       const result = await Preferences.get({ key: VERSION_CONFIGURATION_KEY });
       return parseVersionConfigurationString(result.value);

@@ -9,10 +9,10 @@ import type { CreateVersionCheckControllerDependencies } from "../CreateVersionC
 export function createVersionCheckViewModel(
   dependencies: CreateVersionCheckControllerDependencies
 ): VersionCheckInterface {
-  const recoverWithLastKnownConfiguration = async (): Promise<VersionCheckResult> => {
+  const recoverWithLastKnownConfiguration = async (currentVersion: string | null = null): Promise<VersionCheckResult> => {
     try {
       const configuration = await dependencies.loadLastKnownVersionConfiguration();
-      return createVersionResult(configuration, isDefinedVersion(configuration.currentVersion), true);
+      return createVersionResult(configuration, currentVersion, true);
     } catch {
       return createVersionResult(null, false, true);
     }
@@ -27,9 +27,9 @@ export function createVersionCheckViewModel(
       try {
         const configuration = await dependencies.loadVersionConfiguration();
         await dependencies.saveVersionConfiguration?.(configuration);
-        return createVersionResult(configuration, true, false);
+        return createVersionResult(configuration, currentVersion, false);
       } catch {
-        return recoverWithLastKnownConfiguration();
+        return recoverWithLastKnownConfiguration(currentVersion);
       }
     },
     recoverWithLastKnownConfiguration
@@ -38,9 +38,14 @@ export function createVersionCheckViewModel(
 
 function createVersionResult(
   configuration: VersionConfiguration | null,
-  isCurrentVersionDefined: boolean,
+  currentVersion: string | null | boolean,
   usedLastKnownConfiguration: boolean
 ): VersionCheckResult {
+  const isCurrentVersionDefined =
+    typeof currentVersion === "boolean"
+      ? currentVersion
+      : isDefinedVersion(currentVersion);
+
   if (configuration === null || !isCurrentVersionDefined) {
     return {
       configuration,
@@ -54,8 +59,8 @@ function createVersionResult(
   return {
     configuration,
     isCurrentVersionDefined,
-    isUpdateAvailable: compareVersions(configuration.currentVersion, configuration.latestVersion) < 0,
-    isSupported: compareVersions(configuration.currentVersion, configuration.minimumSupportedVersion) >= 0,
+    isUpdateAvailable: compareVersions(currentVersion as string, configuration.latestVersion) < 0,
+    isSupported: compareVersions(currentVersion as string, configuration.minimumSupportedVersion) >= 0,
     usedLastKnownConfiguration
   };
 }

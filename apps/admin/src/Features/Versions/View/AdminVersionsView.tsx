@@ -27,7 +27,7 @@ export function AdminVersionsView(props: AdminVersionsPanelProps): JSX.Element {
 
   if (props.isLoading) {
     return (
-      <IonCard>
+      <IonCard data-testid="admin-versions-loading-card">
         <IonCardContent className="admin-card-loading">
           <IonSpinner name="crescent" />
           <IonText color="medium">
@@ -40,7 +40,7 @@ export function AdminVersionsView(props: AdminVersionsPanelProps): JSX.Element {
 
   if (props.errorMessage !== null) {
     return (
-      <IonCard color="danger">
+      <IonCard color="danger" data-testid="admin-versions-error-card">
         <IonCardContent>
           <IonText>
             <p role="alert">{props.errorMessage}</p>
@@ -51,7 +51,7 @@ export function AdminVersionsView(props: AdminVersionsPanelProps): JSX.Element {
   }
 
   return (
-    <IonCard aria-labelledby="admin-versions-title">
+    <IonCard aria-labelledby="admin-versions-title" data-testid="admin-versions-view">
       <IonCardHeader className="admin-card-header">
         <IonCardTitle id="admin-versions-title">Version configuration</IonCardTitle>
         {!isEditing ? (
@@ -76,7 +76,7 @@ export function AdminVersionsView(props: AdminVersionsPanelProps): JSX.Element {
         )}
       </IonCardHeader>
 
-      <IonItem lines="inset">
+      <IonItem lines="inset" data-testid="admin-version-current-row">
         <IonLabel>
           <p className="admin-item-label">Current version</p>
           {isEditing ? (
@@ -87,14 +87,14 @@ export function AdminVersionsView(props: AdminVersionsPanelProps): JSX.Element {
               data-testid="admin-version-current-input"
             />
           ) : (
-            <IonBadge color="primary" className="admin-version-badge">
+            <IonBadge color="primary" className="admin-version-badge" data-testid="admin-version-current-value">
               {props.summary.currentVersion || "—"}
             </IonBadge>
           )}
         </IonLabel>
       </IonItem>
 
-      <IonItem lines="inset">
+      <IonItem lines="inset" data-testid="admin-version-latest-row">
         <IonLabel>
           <p className="admin-item-label">Latest version</p>
           {isEditing ? (
@@ -105,14 +105,14 @@ export function AdminVersionsView(props: AdminVersionsPanelProps): JSX.Element {
               data-testid="admin-version-latest-input"
             />
           ) : (
-            <IonBadge color="secondary" className="admin-version-badge">
+            <IonBadge color="secondary" className="admin-version-badge" data-testid="admin-version-latest-value">
               {props.summary.latestVersion || "—"}
             </IonBadge>
           )}
         </IonLabel>
       </IonItem>
 
-      <IonItem lines="inset">
+      <IonItem lines="inset" data-testid="admin-version-minimum-row">
         <IonLabel>
           <p className="admin-item-label">Minimum supported version</p>
           {isEditing ? (
@@ -125,17 +125,17 @@ export function AdminVersionsView(props: AdminVersionsPanelProps): JSX.Element {
               data-testid="admin-version-minimum-input"
             />
           ) : (
-            <IonBadge color="medium" className="admin-version-badge">
+            <IonBadge color="medium" className="admin-version-badge" data-testid="admin-version-minimum-value">
               {props.summary.minimumSupportedVersion || "—"}
             </IonBadge>
           )}
         </IonLabel>
       </IonItem>
 
-      <IonItem lines="none">
+      <IonItem lines="none" data-testid="admin-version-updated-at-row">
         <IonLabel>
           <p className="admin-item-label">Updated at</p>
-          <p className="admin-item-value">{props.summary.updatedAt || "—"}</p>
+          <p className="admin-item-value" data-testid="admin-version-updated-at-value">{props.summary.updatedAt || "—"}</p>
         </IonLabel>
       </IonItem>
 
@@ -143,7 +143,7 @@ export function AdminVersionsView(props: AdminVersionsPanelProps): JSX.Element {
         <IonCardContent>
           {props.state.validationMessage !== null ? (
             <IonText color="danger">
-              <p role="alert" className="admin-validation-message">
+              <p role="alert" className="admin-validation-message" data-testid="admin-version-validation-message">
                 {props.state.validationMessage}
               </p>
             </IonText>
@@ -164,4 +164,3 @@ export function AdminVersionsView(props: AdminVersionsPanelProps): JSX.Element {
     </IonCard>
   );
 }
-

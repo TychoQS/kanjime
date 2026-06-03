@@ -259,10 +259,10 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
               <p className="admin-muted">{SIGN_IN_DESCRIPTION}</p>
               {authErrorMessage !== null ? (
                 <IonText color="danger">
-                  <p role="alert">{authErrorMessage}</p>
+                  <p role="alert" data-testid="admin-auth-error-message">{authErrorMessage}</p>
                 </IonText>
               ) : null}
-              <IonButton disabled={isSigningIn} onClick={() => {
+              <IonButton data-testid="admin-sign-in-button" disabled={isSigningIn} onClick={() => {
                 void signIn();
               }}>
                 {isSigningIn ? SIGNING_IN_LABEL : SIGN_IN_LABEL}
@@ -280,10 +280,10 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
         <IonToolbar>
           <IonTitle>{ADMIN_TITLE}</IonTitle>
           <IonButtons slot="end" className="admin-navigation">
-            <IonButton onClick={() => setActiveSection("dashboard")}>Dashboard</IonButton>
-            <IonButton onClick={() => setActiveSection("versions")}>Versions</IonButton>
-            <IonButton onClick={() => setActiveSection("errors")}>Errors</IonButton>
-            <IonButton onClick={() => {
+            <IonButton data-testid="admin-nav-dashboard-button" onClick={() => setActiveSection("dashboard")}>Dashboard</IonButton>
+            <IonButton data-testid="admin-nav-versions-button" onClick={() => setActiveSection("versions")}>Versions</IonButton>
+            <IonButton data-testid="admin-nav-errors-button" onClick={() => setActiveSection("errors")}>Errors</IonButton>
+            <IonButton data-testid="admin-sign-out-button" onClick={() => {
               void signOut();
             }}>
               {SIGN_OUT_LABEL}

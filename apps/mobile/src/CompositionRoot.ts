@@ -70,6 +70,12 @@ import { getMeaningLanguagePriority, normalizeLocale, translate, type SupportedL
 import { KanjiRepository, type KanjiSummary, type SourceAttribution } from "./Shared/KanjiRepository";
 import { OcrWorkerClient } from "./Shared/OcrWorkerClient";
 import { ImageError } from "@kanjime/shared";
+import {
+  isMobileE2EMocksEnabled,
+  readMobileE2ELastKnownVersionConfiguration,
+  readMobileE2ERemoteVersionConfiguration,
+  shouldFailMobileE2ERemoteVersionCheck
+} from "./Shared/E2EMocks";
 import { ObservabilityPersistence } from "./Shared/ObservabilityPersistence";
 import { UserActionTracker } from "./Shared/UserActionTracker";
 
@@ -170,6 +176,18 @@ export function createCompositionRoot(): CompositionRoot {
 
   const versionCheckController = CreateVersionCheckController({
     loadVersionConfiguration: async () => {
+      if (isMobileE2EMocksEnabled()) {
+        if (shouldFailMobileE2ERemoteVersionCheck()) {
+          throw new Error("No remote version configuration source is available.");
+        }
+
+        const e2eConfiguration = readMobileE2ERemoteVersionConfiguration();
+
+        if (e2eConfiguration !== null) {
+          return e2eConfiguration;
+        }
+      }
+
       const configuration = await observabilityPersistence.getVersionConfiguration();
 
       if (configuration === null) {
@@ -179,6 +197,14 @@ export function createCompositionRoot(): CompositionRoot {
       return configuration;
     },
     loadLastKnownVersionConfiguration: async () => {
+      if (isMobileE2EMocksEnabled()) {
+        const e2eConfiguration = readMobileE2ELastKnownVersionConfiguration();
+
+        if (e2eConfiguration !== null) {
+          return e2eConfiguration;
+        }
+      }
+
       const configuration = await observabilityPersistence.getLastKnownVersionConfiguration();
 
       if (configuration === null) {

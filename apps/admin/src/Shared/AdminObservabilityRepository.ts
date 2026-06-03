@@ -6,6 +6,14 @@ import type {
   ObservabilityRepository,
   VersionConfiguration
 } from "@kanjime/shared";
+import {
+  isAdminE2EMocksEnabled,
+  readAdminE2EErrorReports,
+  readAdminE2EVersionConfiguration,
+  subscribeToAdminE2EErrorReports,
+  writeAdminE2EErrorReports,
+  writeAdminE2EVersionConfiguration
+} from "./E2EMocks";
 import { getFirebaseFirestore } from "./FirebaseClient";
 
 const ERRORS_COLLECTION = "errors";
@@ -17,10 +25,23 @@ const CURRENT_VERSION_CONFIGURATION_DOCUMENT = "current";
  */
 export class AdminObservabilityRepository implements ObservabilityRepository {
   async saveErrorReport(report: ApplicationErrorReport): Promise<void> {
+    if (isAdminE2EMocksEnabled()) {
+      const nextReports = [
+        ...readAdminE2EErrorReports().filter(candidate => candidate.id !== report.id),
+        report
+      ];
+      writeAdminE2EErrorReports(nextReports);
+      return;
+    }
+
     await setDoc(doc(getFirebaseFirestore(), ERRORS_COLLECTION, report.id), report);
   }
 
   async listErrorReports(): Promise<ReadonlyArray<ApplicationErrorReport>> {
+    if (isAdminE2EMocksEnabled()) {
+      return readAdminE2EErrorReports();
+    }
+
     const snapshot = await getDocs(
       query(collection(getFirebaseFirestore(), ERRORS_COLLECTION), orderBy("occurredAt", "desc"))
     );
@@ -31,11 +52,20 @@ export class AdminObservabilityRepository implements ObservabilityRepository {
   }
 
   async getErrorReport(id: string): Promise<ApplicationErrorReport | null> {
+    if (isAdminE2EMocksEnabled()) {
+      return readAdminE2EErrorReports().find(report => report.id === id) ?? null;
+    }
+
     const snapshot = await getDoc(doc(getFirebaseFirestore(), ERRORS_COLLECTION, id));
     return snapshot.exists() ? parseErrorReport(snapshot.data()) : null;
   }
 
   async saveVersionConfiguration(config: VersionConfiguration): Promise<void> {
+    if (isAdminE2EMocksEnabled()) {
+      writeAdminE2EVersionConfiguration(config);
+      return;
+    }
+
     await setDoc(
       doc(
         getFirebaseFirestore(),
@@ -47,6 +77,10 @@ export class AdminObservabilityRepository implements ObservabilityRepository {
   }
 
   async getVersionConfiguration(): Promise<VersionConfiguration | null> {
+    if (isAdminE2EMocksEnabled()) {
+      return readAdminE2EVersionConfiguration();
+    }
+
     const snapshot = await getDoc(
       doc(
         getFirebaseFirestore(),
@@ -59,6 +93,10 @@ export class AdminObservabilityRepository implements ObservabilityRepository {
   }
 
   subscribeToErrors(callback: (errors: ReadonlyArray<ApplicationErrorReport>) => void): () => void {
+    if (isAdminE2EMocksEnabled()) {
+      return subscribeToAdminE2EErrorReports(callback);
+    }
+
     return onSnapshot(
       query(collection(getFirebaseFirestore(), ERRORS_COLLECTION), orderBy("occurredAt", "desc")),
       snapshot => {

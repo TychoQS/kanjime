@@ -10,6 +10,7 @@ import {
   type User
 } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { createAdminE2EAuthenticationClient, isAdminE2EMocksEnabled } from "./E2EMocks";
 
 const FIREBASE_ENV_KEYS = {
   apiKey: "VITE_FIREBASE_API_KEY",
@@ -61,6 +62,10 @@ export function getFirebaseFirestore(): Firestore {
  * Returns the Google-authenticated administration client.
  */
 export function createAdminAuthenticationClient(): AdminAuthenticationClient {
+  if (isAdminE2EMocksEnabled()) {
+    return createAdminE2EAuthenticationClient();
+  }
+
   return {
     subscribeToCurrentUser(listener): Unsubscribe {
       return onAuthStateChanged(getFirebaseAuth(), user => listener(toAdminAuthenticatedUser(user)));

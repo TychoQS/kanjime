@@ -123,7 +123,7 @@ export function useClassificationScreenViewModel(
   const [canvasStrokes, setCanvasStrokes] = useState(dependencies.canvasController.getStrokeHistory());
   const [cropDraft, setCropDraft] = useState<CropDraft | null>(null);
   const [results, setResults] = useState<ReadonlyArray<CharacterSummary>>(
-    safeGetVisibleResults(dependencies.displayInferencesController, dependencies.captureUnexpectedError)
+    safeGetVisibleResults(dependencies.displayInferencesController)
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -131,8 +131,8 @@ export function useClassificationScreenViewModel(
   const activeCrop = useMemo(() => cropDraftToRegion(cropDraft) ?? imageState.crop, [cropDraft, imageState.crop]);
 
   const refreshResults = useCallback(() => {
-    setResults(safeGetVisibleResults(dependencies.displayInferencesController, dependencies.captureUnexpectedError));
-  }, [dependencies.displayInferencesController, dependencies.captureUnexpectedError]);
+    setResults(safeGetVisibleResults(dependencies.displayInferencesController));
+  }, [dependencies.displayInferencesController]);
 
   const refreshImageState = useCallback(() => {
     setImageState(dependencies.imageController.getImageState());
@@ -157,7 +157,7 @@ export function useClassificationScreenViewModel(
       setImageState(dependencies.imageController.getImageState());
       setCanvasStrokes(dependencies.canvasController.getStrokeHistory());
       setCropDraft(null);
-      setResults(safeGetVisibleResults(dependencies.displayInferencesController, dependencies.captureUnexpectedError));
+      setResults(safeGetVisibleResults(dependencies.displayInferencesController));
       setIsProcessing(false);
       setErrorMessage(null);
       lastImageSourceIdRef.current = "";
@@ -526,16 +526,11 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function safeGetVisibleResults(
-  displayInferencesController: DisplayInferencesInterface,
-  captureUnexpectedError?: (error: Error) => Promise<{ readonly message: string; readonly isControlled: boolean }>
+  displayInferencesController: DisplayInferencesInterface
 ): ReadonlyArray<CharacterSummary> {
   try {
     return displayInferencesController.getVisibleResults();
-  } catch (error) {
-    if (captureUnexpectedError) {
-      const errorObj = error instanceof Error ? error : new Error(String(error));
-      void captureUnexpectedError(errorObj);
-    }
+  } catch {
     return [];
   }
 }

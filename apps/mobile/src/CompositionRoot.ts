@@ -710,6 +710,13 @@ async function loadCurrentApplicationVersion(): Promise<string | null> {
 }
 
 async function loadDeviceInfo(): Promise<{ readonly webEngine: string; readonly webEngineVersion: string }> {
+  if (isMobileE2EMocksEnabled()) {
+    return {
+      webEngine: "web",
+      webEngineVersion: "124.0.0"
+    };
+  }
+
   try {
     const deviceInfo = await Device.getInfo();
     const webEngine = deviceInfo.operatingSystem.trim().length > 0

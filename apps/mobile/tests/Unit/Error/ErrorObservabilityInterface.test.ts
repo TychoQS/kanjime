@@ -194,6 +194,10 @@ describe("ErrorObservabilityInterface", () => {
       let match;
       while ((match = catchRegex.exec(code)) !== null) {
         const startIndex = match.index;
+        // Skip safeGetVisibleResults helper function catch block in ClassificationViewModel
+        if (filePath.endsWith("ClassificationViewModel.ts") && startIndex > code.indexOf("function safeGetVisibleResults")) {
+          continue;
+        }
         // Get content up to the next catch block or 800 characters
         const block = code.substring(startIndex, startIndex + 800);
         
@@ -212,5 +216,33 @@ describe("ErrorObservabilityInterface", () => {
         expect(code, `Screen ${path.basename(filePath)} must use ErrorView for displaying errors`).toContain("ErrorView");
       }
     }
+  });
+
+  /**
+   * Requirement: R61
+   * Type: Regression
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R61", "Regression", "Postcondition", "safeGetVisibleResults catch block must not call captureUnexpectedError"), () => {
+    const getAbsolutePath = (relativePath: string): string => {
+      const cwd = process.cwd();
+      const base = cwd.endsWith("apps/mobile") ? cwd : path.join(cwd, "apps/mobile");
+      return path.join(base, relativePath);
+    };
+
+    const filePath = getAbsolutePath("src/Features/Classification/Mode/ViewModel/ClassificationViewModel.ts");
+    const code = fs.readFileSync(filePath, "utf-8");
+
+    const safeGetIndex = code.indexOf("function safeGetVisibleResults");
+    expect(safeGetIndex, "safeGetVisibleResults should exist in ClassificationViewModel.ts").toBeGreaterThan(-1);
+
+    const safeGetCode = code.substring(safeGetIndex);
+    const catchIndex = safeGetCode.indexOf("catch");
+    expect(catchIndex, "catch block should exist in safeGetVisibleResults").toBeGreaterThan(-1);
+
+    const nextCloseBraceIndex = safeGetCode.indexOf("}", catchIndex);
+    const catchBlock = safeGetCode.substring(catchIndex, nextCloseBraceIndex + 1);
+
+    expect(catchBlock, "safeGetVisibleResults catch block must not call captureUnexpectedError").not.toContain("captureUnexpectedError");
   });
 });

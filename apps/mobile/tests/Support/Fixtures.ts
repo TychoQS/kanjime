@@ -9,6 +9,9 @@ import { test as base, expect } from "@playwright/test";
  */
 export const test = base.extend({
   page: async ({ page }, use) => {
+    await page.addInitScript(() => {
+      window.localStorage.clear();
+    });
     await page.route("**/firestore.googleapis.com/**", route =>
       route.fulfill({
         status: 404,
@@ -16,7 +19,6 @@ export const test = base.extend({
         body: JSON.stringify({ error: { code: 404, status: "NOT_FOUND" } })
       })
     );
-
     await use(page);
   }
 });

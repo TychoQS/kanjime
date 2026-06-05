@@ -13,7 +13,7 @@ export function createUpdateAvailableViewModel(
     getUpdateAvailability(result: VersionCheckResult): UpdateAvailabilityState {
       const currentVersion = result.configuration?.currentVersion ?? "";
       const latestVersion = result.configuration?.latestVersion ?? "";
-      const isVisible = result.isCurrentVersionDefined && result.isUpdateAvailable && result.isSupported;
+      const isVisible = result.isCurrentVersionDefined && result.isUpdateAvailable;
 
       return {
         isVisible,

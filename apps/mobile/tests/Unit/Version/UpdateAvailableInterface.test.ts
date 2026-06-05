@@ -77,4 +77,25 @@ describe("UpdateAvailableInterface", () => {
     expect(state.isVisible, "The update availability notice is not visible.").toBe(true);
     expect(state.message, "The update availability notice does not show the expected informational message.").toBe(UPDATE_MESSAGE);
   });
+
+  /**
+   * Requirement: R58
+   * Type: Regression
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R58", "Regression", "Postcondition", "shows update notification even if the running version is not supported"), () => {
+    const createUpdateMessage = createValueRecorder(UPDATE_MESSAGE);
+    const controller = CreateUpdateAvailableController({
+      createUpdateMessage: createUpdateMessage.handler
+    });
+
+    const unsupportedResult: VersionCheckResult = {
+      ...VERSION_CHECK_RESULT,
+      isSupported: false
+    };
+
+    const state = controller.getUpdateAvailability(unsupportedResult);
+
+    expect(state.isVisible, "The update availability notice should be visible even if the running version is not supported.").toBe(true);
+  });
 });

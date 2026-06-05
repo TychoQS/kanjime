@@ -33,15 +33,23 @@ test("[R58][E2E] UpdateAvailableInterface shows a non-blocking update recommenda
 
   // Requirement: FUNCIONALES R58 - UpdateAvailableInterface
   // @pre The application starts with a running version below the latest available compatible version.
+  const [latestMajor, latestMinor, latestPatch] = TEST_MOBILE_E2E_VERSION_CONFIGURATION_OLD.latestVersion.split(".").map(Number);
+  const [currentMajor, currentMinor, currentPatch] = TEST_MOBILE_E2E_VERSION_CONFIGURATION_OLD.currentVersion.split(".").map(Number);
+  expect(
+    latestMajor > currentMajor ||
+    (latestMajor === currentMajor && latestMinor > currentMinor) ||
+    (latestMajor === currentMajor && latestMinor === currentMinor && latestPatch > currentPatch),
+    "The seeded latest version must be greater than the current version to validate the update notice precondition."
+  ).toBe(true);
   await seedOldVersionConfiguration(page);
   await app.goto(TEST_MOBILE_E2E_ROUTES.classification);
 
   // @inv The update notice must not block normal use of the application.
-  await expect(page.getByTestId(TEST_MOBILE_E2E_TEST_IDS.updateAvailableView), "The update notice should become visible when a newer compatible version is available.").toBeVisible();
   await app.openMenu();
   await page.getByTestId(TEST_MOBILE_E2E_TEST_IDS.navSearch).click();
   await expect(page.getByTestId("search-screen"), "The search screen should remain reachable while the update notice is visible.").toBeVisible();
 
   // @post The application exposes an informational update recommendation to the user.
+  await expect(page.getByTestId(TEST_MOBILE_E2E_TEST_IDS.updateAvailableView), "The update notice should become visible when a newer compatible version is available.").toBeVisible();
   await expect(page.getByTestId(TEST_MOBILE_E2E_TEST_IDS.updateAvailableDismissButton), "The update notice should provide a dismiss action so the user can keep using the application.").toBeVisible();
 });

@@ -19,10 +19,10 @@ test("[R27][E2E] AdminVersionFormProps shows a clear validation message and avoi
   const currentVersionInput = page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionCurrentInput).locator("input");
   await currentVersionInput.fill("");
   await currentVersionInput.fill(TEST_ADMIN_E2E_INVALID_VERSION_VALUE);
+  await expect(currentVersionInput, "The version input should contain the invalid version introduced by the administrator.").toHaveValue(TEST_ADMIN_E2E_INVALID_VERSION_VALUE);
 
   // @inv The interface must not save invalid configurations or show ambiguous validation messages.
-  await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionSaveButton), "The version form should keep the save action disabled while the version format remains invalid.").toBeDisabled();
-  const storedConfiguration = await page.evaluate(storageKeys => {
+  await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionSaveButton), "The version form should keep the save action disabled while the version format remains invalid.").toHaveAttribute("aria-disabled", "true"); const storedConfiguration = await page.evaluate(storageKeys => {
     return window.localStorage.getItem(storageKeys.versionConfiguration);
   }, TEST_ADMIN_E2E_STORAGE_KEYS);
   expect(storedConfiguration, "The persisted version configuration should remain unchanged after entering an invalid version.").toContain(TEST_ADMIN_E2E_VERSION_CONFIGURATION.currentVersion);

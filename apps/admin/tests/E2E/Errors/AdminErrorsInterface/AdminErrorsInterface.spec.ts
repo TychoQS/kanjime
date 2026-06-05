@@ -9,6 +9,7 @@ test("[R65][E2E] AdminErrorsInterface lists reported application errors with bas
   // @pre The administration panel starts with previously reported application errors.
   await admin.goto("/");
   await admin.navigateToErrors();
+  expect(TEST_ADMIN_E2E_ERROR_REPORTS.length, "The E2E scenario should start with previously reported application errors.").toBeGreaterThan(0);
 
   // @post The administrator sees the reported errors together with basic analysis information.
   await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.errorsList), "The errors screen should expose the reported errors list.").toBeVisible();

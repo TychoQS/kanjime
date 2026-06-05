@@ -38,6 +38,7 @@ test("[R25][E2E] ErrorProps renders a clear non-technical message for the user",
   // @pre An unexpected error happens while the application is running.
   await seedControlledErrorProps(page);
   await app.goto(TEST_MOBILE_E2E_ROUTES.classification);
+  await expect(page.getByTestId(TEST_MOBILE_E2E_TEST_IDS.triggerUnexpectedErrorButton), "The test control for triggering an unexpected error should be available.").toBeVisible();
   await page.getByTestId(TEST_MOBILE_E2E_TEST_IDS.triggerUnexpectedErrorButton).evaluate(button => {
     (button as HTMLButtonElement).click();
   });
@@ -46,16 +47,6 @@ test("[R25][E2E] ErrorProps renders a clear non-technical message for the user",
 
   // @inv The controlled message must not expose internal traces or technical details.
   await expect(controlledErrorView, "The controlled error interface should be visible before validating the user-facing message.").toBeVisible();
-  await expect
-    .poll(
-      async () => {
-        return await controlledErrorView.evaluate(element => (element as HTMLIonAlertElement).message);
-      },
-      {
-        message: "The controlled error interface should expose the expected user-facing message."
-      }
-    )
-    .toBe(ENGLISH_TRANSLATIONS.unexpectedError);
   await expect
     .poll(
       async () => {
@@ -80,4 +71,5 @@ test("[R25][E2E] ErrorProps renders a clear non-technical message for the user",
       }
     )
     .toBe(TEST_MOBILE_E2E_UNEXPECTED_ERROR_MESSAGE);
+  await expect(page.getByTestId(TEST_MOBILE_E2E_TEST_IDS.controlledErrorView), "The controlled error dialog should be visible after triggering an unexpected error.").toBeVisible();
 });

@@ -10,7 +10,7 @@
     "test": "npm run build && npm run test:unit && npm run test:integration && npm run test:e2e",
     "test:unit": "npm run build && vitest run tests/Unit --passWithNoTests",
     "test:integration": "npm run build && vitest run tests/Integration --passWithNoTests",
-    "test:e2e": "npm run build && playwright test --pass-with-no-tests"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@ionic/react": "^8.8.4",

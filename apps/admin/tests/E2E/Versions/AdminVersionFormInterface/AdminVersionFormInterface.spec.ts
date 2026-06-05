@@ -24,11 +24,12 @@ test("[R64][E2E] AdminVersionFormInterface rejects invalid versions and persists
   await admin.goto("/");
   await admin.navigateToVersions();
   await page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionsEditButton).click();
+  await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionCurrentInput), "The version configuration form should be available for editing.").toBeVisible();
 
   // @inv Invalid version values should never be accepted or persisted.
   await fillVersionInput(page, TEST_ADMIN_E2E_TEST_IDS.versionCurrentInput, TEST_ADMIN_E2E_INVALID_VERSION_VALUE);
   await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionValidationMessage), "The version form should expose a validation error after entering an invalid semantic version.").toBeVisible();
-  await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionSaveButton), "The version form should disable saving while the configuration is invalid.").toBeDisabled();
+  await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionSaveButton), "The version form should disable saving while the configuration is invalid.").toHaveAttribute("aria-disabled", "true");
 
   // @post A valid configuration should be stored and immediately available to the application.
   await fillVersionInput(page, TEST_ADMIN_E2E_TEST_IDS.versionCurrentInput, TEST_ADMIN_E2E_UPDATED_VERSION_CONFIGURATION.currentVersion);

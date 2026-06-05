@@ -11,10 +11,12 @@ test("[R66][E2E] AdminErrorDetailInterface shows the detail that corresponds to 
   // @pre The administrator opens the errors list and selects an existing reported error.
   await admin.goto("/");
   await admin.navigateToErrors();
+  expect(TEST_ADMIN_E2E_ERROR_REPORTS.length, "The E2E scenario should start with previously reported application errors.").toBeGreaterThan(0);
+  await expect(admin.errorRow(SELECTED_ERROR.id), "The selected reported error should be visible before opening its detail.").toBeVisible();
   await page.getByTestId(`admin-error-open-button-${SELECTED_ERROR.id}`).click();
+  await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.errorDetailView), "The error detail view should become visible after selecting a reported error.").toBeVisible();
 
   // @inv The displayed detail should correspond to the selected error.
-  await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.errorDetailView), "The error detail view should become visible after selecting a reported error.").toBeVisible();
   await expect(page.getByTestId("admin-error-detail-identifier-value"), "The selected error detail should keep the identifier of the opened report.").toContainText(SELECTED_ERROR.id);
 
   // @post The administrator sees the selected error message, date, application version and basic context.
@@ -25,4 +27,5 @@ test("[R66][E2E] AdminErrorDetailInterface shows the detail that corresponds to 
   await expect(page.getByTestId("admin-error-detail-actions-list"), "The selected error detail should expose the recorded recent user actions context.").toBeVisible();
   await expect(page.getByTestId("admin-error-detail-action-0"), "The selected error detail should render at least one recorded recent user action.").toBeVisible();
   expect(TEST_ADMIN_E2E_LAST_ACTIONS.length, "The seeded error detail should include the expected recent user actions context.").toBeGreaterThan(0);
+  expect(TEST_ADMIN_E2E_LAST_ACTIONS.length, "The selected error detail should render no more than 10 recent user actions.").toBeLessThanOrEqual(10);
 });

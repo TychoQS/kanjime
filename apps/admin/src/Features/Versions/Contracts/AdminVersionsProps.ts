@@ -5,7 +5,7 @@ import type { AdminVersionSummary } from "@kanjime/shared";
  *
  * Requirement IDs: R26.
  *
- * @pre A version configuration is available.
+ * @pre User is in the in the version screen of the admin panel.
  * @inv Current version, latest version, and configuration update date are clearly differentiated.
  * @post The administrator can understand the version state without interpreting complex technical data.
  */

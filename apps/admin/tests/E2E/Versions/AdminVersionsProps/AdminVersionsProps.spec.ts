@@ -12,6 +12,7 @@ test("[R26][E2E] AdminVersionsProps presents differentiated and readable version
   // @pre A version configuration is available in the administration panel.
   await admin.goto("/");
   await admin.navigateToVersions();
+  await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionsView), "The versions screen should be visible with an available version configuration.").toBeVisible();
 
   // @inv The interface should clearly differentiate the current, latest and updated-at version data.
   await expect(page.getByTestId("admin-version-current-row"), "The versions screen should expose a differentiated row for the current version.").toBeVisible();
@@ -20,5 +21,6 @@ test("[R26][E2E] AdminVersionsProps presents differentiated and readable version
 
   // @post The administrator can inspect the version status clearly without interpreting raw technical data.
   await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionCurrentValue), "The readable current version value should be visible to the administrator.").toContainText(TEST_ADMIN_E2E_VERSION_CONFIGURATION.currentVersion);
+  await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionLatestValue), "The readable latest version value should be visible to the administrator.").toContainText(TEST_ADMIN_E2E_VERSION_CONFIGURATION.latestVersion);
   await expect(page.getByTestId(TEST_ADMIN_E2E_TEST_IDS.versionUpdatedAtValue), "The readable configuration update timestamp should be visible to the administrator.").toContainText(TEST_ADMIN_E2E_VERSION_CONFIGURATION.updatedAt);
 });

@@ -11,10 +11,14 @@ test("[R63][E2E] AdminVersionsInterface displays the stored application version 
 
   // Requirement: FUNCIONALES R63 - AdminVersionsInterface
   // @pre The administration panel starts with an existing version configuration.
+  await admin.goto("/");
   const storedConfigurationBeforeNavigation = await page.evaluate(storageKeys => {
     return window.localStorage.getItem(storageKeys.versionConfiguration);
   }, TEST_ADMIN_E2E_STORAGE_KEYS);
-  await admin.goto("/");
+  expect(storedConfigurationBeforeNavigation, "A version configuration should exist before opening the versions screen.").not.toBeNull();
+  expect(storedConfigurationBeforeNavigation, "The version configuration should contain the current version.").toContain(TEST_ADMIN_E2E_VERSION_CONFIGURATION.currentVersion);
+  expect(storedConfigurationBeforeNavigation, "The version configuration should contain the latest version.").toContain(TEST_ADMIN_E2E_VERSION_CONFIGURATION.latestVersion);
+  expect(storedConfigurationBeforeNavigation, "The version configuration should contain the minimum supported version.").toContain(TEST_ADMIN_E2E_VERSION_CONFIGURATION.minimumSupportedVersion);
   await admin.navigateToVersions();
 
   // @inv Querying the configuration should not modify the stored values.

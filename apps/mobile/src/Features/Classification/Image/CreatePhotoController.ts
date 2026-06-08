@@ -6,7 +6,9 @@ import { createPhotoViewModel } from "./ViewModel/PhotoViewModel";
  * External collaborators consumed by the photo controller.
  */
 export interface CreatePhotoControllerDependencies {
-  readonly captureFromCamera: () => Promise<ImageDescriptor>;
+  readonly startCameraPreview: () => Promise<MediaStream>;
+  readonly captureFromCamera: (video: HTMLVideoElement) => Promise<ImageDescriptor>;
+  readonly stopCameraPreview: () => void;
   readonly pickFromLibrary: () => Promise<ImageDescriptor>;
 }
 

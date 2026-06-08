@@ -59,8 +59,14 @@ export function createPhotoViewModel(dependencies: CreatePhotoControllerDependen
   }
 
   return {
-    capturePhoto(): Promise<ImageDescriptor> {
-      return acquireImage(dependencies.captureFromCamera);
+    startCameraPreview(): Promise<MediaStream> {
+      return dependencies.startCameraPreview();
+    },
+    capturePhoto(video: HTMLVideoElement): Promise<ImageDescriptor> {
+      return acquireImage(() => dependencies.captureFromCamera(video));
+    },
+    stopCameraPreview(): void {
+      dependencies.stopCameraPreview();
     },
     async pickPhotoFromLibrary(): Promise<ImageDescriptor> {
       try {

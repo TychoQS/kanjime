@@ -26,7 +26,29 @@ import { InferenceListView } from "./Inference/InferenceListView";
 export function ClassificationScreen(): JSX.Element {
   const { classification, preferences } = useAppViewModelContext();
   const imageFrameRef = useRef<HTMLDivElement>(null);
+  const cameraPreviewRef = useRef<HTMLVideoElement>(null);
   const canvasColors = useCanvasThemeColors(preferences.preferences.theme);
+
+  useEffect(() => {
+    const previewElement = cameraPreviewRef.current;
+
+    if (previewElement === null) {
+      return;
+    }
+
+    previewElement.srcObject = classification.cameraStream;
+
+    if (classification.cameraStream === null) {
+      return;
+    }
+
+    void previewElement.play().catch(() => undefined);
+
+    return () => {
+      previewElement.pause();
+      previewElement.srcObject = null;
+    };
+  }, [classification.cameraStream]);
 
   return (
     <MobilePage title={translate(preferences.preferences.language, "recognition")} testId="classification-screen">
@@ -68,22 +90,52 @@ export function ClassificationScreen(): JSX.Element {
                 ref={imageFrameRef}
                 className="image-crop-frame"
                 data-testid="image-crop-frame"
-                onPointerDown={event => classification.startCrop(event, imageFrameRef.current)}
-                onPointerMove={event => classification.updateCrop(event, imageFrameRef.current)}
-                onPointerUp={() => classification.finishCrop()}
+                onPointerDown={event => {
+                  if (classification.isCameraPreviewActive) {
+                    return;
+                  }
+
+                  classification.startCrop(event, imageFrameRef.current);
+                }}
+                onPointerMove={event => {
+                  if (classification.isCameraPreviewActive) {
+                    return;
+                  }
+
+                  classification.updateCrop(event, imageFrameRef.current);
+                }}
+                onPointerUp={() => {
+                  if (classification.isCameraPreviewActive) {
+                    return;
+                  }
+
+                  classification.finishCrop();
+                }}
               >
-                <div className="classification-image-view-embedded">
-                  <ImageView
-                    image={classification.imageState.image ? {
-                      uri: classification.imageState.image.uri,
-                      width: classification.imageState.image.width,
-                      height: classification.imageState.image.height,
-                      altText: translate(preferences.preferences.language, "image")
-                    } : null}
-                    isProcessing={classification.isProcessing}
-                    onClearImage={classification.clearImage}
+                {classification.isCameraPreviewActive ? (
+                  <video
+                    ref={cameraPreviewRef}
+                    aria-label={translate(preferences.preferences.language, "takePhoto")}
+                    autoPlay
+                    className="camera-preview"
+                    data-testid="camera-preview-video"
+                    muted
+                    playsInline
                   />
-                </div>
+                ) : (
+                  <div className="classification-image-view-embedded">
+                    <ImageView
+                      image={classification.imageState.image ? {
+                        uri: classification.imageState.image.uri,
+                        width: classification.imageState.image.width,
+                        height: classification.imageState.image.height,
+                        altText: translate(preferences.preferences.language, "image")
+                      } : null}
+                      isProcessing={classification.isProcessing}
+                      onClearImage={classification.clearImage}
+                    />
+                  </div>
+                )}
                 <CropOverlayView
                   imageWidth={imageFrameRef.current?.getBoundingClientRect().width ?? 1}
                   imageHeight={imageFrameRef.current?.getBoundingClientRect().height ?? 1}
@@ -92,10 +144,14 @@ export function ClassificationScreen(): JSX.Element {
                       ? toFrameCrop(classification.activeCrop, classification.imageState.image, imageFrameRef.current)
                       : null
                   }
-                  isVisible={classification.imageState.image !== null && classification.activeCrop !== null}
+                  isVisible={
+                    !classification.isCameraPreviewActive
+                    && classification.imageState.image !== null
+                    && classification.activeCrop !== null
+                  }
                   onCropChanged={() => undefined}
                 />
-                {classification.imageState.image === null ? (
+                {classification.imageState.image === null && !classification.isCameraPreviewActive ? (
                   <IonIcon
                     aria-hidden="true"
                     className="empty-image-icon"
@@ -109,7 +165,27 @@ export function ClassificationScreen(): JSX.Element {
                 </IonText>
               ) : null}
               <div className="center-actions image-actions">
-                {classification.imageState.image === null ? (
+                {classification.isCameraPreviewActive ? (
+                  <>
+                    <IonButton
+                      className="image-action-button"
+                      data-testid="capture-photo-button"
+                      onClick={() => void classification.capturePhoto(cameraPreviewRef.current)}
+                      aria-label={translate(preferences.preferences.language, "takePhoto")}
+                    >
+                      <IonIcon icon={camera} slot="icon-only" />
+                    </IonButton>
+                    <IonButton
+                      className="image-action-button"
+                      data-testid="cancel-photo-button"
+                      fill="outline"
+                      onClick={classification.cancelPhotoCapture}
+                      aria-label={translate(preferences.preferences.language, "close")}
+                    >
+                      <IonIcon icon={close} slot="icon-only" />
+                    </IonButton>
+                  </>
+                ) : classification.imageState.image === null ? (
                   <>
                     <IonButton
                       className="image-action-button"

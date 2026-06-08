@@ -14,6 +14,10 @@ import {
 import { TEST_IMAGE, TEST_PREDICTIONS, TEST_MOCK_RESOLVE_SUMMARY } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 
+function createMockVideoElement(): HTMLVideoElement {
+  return document.createElement("video");
+}
+
 describe("OCR-PHOTO-CLASSIFY", () => {
   /**
    * Requirement: OCR-PHOTO-CLASSIFY
@@ -21,6 +25,7 @@ describe("OCR-PHOTO-CLASSIFY", () => {
    * Condition: All
    */
   it(buildRequirementTitle("OCR-PHOTO-CLASSIFY", "Integration", "All", "flows from a captured photo to visible predictions"), async () => {
+    const videoElement = createMockVideoElement();
     const initializerRecorder = createAsyncValueRecorder({
       inputWidth: TEST_IMAGE.width,
       inputHeight: TEST_IMAGE.height,
@@ -42,7 +47,9 @@ describe("OCR-PHOTO-CLASSIFY", () => {
       initializeModelRuntime: initializerRecorder.handler
     });
     const photoController = CreatePhotoController({
+      startCameraPreview: () => Promise.resolve({} as MediaStream),
       captureFromCamera: cameraRecorder.handler,
+      stopCameraPreview: () => undefined,
       pickFromLibrary: createAsyncValueRecorder(TEST_IMAGE).handler
     });
     const imageController = CreateImageController({
@@ -68,7 +75,7 @@ describe("OCR-PHOTO-CLASSIFY", () => {
     );
 
     // Precondition: photo is captured from the camera and set as the active input
-    const image = await photoController.capturePhoto();
+    const image = await photoController.capturePhoto(videoElement);
     imageController.setImage(image);
     expect(cameraRecorder.calls.length).toBeGreaterThan(0,
       "OCR-PHOTO-CLASSIFY precondition failed: the photo flow never requested an image from the camera dependency."
@@ -119,6 +126,7 @@ describe("OCR-PHOTO-CLASSIFY", () => {
   });
 
   it(buildRequirementTitle("OCR-PHOTO-CLASSIFY", "Integration", "All", "surfaces a denied capture without hiding the fallback input contract"), async () => {
+    const videoElement = createMockVideoElement();
     const initializerRecorder = createAsyncValueRecorder({
       inputWidth: TEST_IMAGE.width,
       inputHeight: TEST_IMAGE.height,
@@ -137,7 +145,9 @@ describe("OCR-PHOTO-CLASSIFY", () => {
       initializeModelRuntime: initializerRecorder.handler
     });
     const photoController = CreatePhotoController({
+      startCameraPreview: () => Promise.resolve({} as MediaStream),
       captureFromCamera: deniedCamera.handler,
+      stopCameraPreview: () => undefined,
       pickFromLibrary: createAsyncValueRecorder(TEST_IMAGE).handler
     });
     const inference = CreateInferenceController({
@@ -149,7 +159,7 @@ describe("OCR-PHOTO-CLASSIFY", () => {
       "OCR-PHOTO-CLASSIFY denial precondition failed: after calling loadModel(), the model loader still reports not-ready."
     );
 
-    const captured = await photoController.capturePhoto();
+    const captured = await photoController.capturePhoto(videoElement);
     expect(deniedCamera.calls).toHaveLength(1,
       "OCR-PHOTO-CLASSIFY denial path failed: the flow never attempted to capture from the camera before handling the permission error."
     );

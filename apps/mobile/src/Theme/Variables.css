@@ -305,6 +305,12 @@ ion-action-sheet .action-sheet-button-inner {
   width: 100%;
 }
 
+.camera-preview {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
 .empty-image-icon {
   color: var(--app-muted);
   font-size: clamp(4rem, 12vw, 5.5rem);

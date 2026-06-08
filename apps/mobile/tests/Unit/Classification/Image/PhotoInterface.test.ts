@@ -5,6 +5,10 @@ import { createAsyncValueRecorder } from "../../../Support/DependencyFactories";
 import { TEST_IMAGE } from "../../../Support/TestData";
 import { buildRequirementTitle } from "../../../Support/RequirementTest";
 
+function createMockVideoElement(): HTMLVideoElement {
+  return document.createElement("video");
+}
+
 describe("PhotoInterface", () => {
 
   /**
@@ -13,11 +17,14 @@ describe("PhotoInterface", () => {
      * Condition: Precondition
      */
   it(buildRequirementTitle("R29", "Unit", "Precondition", "handles camera permission denial gracefully"), async () => {
+    const videoElement = createMockVideoElement();
     const controller = CreatePhotoController({
+      startCameraPreview: () => Promise.resolve({} as MediaStream),
       captureFromCamera: () => Promise.reject(new Error("Permission denied")),
+      stopCameraPreview: () => undefined,
       pickFromLibrary: () => Promise.resolve(TEST_IMAGE)
     });
-    const image = await controller.capturePhoto();
+    const image = await controller.capturePhoto(videoElement);
     expect(image).toBeNull("PhotoInterface did not handle camera permission denial gracefully.");
   });
 
@@ -27,14 +34,17 @@ describe("PhotoInterface", () => {
    * Condition: Invariant
    */
   it(buildRequirementTitle("R29", "Unit", "Invariant", "captures an image from the camera"), async () => {
+    const videoElement = createMockVideoElement();
     const cameraRecorder = createAsyncValueRecorder(TEST_IMAGE);
     const libraryRecorder = createAsyncValueRecorder(TEST_IMAGE);
     const controller = CreatePhotoController({
+      startCameraPreview: () => Promise.resolve({} as MediaStream),
       captureFromCamera: cameraRecorder.handler,
+      stopCameraPreview: () => undefined,
       pickFromLibrary: libraryRecorder.handler
     });
 
-    const image = await controller.capturePhoto();
+    const image = await controller.capturePhoto(videoElement);
 
     expect(cameraRecorder.calls.length).toBeGreaterThan(0, "PhotoInterface did not request a camera capture.");
     expect(image).toEqual(TEST_IMAGE, "PhotoInterface returned an unexpected captured image.");
@@ -46,11 +56,14 @@ describe("PhotoInterface", () => {
  * Condition: Postcondition
  */
   it(buildRequirementTitle("R29", "Unit", "Postcondition", "returned image matches exactly the camera output"), async () => {
+    const videoElement = createMockVideoElement();
     const controller = CreatePhotoController({
+      startCameraPreview: () => Promise.resolve({} as MediaStream),
       captureFromCamera: () => Promise.resolve(TEST_IMAGE),
+      stopCameraPreview: () => undefined,
       pickFromLibrary: () => Promise.resolve(TEST_IMAGE)
     });
-    const image = await controller.capturePhoto();
+    const image = await controller.capturePhoto(videoElement);
     expect(image).toEqual(TEST_IMAGE, "The returned image does not match the captured data.");
   });
 
@@ -61,7 +74,9 @@ describe("PhotoInterface", () => {
    */
   it(buildRequirementTitle("R30", "Unit", "Precondition", "handles library access denial gracefully"), async () => {
     const controller = CreatePhotoController({
+      startCameraPreview: () => Promise.resolve({} as MediaStream),
       captureFromCamera: () => Promise.resolve(TEST_IMAGE),
+      stopCameraPreview: () => undefined,
       pickFromLibrary: () => Promise.reject(new Error("Access denied"))
     });
 
@@ -78,7 +93,9 @@ describe("PhotoInterface", () => {
     const cameraRecorder = createAsyncValueRecorder(TEST_IMAGE);
     const libraryRecorder = createAsyncValueRecorder(TEST_IMAGE);
     const controller = CreatePhotoController({
+      startCameraPreview: () => Promise.resolve({} as MediaStream),
       captureFromCamera: cameraRecorder.handler,
+      stopCameraPreview: () => undefined,
       pickFromLibrary: libraryRecorder.handler
     });
 
@@ -95,7 +112,9 @@ describe("PhotoInterface", () => {
  */
   it(buildRequirementTitle("R30", "Unit", "Postcondition", "returned image matches exactly the library output"), async () => {
     const controller = CreatePhotoController({
+      startCameraPreview: () => Promise.resolve({} as MediaStream),
       captureFromCamera: () => Promise.resolve(TEST_IMAGE),
+      stopCameraPreview: () => undefined,
       pickFromLibrary: () => Promise.resolve(TEST_IMAGE)
     });
     const image = await controller.pickPhotoFromLibrary();

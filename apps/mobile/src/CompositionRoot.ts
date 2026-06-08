@@ -69,7 +69,6 @@ import type {
 import { getMeaningLanguagePriority, normalizeLocale, translate, type SupportedLocale } from "./Shared/I18n";
 import { KanjiRepository, type KanjiSummary, type SourceAttribution } from "./Shared/KanjiRepository";
 import { OcrWorkerClient } from "./Shared/OcrWorkerClient";
-import { ImageError } from "@kanjime/shared";
 import {
   isMobileE2EMocksEnabled,
   readMobileE2ELastKnownVersionConfiguration,
@@ -78,6 +77,8 @@ import {
 } from "./Shared/E2EMocks";
 import { ObservabilityPersistence } from "./Shared/ObservabilityPersistence";
 import { UserActionTracker } from "./Shared/UserActionTracker";
+import { captureVideoFrame, openRearCameraStream, stopCameraStream } from "./Features/Classification/Camera/WebRtcCamera";
+import { pickImageFromDevice } from "./Features/Classification/Image/WebImagePicker";
 
 export interface AboutDisplayItem {
   readonly label: string;
@@ -153,6 +154,7 @@ export function createCompositionRoot(): CompositionRoot {
   });
   // eslint-disable-next-line prefer-const
   let canvasController: CanvasInterface;
+  let activeCameraStream: MediaStream | null = null;
 
   const recordUserAction = (action: ApplicationUserAction): void => {
     userActionTracker.record(action);
@@ -504,54 +506,17 @@ export function createCompositionRoot(): CompositionRoot {
     inferenceController,
     imageController,
     photoController: CreatePhotoController({
-      captureFromCamera: async () => {
-        const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
-        const photo = await Camera.getPhoto({
-          allowEditing: false,
-          correctOrientation: true,
-          quality: 50,
-          resultType: CameraResultType.Uri,
-          source: CameraSource.Camera,
-          width: 720
-        });
-
-        if (!photo.webPath) {
-          throw new ImageError("The selected image could not be used.");
-        }
-
-        const dimensions = await loadImageDimensions(photo.webPath);
-
-        return {
-          uri: photo.webPath,
-          width: dimensions.width,
-          height: dimensions.height,
-          mimeType: photo.format ? `image/${photo.format}` : "image/jpeg"
-        };
+      startCameraPreview: async () => {
+        stopCameraStream(activeCameraStream);
+        activeCameraStream = await openRearCameraStream();
+        return activeCameraStream;
       },
-      pickFromLibrary: async () => {
-        const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
-        const photo = await Camera.getPhoto({
-          allowEditing: false,
-          correctOrientation: true,
-          quality: 80,
-          resultType: CameraResultType.Uri,
-          source: CameraSource.Photos,
-          width: 1024
-        });
-
-        if (!photo.webPath) {
-          throw new ImageError("The selected image could not be used.");
-        }
-
-        const dimensions = await loadImageDimensions(photo.webPath);
-
-        return {
-          uri: photo.webPath,
-          width: dimensions.width,
-          height: dimensions.height,
-          mimeType: photo.format ? `image/${photo.format}` : "image/jpeg"
-        };
-      }
+      captureFromCamera: video => captureVideoFrame(video),
+      stopCameraPreview: () => {
+        stopCameraStream(activeCameraStream);
+        activeCameraStream = null;
+      },
+      pickFromLibrary: () => pickImageFromDevice()
     }),
     displayInferencesController,
     classificationController,
@@ -736,16 +701,4 @@ async function loadDeviceInfo(): Promise<{ readonly webEngine: string; readonly 
       webEngineVersion: "unknown"
     };
   }
-}
-
-function loadImageDimensions(uri: string): Promise<{ readonly width: number; readonly height: number }> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve({
-      width: image.naturalWidth,
-      height: image.naturalHeight
-    });
-    image.onerror = () => reject(new ImageError("The image could not be loaded."));
-    image.src = uri;
-  });
 }

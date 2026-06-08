@@ -396,6 +396,44 @@ const hardcodedTextRule = {
   },
 };
 
+const forbidCapacitorCameraRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description: "Forbid using the @capacitor/camera plugin in mobile source.",
+    },
+    messages: {
+      forbidden:
+        "Do not use @capacitor/camera in mobile source. Use the local WebRTC camera module instead.",
+    },
+  },
+
+  create(context) {
+    const reportIfCapacitorCamera = (node, value) => {
+      if (value === "@capacitor/camera") {
+        context.report({
+          node,
+          messageId: "forbidden",
+        });
+      }
+    };
+
+    return {
+      ImportDeclaration(node) {
+        reportIfCapacitorCamera(node, node.source.value);
+      },
+      ImportExpression(node) {
+        if (
+          node.source.type === "Literal"
+          && typeof node.source.value === "string"
+        ) {
+          reportIfCapacitorCamera(node, node.source.value);
+        }
+      },
+    };
+  },
+};
+
 // ---------------------------------------------------------------------------
 // ESLint flat-config export
 // ---------------------------------------------------------------------------
@@ -406,10 +444,16 @@ export default tseslint.config(
   {
     files: ["src/**/*.{ts,tsx}"],
     plugins: {
-      "custom-i18n": { rules: { "no-hardcoded-text": hardcodedTextRule } },
+      "custom-i18n": {
+        rules: {
+          "no-hardcoded-text": hardcodedTextRule,
+          "no-capacitor-camera": forbidCapacitorCameraRule,
+        },
+      },
     },
     rules: {
       "custom-i18n/no-hardcoded-text": "error",
+      "custom-i18n/no-capacitor-camera": "error",
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unused-vars": "error",
       "no-console": ["error", { allow: ["warn", "error"] }],

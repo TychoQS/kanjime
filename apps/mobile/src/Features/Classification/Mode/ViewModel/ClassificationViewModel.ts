@@ -30,6 +30,8 @@ let shouldClearClassificationScreenOnEnable = false;
 export interface ClassificationScreenViewModel {
   readonly mode: ClassificationMode;
   readonly imageState: ImageState;
+  readonly cameraStream: MediaStream | null;
+  readonly isCameraPreviewActive: boolean;
   readonly canvasStrokes: ReturnType<CanvasInterface["getStrokeHistory"]>;
   readonly cropDraft: CropDraft | null;
   readonly activeCrop: CropRegion | null;
@@ -40,6 +42,8 @@ export interface ClassificationScreenViewModel {
   readonly activeStroke: CanvasInteractionViewModel["activeStroke"];
   dismissError(): void;
   takePhoto(): Promise<void>;
+  capturePhoto(video: HTMLVideoElement | null): Promise<void>;
+  cancelPhotoCapture(): void;
   chooseImage(): Promise<void>;
   clearImage(): void;
   switchMode(mode: ClassificationMode): void;
@@ -120,6 +124,7 @@ export function useClassificationScreenViewModel(
   const currentSourceIdRef = useRef(0);
   const [mode, setMode] = useState<ClassificationMode>(dependencies.classificationController.getActiveMode());
   const [imageState, setImageState] = useState<ImageState>(dependencies.imageController.getImageState());
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [canvasStrokes, setCanvasStrokes] = useState(dependencies.canvasController.getStrokeHistory());
   const [cropDraft, setCropDraft] = useState<CropDraft | null>(null);
   const [results, setResults] = useState<ReadonlyArray<CharacterSummary>>(
@@ -152,9 +157,11 @@ export function useClassificationScreenViewModel(
       }
 
       dependencies.imageController.clearImage();
+      dependencies.photoController.stopCameraPreview();
       dependencies.displayInferencesController.clearResults();
       setMode(dependencies.classificationController.getActiveMode());
       setImageState(dependencies.imageController.getImageState());
+      setCameraStream(null);
       setCanvasStrokes(dependencies.canvasController.getStrokeHistory());
       setCropDraft(null);
       setResults(safeGetVisibleResults(dependencies.displayInferencesController));
@@ -175,6 +182,7 @@ export function useClassificationScreenViewModel(
     dependencies.classificationController,
     dependencies.displayInferencesController,
     dependencies.imageController,
+    dependencies.photoController,
     dependencies.captureUnexpectedError
   ]);
 
@@ -256,9 +264,25 @@ export function useClassificationScreenViewModel(
     return () => window.clearTimeout(timeout);
   }, [classifyImage, imageState.crop, imageState.image, isEnabled, mode]);
 
+  useEffect(() => {
+    if (isEnabled) {
+      return undefined;
+    }
+
+    dependencies.photoController.stopCameraPreview();
+    setCameraStream(null);
+    return undefined;
+  }, [dependencies.photoController, isEnabled]);
+
+  useEffect(() => () => {
+    dependencies.photoController.stopCameraPreview();
+  }, [dependencies.photoController]);
+
   return {
     mode,
     imageState,
+    cameraStream,
+    isCameraPreviewActive: cameraStream !== null,
     canvasStrokes,
     cropDraft,
     activeCrop,
@@ -279,7 +303,42 @@ export function useClassificationScreenViewModel(
       });
 
       try {
-        const image = await dependencies.photoController.capturePhoto();
+        dependencies.photoController.stopCameraPreview();
+        const stream = await dependencies.photoController.startCameraPreview();
+        dependencies.imageController.clearImage();
+        dependencies.displayInferencesController.clearResults();
+        setCropDraft(null);
+        lastImageSourceIdRef.current = "";
+        setCameraStream(stream);
+        refreshImageState();
+        refreshResults();
+      } catch (error) {
+        if (isCancelledPhotoSelection(error)) {
+          dependencies.recordUserAction({
+            type: "classification:photo-cancelled",
+            mode: "image",
+            occurredAt: new Date().toISOString()
+          });
+          return;
+        }
+
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void dependencies.captureUnexpectedError(errorObj);
+        setErrorMessage("The photo could not be captured.");
+      }
+    },
+    async capturePhoto(video: HTMLVideoElement | null): Promise<void> {
+      if (video === null) {
+        setErrorMessage("The photo could not be captured.");
+        return;
+      }
+
+      setErrorMessage(null);
+
+      try {
+        const image = await dependencies.photoController.capturePhoto(video);
+        dependencies.photoController.stopCameraPreview();
+        setCameraStream(null);
         dependencies.imageController.setImage(image);
         lastImageSourceIdRef.current = "";
         refreshImageState();
@@ -299,6 +358,11 @@ export function useClassificationScreenViewModel(
         void dependencies.captureUnexpectedError(errorObj);
         setErrorMessage("The photo could not be captured.");
       }
+    },
+    cancelPhotoCapture(): void {
+      dependencies.photoController.stopCameraPreview();
+      setCameraStream(null);
+      setErrorMessage(null);
     },
     async chooseImage(): Promise<void> {
       setErrorMessage(null);
@@ -331,6 +395,8 @@ export function useClassificationScreenViewModel(
       }
     },
     clearImage(): void {
+      dependencies.photoController.stopCameraPreview();
+      setCameraStream(null);
       dependencies.imageController.clearImage();
       dependencies.displayInferencesController.clearResults();
       setCropDraft(null);
@@ -339,6 +405,8 @@ export function useClassificationScreenViewModel(
       refreshResults();
     },
     switchMode(nextMode: ClassificationMode): void {
+      dependencies.photoController.stopCameraPreview();
+      setCameraStream(null);
       dependencies.classificationController.activateMode(nextMode);
       dependencies.toggleClassificationModeController.switchMode(nextMode);
       setMode(nextMode);

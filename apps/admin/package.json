@@ -12,11 +12,11 @@
     "test": "npm --prefix ../.. run build:shared && npm run test:vitest",
     "test:all": "npm run lint && npm run test && npm run test:e2e",
     "test:unit": "npm --prefix ../.. run build:shared && npm run test:unit:app",
-    "test:unit:app": "vitest run tests/Unit --passWithNoTests",
+    "test:unit:app": "vitest run tests/Unit",
     "test:integration": "npm --prefix ../.. run build:shared && npm run test:integration:app",
-    "test:integration:app": "vitest run tests/Integration --passWithNoTests --exclude=tests/Integration/**/*FirebaseConnection.test.ts",
-    "test:integration:live": "npm --prefix ../.. run build:shared && vitest run tests/Integration/**/*FirebaseConnection.test.ts --passWithNoTests",
-    "test:e2e": "npm --prefix ../.. run build:shared && playwright test --pass-with-no-tests",
+    "test:integration:app": "vitest run tests/Integration",
+    "test:integration:live": "npm --prefix ../.. run build:shared && vitest run tests/Integration/**/*FirebaseConnection.test.ts",
+    "test:e2e": "npm --prefix ../.. run build:shared && VITE_ENABLE_E2E_MOCKS=true vite build && playwright test",
     "test:vitest": "vitest run --exclude=tests/**/*FirebaseConnection.test.ts"
   },
   "dependencies": {

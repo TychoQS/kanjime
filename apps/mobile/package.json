@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "test": "npm --prefix ../.. run build:shared && npm run test:vitest",
     "test:all": "npm run lint && npm run test && npm run test:e2e",
-    "test:e2e": "npm --prefix ../.. run build:shared && playwright test",
+    "test:e2e": "npm --prefix ../.. run build:shared && VITE_ENABLE_E2E_MOCKS=true vite build && playwright test",
     "test:integration": "npm --prefix ../.. run build:shared && npm run test:integration:app",
     "test:integration:app": "vitest run tests/Integration --exclude=tests/Integration/**/*FirebaseConnection.test.ts",
     "test:integration:live": "npm --prefix ../.. run build:shared && vitest run tests/Integration/**/*FirebaseConnection.test.ts",

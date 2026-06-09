@@ -191,6 +191,11 @@ ion-action-sheet .action-sheet-button-inner {
   color: var(--ion-color-secondary-contrast) !important;
 }
 
+html[data-theme="dark"] ion-action-sheet {
+  --background: var(--ion-background-color);
+  --button-background: var(--ion-background-color);
+}
+
 .global-view {
   background: var(--ion-background-color);
   color: var(--ion-text-color);

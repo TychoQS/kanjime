@@ -1,3 +1,6 @@
+import { readFileSync } from "fs";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
 import { describe, expect, it } from "vitest";
 
 import { CreateUserPreferenceController } from "../../../src/Features/Preferences/CreateUserPreferenceController";
@@ -164,5 +167,22 @@ describe("UserPreferenceInterface", () => {
     expect(controller.getCurrentPreferences().theme).toBe(TEST_THEME,
       "UserPreferenceInterface returned an unexpected active theme."
     );
+  });
+  /**
+   * Requirement: R38
+   * Type: Regression
+   * Condition: Postcondition
+   */
+  it(buildRequirementTitle("R38", "Regression", "Postcondition", "Regressión of ligth background on language selection in dark mode of Apple webkit"), () => {
+    const currentDir = typeof __dirname !== "undefined" ? __dirname : dirname(fileURLToPath(import.meta.url));
+    const cssPath = resolve(currentDir, "../../../src/Theme/Variables.css");
+    const cssContent = readFileSync(cssPath, "utf-8");
+
+    const expectedCSS = `html[data-theme="dark"] ion-action-sheet {
+  --background: var(--ion-background-color);
+  --button-background: var(--ion-background-color);
+}`;
+
+    expect(cssContent.replace(/\s+/g, " ")).toContain(expectedCSS.replace(/\s+/g, " "));
   });
 });

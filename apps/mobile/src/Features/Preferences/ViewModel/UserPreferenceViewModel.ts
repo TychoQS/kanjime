@@ -76,12 +76,22 @@ export function useUserPreferenceAppViewModel(root: CompositionRoot): UserPrefer
       }
     });
 
-    void root.initialize().then(nextPreferences => {
-      if (isMounted) {
-        setPreferences(nextPreferences);
-        setIsReady(true);
-      }
-    });
+    void root.initialize()
+      .then(nextPreferences => {
+        if (isMounted) {
+          setPreferences(nextPreferences);
+          setIsReady(true);
+        }
+      })
+      .catch(error => {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void root.captureUnexpectedError(errorObj);
+
+        if (isMounted) {
+          setPreferences(DEFAULT_PREFERENCES);
+          setIsReady(true);
+        }
+      });
 
     return () => {
       isMounted = false;
@@ -92,10 +102,20 @@ export function useUserPreferenceAppViewModel(root: CompositionRoot): UserPrefer
     preferences,
     isReady,
     setLanguage(language: SupportedLocale): void {
-      root.userPreferenceController.setLanguage(language);
+      try {
+        root.userPreferenceController.setLanguage(language);
+      } catch (error) {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void root.captureUnexpectedError(errorObj);
+      }
     },
     setTheme(theme: ApplicationTheme): void {
-      root.userPreferenceController.setTheme(theme);
+      try {
+        root.userPreferenceController.setTheme(theme);
+      } catch (error) {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        void root.captureUnexpectedError(errorObj);
+      }
     }
   };
 }

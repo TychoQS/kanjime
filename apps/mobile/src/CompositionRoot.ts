@@ -243,6 +243,32 @@ export function createCompositionRoot(): CompositionRoot {
     };
   };
 
+  const captureUnexpectedError = async (
+    error: Error
+  ): Promise<{ readonly message: string; readonly isControlled: boolean }> => {
+    try {
+      recordUserAction({
+        type: "error:captured",
+        occurredAt: new Date().toISOString()
+      });
+      const controlledState = await errorController.captureUnexpectedError(error);
+      const context = await createErrorContext();
+      const report = await errorObservabilityController.createErrorReport(error, context);
+      await observabilityPersistence.saveErrorReport(report);
+
+      return controlledState;
+    } catch {
+      const fallbackLanguage =
+        typeof document !== "undefined" && document.documentElement.lang
+          ? document.documentElement.lang
+          : "en-US";
+      return {
+        message: translate(fallbackLanguage, "unexpectedError"),
+        isControlled: true
+      };
+    }
+  };
+
   const loadKanjiDetailsByLanguage = async (character: string, language: string): Promise<DetailedKanjiEntry> => {
     const details = await kanjiRepository.getDetails(character);
 
@@ -267,26 +293,34 @@ export function createCompositionRoot(): CompositionRoot {
 
   const userPreferenceController = CreateUserPreferenceController({
     applyLanguage: async (language: string) => {
-      const preferences = await persistence.getPreferences();
-      const nextPreferences = { ...preferences, language: normalizeLocale(language) };
-      await persistence.savePreferences(nextPreferences);
-      recordUserAction({
-        type: "preferences:changed",
-        preference: "language",
-        occurredAt: new Date().toISOString()
-      });
-      preferenceDelegate?.(nextPreferences);
+      try {
+        const preferences = await persistence.getPreferences();
+        const nextPreferences = { ...preferences, language: normalizeLocale(language) };
+        await persistence.savePreferences(nextPreferences);
+        recordUserAction({
+          type: "preferences:changed",
+          preference: "language",
+          occurredAt: new Date().toISOString()
+        });
+        preferenceDelegate?.(nextPreferences);
+      } catch (error) {
+        await captureUnexpectedError(error instanceof Error ? error : new Error(String(error)));
+      }
     },
     applyTheme: async (theme: ApplicationTheme) => {
-      const preferences = await persistence.getPreferences();
-      const nextPreferences = { ...preferences, theme };
-      await persistence.savePreferences(nextPreferences);
-      recordUserAction({
-        type: "preferences:changed",
-        preference: "theme",
-        occurredAt: new Date().toISOString()
-      });
-      preferenceDelegate?.(nextPreferences);
+      try {
+        const preferences = await persistence.getPreferences();
+        const nextPreferences = { ...preferences, theme };
+        await persistence.savePreferences(nextPreferences);
+        recordUserAction({
+          type: "preferences:changed",
+          preference: "theme",
+          occurredAt: new Date().toISOString()
+        });
+        preferenceDelegate?.(nextPreferences);
+      } catch (error) {
+        await captureUnexpectedError(error instanceof Error ? error : new Error(String(error)));
+      }
     }
   });
 
@@ -442,8 +476,10 @@ export function createCompositionRoot(): CompositionRoot {
       } else {
         try {
           canvasController.clearCanvas();
-        } catch {
-          // no-op
+        } catch (error) {
+          if (!isEmptyCanvasClearError(error)) {
+            throw error;
+          }
         }
       }
       displayInferencesController.clearResults();
@@ -553,32 +589,13 @@ export function createCompositionRoot(): CompositionRoot {
         const currentVersion = await loadCurrentApplicationVersion();
         const result = await versionCheckController.checkCurrentVersion(currentVersion);
         return updateAvailableController.getUpdateAvailability(result);
-      } catch {
+      } catch (error) {
+        await captureUnexpectedError(error instanceof Error ? error : new Error(String(error)));
         return createHiddenUpdateAvailability();
       }
     },
     async captureUnexpectedError(error: Error): Promise<{ readonly message: string; readonly isControlled: boolean }> {
-      try {
-        recordUserAction({
-          type: "error:captured",
-          occurredAt: new Date().toISOString()
-        });
-        const controlledState = await errorController.captureUnexpectedError(error);
-        const context = await createErrorContext();
-        const report = await errorObservabilityController.createErrorReport(error, context);
-        await observabilityPersistence.saveErrorReport(report);
-
-        return controlledState;
-      } catch {
-        const fallbackLanguage =
-          typeof document !== "undefined" && document.documentElement.lang
-            ? document.documentElement.lang
-            : "en-US";
-        return {
-          message: translate(fallbackLanguage, "unexpectedError"),
-          isControlled: true
-        };
-      }
+      return captureUnexpectedError(error);
     },
     async createErrorContext(): Promise<ApplicationErrorContext> {
       return createErrorContext();
@@ -655,6 +672,10 @@ function createHiddenUpdateAvailability(): UpdateAvailabilityState {
     message: "",
     canContinueUsingApplication: true
   };
+}
+
+function isEmptyCanvasClearError(error: unknown): boolean {
+  return error instanceof Error && error.message === "There is no drawing to clear.";
 }
 
 function createReportId(): string {

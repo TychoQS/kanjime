@@ -112,8 +112,9 @@ export function useCalligraphyScreenViewModel(
               try {
                 dependencies.calligraphyCanvasController.resetAttempt();
               } catch (error) {
-                const errorObj = error instanceof Error ? error : new Error(String(error));
-                void dependencies.captureUnexpectedError(errorObj);
+                if (!isEmptyPracticeResetError(error)) {
+                  void captureUnexpectedError(dependencies.captureUnexpectedError, error);
+                }
               }
               dependencies.canvasInteraction.cancelStroke();
               setTargetCharacter(char);
@@ -122,8 +123,7 @@ export function useCalligraphyScreenViewModel(
               setMode("practice");
             }
           } catch (error) {
-            const errorObj = error instanceof Error ? error : new Error(String(error));
-            void dependencies.captureUnexpectedError(errorObj);
+            void captureUnexpectedError(dependencies.captureUnexpectedError, error);
             if (isMounted) {
               setErrorMessage("calligraphyError");
             }
@@ -143,8 +143,7 @@ export function useCalligraphyScreenViewModel(
               setMode("category");
             }
           } catch (error) {
-            const errorObj = error instanceof Error ? error : new Error(String(error));
-            void dependencies.captureUnexpectedError(errorObj);
+            void captureUnexpectedError(dependencies.captureUnexpectedError, error);
             if (isMounted) {
               setErrorMessage("calligraphyError");
             }
@@ -164,8 +163,7 @@ export function useCalligraphyScreenViewModel(
               setCategories(dependencies.calligraphyController.getVisibleCategories());
             }
           } catch (error) {
-            const errorObj = error instanceof Error ? error : new Error(String(error));
-            void dependencies.captureUnexpectedError(errorObj);
+            void captureUnexpectedError(dependencies.captureUnexpectedError, error);
           }
         }
       }
@@ -190,8 +188,13 @@ export function useCalligraphyScreenViewModel(
     feedback,
     errorMessage,
     selectGrouping(grouping: CalligraphyGrouping): void {
-      dependencies.calligraphyController.selectGrouping(grouping);
-      refreshCategories();
+      try {
+        dependencies.calligraphyController.selectGrouping(grouping);
+        refreshCategories();
+      } catch (error) {
+        void captureUnexpectedError(dependencies.captureUnexpectedError, error);
+        setErrorMessage("calligraphyError");
+      }
     },
     openCategory(categoryId: string): Promise<void> {
       history.push(`/calligraphy/category/${encodeURIComponent(categoryId)}`);
@@ -210,10 +213,17 @@ export function useCalligraphyScreenViewModel(
       return Promise.resolve();
     },
     resetPractice(): void {
-      dependencies.calligraphyCanvasController.resetAttempt();
-      dependencies.canvasInteraction.cancelStroke();
-      setFeedback(null);
-      refreshStrokes();
+      try {
+        dependencies.calligraphyCanvasController.resetAttempt();
+        dependencies.canvasInteraction.cancelStroke();
+        setFeedback(null);
+        refreshStrokes();
+      } catch (error) {
+        if (!isEmptyPracticeResetError(error)) {
+          void captureUnexpectedError(dependencies.captureUnexpectedError, error);
+          setErrorMessage("calligraphyError");
+        }
+      }
     },
     async validatePractice(): Promise<void> {
       if (targetCharacter === null || selectedCategoryId === null) {
@@ -232,8 +242,7 @@ export function useCalligraphyScreenViewModel(
 
         setFeedback(dependencies.calligraphyEvaluationController.createFeedback(result));
       } catch (error) {
-        const errorObj = error instanceof Error ? error : new Error(String(error));
-        void dependencies.captureUnexpectedError(errorObj);
+        void captureUnexpectedError(dependencies.captureUnexpectedError, error);
         setErrorMessage("calligraphyError");
       }
     },
@@ -256,11 +265,27 @@ export function useCalligraphyScreenViewModel(
         return;
       }
 
-      dependencies.calligraphyCanvasController.registerStroke(stroke);
-      refreshStrokes();
+      try {
+        dependencies.calligraphyCanvasController.registerStroke(stroke);
+        refreshStrokes();
+      } catch (error) {
+        void captureUnexpectedError(dependencies.captureUnexpectedError, error);
+        setErrorMessage("calligraphyError");
+      }
     },
     cancelStroke(): void {
       dependencies.canvasInteraction.cancelStroke();
     }
   };
+}
+
+function isEmptyPracticeResetError(error: unknown): boolean {
+  return error instanceof Error && error.message === "There is no practice attempt to clear.";
+}
+
+function captureUnexpectedError(
+  capture: (error: Error) => Promise<{ readonly message: string; readonly isControlled: boolean }>,
+  error: unknown
+): Promise<{ readonly message: string; readonly isControlled: boolean }> {
+  return capture(error instanceof Error ? error : new Error(String(error)));
 }

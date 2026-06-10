@@ -231,8 +231,12 @@ export function useHistoryScreenViewModel(
     setCategory(value: string): void {
       setCategory(HISTORY_CATEGORIES.includes(value as HistoryCategory) ? value as HistoryCategory : "search");
     },
-    openKanjiEntry(character: string): Promise<void> {
-      return historyController.openKanjiEntry(character);
+    async openKanjiEntry(character: string): Promise<void> {
+      try {
+        await historyController.openKanjiEntry(character);
+      } catch (error) {
+        await captureUnexpectedError(error instanceof Error ? error : new Error(String(error)));
+      }
     }
   };
 }

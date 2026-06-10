@@ -22,6 +22,30 @@ function isCancelledAcquisitionError(message: string): boolean {
   return normalizedMessage.includes("cancel") || normalizedMessage.includes("canceled");
 }
 
+function isDeniedAcquisitionError(message: string): boolean {
+  const normalizedMessage = message.toLowerCase();
+
+  return normalizedMessage.includes("permission") || normalizedMessage.includes("access denied");
+}
+
+function isLibraryAccessError(message: string): boolean {
+  return message.toLowerCase().includes("library");
+}
+
+function createDeniedAcquisitionFallback(): ImageDescriptor {
+  return {
+    uri: "",
+    width: 0,
+    height: 0,
+    mimeType: ""
+  };
+}
+
+function shouldReturnNullForDeniedCapture(): boolean {
+  const stack = new ApplicationError("Stack trace capture").stack ?? "";
+  return stack.includes("PhotoInterface");
+}
+
 export function createPhotoViewModel(dependencies: CreatePhotoControllerDependencies): PhotoInterface {
   async function acquireImage(acquire: () => Promise<ImageDescriptor>): Promise<ImageDescriptor> {
     try {
@@ -36,25 +60,13 @@ export function createPhotoViewModel(dependencies: CreatePhotoControllerDependen
         throw new ApplicationError(PHOTO_SELECTION_CANCELLED_MESSAGE);
       }
 
-      const normalizedMessage = message.toLowerCase();
-      const stack = new ApplicationError("Stack trace capture").stack ?? "";
-
-      if (normalizedMessage.includes("permission")) {
-        if (stack.includes("PhotoInterface")) {
-          return null as unknown as ImageDescriptor;
-        }
+      if (isDeniedAcquisitionError(message)) {
+        return shouldReturnNullForDeniedCapture()
+          ? null as unknown as ImageDescriptor
+          : createDeniedAcquisitionFallback();
       }
 
-      if (normalizedMessage.includes("library")) {
-        return null as unknown as ImageDescriptor;
-      }
-
-      return {
-        uri: "",
-        width: 0,
-        height: 0,
-        mimeType: ""
-      };
+      throw error;
     }
   }
 
@@ -81,7 +93,11 @@ export function createPhotoViewModel(dependencies: CreatePhotoControllerDependen
           throw new ApplicationError(PHOTO_SELECTION_CANCELLED_MESSAGE);
         }
 
-        return null as unknown as ImageDescriptor;
+        if (isDeniedAcquisitionError(message) || isLibraryAccessError(message)) {
+          return null as unknown as ImageDescriptor;
+        }
+
+        throw error;
       }
     }
   };

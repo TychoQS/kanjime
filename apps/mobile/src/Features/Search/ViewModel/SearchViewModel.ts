@@ -126,8 +126,9 @@ export function useSearchScreenViewModel(
       try {
         searchController.clearSearch();
       } catch (error) {
-        const errorObj = error instanceof Error ? error : new Error(String(error));
-        void captureUnexpectedError(errorObj);
+        if (!isEmptySearchClearError(error)) {
+          void captureUnexpectedError(error instanceof Error ? error : new Error(String(error)));
+        }
       }
 
       setTerm("");
@@ -190,8 +191,16 @@ export function useSearchScreenViewModel(
     clear(): void {
       clearRegisteredSearchScreenState();
     },
-    openKanjiEntry(character: string): Promise<void> {
-      return searchController.openKanjiEntry(character);
+    async openKanjiEntry(character: string): Promise<void> {
+      try {
+        await searchController.openKanjiEntry(character);
+      } catch (error) {
+        await captureUnexpectedError(error instanceof Error ? error : new Error(String(error)));
+      }
     }
   };
+}
+
+function isEmptySearchClearError(error: unknown): boolean {
+  return error instanceof Error && error.message === "SearchInterface cannot clear an empty search bar.";
 }

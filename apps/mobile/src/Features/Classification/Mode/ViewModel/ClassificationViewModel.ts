@@ -152,8 +152,9 @@ export function useClassificationScreenViewModel(
       try {
         dependencies.canvasController.clearCanvas();
       } catch (error) {
-        const errorObj = error instanceof Error ? error : new Error(String(error));
-        void dependencies.captureUnexpectedError(errorObj);
+        if (!isEmptyCanvasClearError(error)) {
+          void captureUnexpectedError(dependencies.captureUnexpectedError, error);
+        }
       }
 
       dependencies.imageController.clearImage();
@@ -395,36 +396,48 @@ export function useClassificationScreenViewModel(
       }
     },
     clearImage(): void {
-      dependencies.photoController.stopCameraPreview();
-      setCameraStream(null);
-      dependencies.imageController.clearImage();
-      dependencies.displayInferencesController.clearResults();
-      setCropDraft(null);
-      lastImageSourceIdRef.current = "";
-      refreshImageState();
-      refreshResults();
+      try {
+        dependencies.photoController.stopCameraPreview();
+        setCameraStream(null);
+        dependencies.imageController.clearImage();
+        dependencies.displayInferencesController.clearResults();
+        setCropDraft(null);
+        lastImageSourceIdRef.current = "";
+        refreshImageState();
+        refreshResults();
+      } catch (error) {
+        void captureUnexpectedError(dependencies.captureUnexpectedError, error);
+        setErrorMessage("The image could not be selected.");
+      }
     },
     switchMode(nextMode: ClassificationMode): void {
-      dependencies.photoController.stopCameraPreview();
-      setCameraStream(null);
-      dependencies.classificationController.activateMode(nextMode);
-      dependencies.toggleClassificationModeController.switchMode(nextMode);
-      setMode(nextMode);
-      setErrorMessage(null);
-      setCropDraft(null);
-      lastImageSourceIdRef.current = "";
-      dependencies.displayInferencesController.clearResults();
-      refreshResults();
-      refreshImageState();
-      refreshCanvasState();
-      dependencies.canvasInteraction.cancelStroke();
+      try {
+        dependencies.photoController.stopCameraPreview();
+        setCameraStream(null);
+        dependencies.classificationController.activateMode(nextMode);
+        dependencies.toggleClassificationModeController.switchMode(nextMode);
+        setMode(nextMode);
+        setErrorMessage(null);
+        setCropDraft(null);
+        lastImageSourceIdRef.current = "";
+        dependencies.displayInferencesController.clearResults();
+        refreshResults();
+        refreshImageState();
+        refreshCanvasState();
+        dependencies.canvasInteraction.cancelStroke();
+      } catch (error) {
+        void captureUnexpectedError(dependencies.captureUnexpectedError, error);
+        setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+      }
     },
     clearDrawing(): void {
       try {
         dependencies.canvasController.clearCanvas();
       } catch (error) {
-        const errorObj = error instanceof Error ? error : new Error(String(error));
-        void dependencies.captureUnexpectedError(errorObj);
+        if (!isEmptyCanvasClearError(error)) {
+          void captureUnexpectedError(dependencies.captureUnexpectedError, error);
+          setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+        }
       }
 
       dependencies.displayInferencesController.clearResults();
@@ -470,8 +483,15 @@ export function useClassificationScreenViewModel(
     finishCrop(): void {
       const nextCrop = cropDraftToRegion(cropDraft);
 
-      if (nextCrop) {
-        dependencies.imageController.setActiveCrop(nextCrop);
+      try {
+        if (nextCrop) {
+          dependencies.imageController.setActiveCrop(nextCrop);
+        }
+      } catch (error) {
+        if (!isInvalidCropError(error)) {
+          void captureUnexpectedError(dependencies.captureUnexpectedError, error);
+          setErrorMessage("An unexpected error has occurred and the character could not be identified.");
+        }
       }
 
       refreshImageState();
@@ -605,4 +625,19 @@ function safeGetVisibleResults(
 
 function isCancelledPhotoSelection(error: unknown): boolean {
   return error instanceof Error && error.message === PHOTO_SELECTION_CANCELLED_MESSAGE;
+}
+
+function isEmptyCanvasClearError(error: unknown): boolean {
+  return error instanceof Error && error.message === "There is no drawing to clear.";
+}
+
+function isInvalidCropError(error: unknown): boolean {
+  return error instanceof Error && error.message === "ImageInterface accepted a crop outside the image bounds.";
+}
+
+function captureUnexpectedError(
+  capture: (error: Error) => Promise<{ readonly message: string; readonly isControlled: boolean }>,
+  error: unknown
+): Promise<{ readonly message: string; readonly isControlled: boolean }> {
+  return capture(error instanceof Error ? error : new Error(String(error)));
 }

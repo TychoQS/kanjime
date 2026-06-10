@@ -422,8 +422,12 @@ export function createInferenceViewModel(
           outputWidth: input.modelInputWidth,
           outputHeight: input.modelInputHeight
         });
-      } catch {
-        return createCompatibilityDrawingImageData(input.modelInputWidth, input.modelInputHeight);
+      } catch (error) {
+        if (error instanceof ImageError) {
+          return createCompatibilityDrawingImageData(input.modelInputWidth, input.modelInputHeight);
+        }
+
+        throw error;
       }
     },
     async preprocessImageForModel(input): Promise<ImageData> {
@@ -452,8 +456,12 @@ export function createInferenceViewModel(
           outputWidth: input.modelInputWidth,
           outputHeight: input.modelInputHeight
         });
-      } catch {
-        return createCompatibilityImageData(input.modelInputWidth, input.modelInputHeight, Boolean(input.crop));
+      } catch (error) {
+        if (error instanceof ImageError) {
+          return createCompatibilityImageData(input.modelInputWidth, input.modelInputHeight, Boolean(input.crop));
+        }
+
+        throw error;
       }
     },
     async classifyInput(input): Promise<PredictionWithStrokeCount> {

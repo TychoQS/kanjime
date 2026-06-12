@@ -32,6 +32,7 @@ describe("AdminErrorDetailInterface", () => {
     message: ERROR_MESSAGE,
     occurredAt: ERROR_DATE,
     applicationVersion: APPLICATION_VERSION,
+    status: "OPEN",
     context: ERROR_CONTEXT
   };
 

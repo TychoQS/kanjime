@@ -16,6 +16,7 @@ describe("AdminErrorsInterface", () => {
       message: ERROR_MESSAGE,
       occurredAt: ERROR_DATE,
       applicationVersion: APPLICATION_VERSION,
+      status: "OPEN",
       contextSummary: "Recognition screen"
     }
   ];
@@ -93,6 +94,7 @@ describe("AdminErrorsInterface", () => {
         message: "Another error",
         occurredAt: ERROR_DATE,
         applicationVersion: APPLICATION_VERSION,
+        status: "RESOLVED" as const,
         contextSummary: "Calligraphy screen"
       }
     ];

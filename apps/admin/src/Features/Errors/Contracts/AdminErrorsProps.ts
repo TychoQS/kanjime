@@ -1,4 +1,4 @@
-import type { AdminErrorFilter, AdminErrorStatus, AdminErrorSummary } from "@kanjime/shared";
+import type { AdminErrorDashboardProps } from "./AdminErrorDashboardProps";
 
 /**
  * Props contract for the administration reported error list.
@@ -10,12 +10,12 @@ import type { AdminErrorFilter, AdminErrorStatus, AdminErrorSummary } from "@kan
  * @post The administrator can identify each error by message, date, version, context, and real report status while distinguishing those statuses from the "all" filter.
  */
 export interface AdminErrorsProps {
-  readonly errors: ReadonlyArray<AdminErrorSummary>;
+  readonly errors: AdminErrorDashboardProps["errors"];
   readonly isLoading: boolean;
   readonly errorMessage: string | null;
-  readonly activeFilter: AdminErrorFilter;
-  readonly availableFilters: ReadonlyArray<AdminErrorFilter>;
-  readonly availableStatuses: ReadonlyArray<AdminErrorStatus>;
-  readonly onFilterSelected: (filter: AdminErrorFilter) => void;
+  readonly activeFilter: AdminErrorDashboardProps["activeFilter"];
+  readonly availableFilters: AdminErrorDashboardProps["availableFilters"];
+  readonly availableStatuses: AdminErrorDashboardProps["availableStatuses"];
+  readonly onFilterSelected: AdminErrorDashboardProps["onFilterSelected"];
   readonly onErrorSelected: (errorId: string) => void;
 }

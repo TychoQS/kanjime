@@ -19,6 +19,7 @@ describe("AdminErrorsProps", () => {
       message: ERROR_MESSAGE,
       occurredAt: ERROR_DATE,
       applicationVersion: APPLICATION_VERSION,
+      status: "OPEN",
       contextSummary: CONTEXT_SUMMARY
     }
   ];

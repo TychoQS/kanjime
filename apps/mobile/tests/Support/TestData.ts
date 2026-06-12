@@ -2,7 +2,12 @@ import type {
   ApplicationTheme,
   CalligraphyAttempt,
   CalligraphyCategory,
+  CalligraphyEvaluationFeedback,
+  CalligraphyEvaluationMetrics,
   CalligraphyEvaluationResult, CategoryKanjiEntry,
+  CalligraphyReferenceVisual,
+  CalligraphySimilarityEvaluation,
+  CalligraphyVisualComparison,
   CharacterSummary,
   CropRegion,
   DetailedKanjiEntry,
@@ -223,6 +228,81 @@ export const TEST_CALLIGRAPHY_EVALUATION_RESULT: CalligraphyEvaluationResult = {
     approximateDirection: 1,
     generalSimilarity: 0.8
   }
+};
+
+export const TEST_CALLIGRAPHY_EVALUATION_METRICS: CalligraphyEvaluationMetrics = {
+  strokeCount: 84,
+  strokeOrder: 79,
+  approximateDirection: 77,
+  generalSimilarity: 82
+};
+
+export const TEST_CALLIGRAPHY_REFERENCE_VISUAL: CalligraphyReferenceVisual = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  referenceImageUri: "/assets/reference/water.svg"
+};
+
+export const TEST_CALLIGRAPHY_VISUAL_COMPARISON: CalligraphyVisualComparison = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  attemptId: "attempt-001",
+  referenceImageUri: TEST_CALLIGRAPHY_REFERENCE_VISUAL.referenceImageUri,
+  attemptImageUri: "/assets/attempts/water.png",
+  isReferenceVisible: true,
+  isAttemptVisible: true,
+  isHomographyApplied: false,
+  similarity: {
+    targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+    attemptId: "attempt-001",
+    score: 82,
+    strategy: "SIFT",
+    matchedKeypointCount: 18
+  }
+};
+
+export const TEST_CALLIGRAPHY_SIFT_SIMILARITY: CalligraphySimilarityEvaluation = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  attemptId: "attempt-001",
+  score: 82,
+  strategy: "SIFT",
+  matchedKeypointCount: 18
+};
+
+export const TEST_CALLIGRAPHY_FALLBACK_SIMILARITY: CalligraphySimilarityEvaluation = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  attemptId: "attempt-001",
+  score: 61,
+  strategy: "FALLBACK",
+  matchedKeypointCount: 2,
+  fallbackReason: "insufficient_keypoints"
+};
+
+export const TEST_CALLIGRAPHY_EVALUATION_FEEDBACK: CalligraphyEvaluationFeedback = {
+  score: TEST_CALLIGRAPHY_EVALUATION_SCORE,
+  summary: TEST_CALLIGRAPHY_EVALUATION_SUMMARY,
+  recommendation: "recommendSimilarity",
+  aspects: [
+    {
+      id: "strokeCount",
+      score: TEST_CALLIGRAPHY_EVALUATION_METRICS.strokeCount,
+      description: "strokeCountFeedback"
+    },
+    {
+      id: "strokeOrder",
+      score: TEST_CALLIGRAPHY_EVALUATION_METRICS.strokeOrder,
+      description: "strokeOrderFeedback"
+    },
+    {
+      id: "approximateDirection",
+      score: TEST_CALLIGRAPHY_EVALUATION_METRICS.approximateDirection,
+      description: "directionFeedback"
+    },
+    {
+      id: "generalSimilarity",
+      score: TEST_CALLIGRAPHY_EVALUATION_METRICS.generalSimilarity,
+      description: "similarityFeedback"
+    }
+  ],
+  isOverlayVisible: true
 };
 
 export const TEST_CALLIGRAPHY_INVALID_EVALUATION_RESULT: CalligraphyEvaluationResult = {

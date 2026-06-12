@@ -1,4 +1,4 @@
-import type { AdminErrorSummary } from "@kanjime/shared";
+import type { AdminErrorFilter, AdminErrorSummary } from "@kanjime/shared";
 
 import type { AdminErrorsInterface } from "./Contracts/AdminErrorsInterface";
 import { createAdminErrorsViewModel } from "./ViewModel/AdminErrorsViewModel";
@@ -8,6 +8,7 @@ import { createAdminErrorsViewModel } from "./ViewModel/AdminErrorsViewModel";
  */
 export interface CreateAdminErrorsControllerDependencies {
   readonly listReportedErrors: () => Promise<ReadonlyArray<AdminErrorSummary>>;
+  readonly filterReportedErrors?: (filter: AdminErrorFilter) => Promise<ReadonlyArray<AdminErrorSummary>>;
   readonly subscribeToErrors?: (callback: (errors: ReadonlyArray<AdminErrorSummary>) => void) => () => void;
 }
 

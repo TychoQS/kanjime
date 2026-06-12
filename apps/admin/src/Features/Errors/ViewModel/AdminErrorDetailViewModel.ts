@@ -1,4 +1,4 @@
-import type { AdminErrorDetail } from "@kanjime/shared";
+import type { AdminErrorDetail, AdminErrorStatus } from "@kanjime/shared";
 
 import type { AdminErrorDetailInterface } from "../Contracts/AdminErrorDetailInterface";
 import type { CreateAdminErrorDetailControllerDependencies } from "../CreateAdminErrorDetailController";
@@ -24,13 +24,25 @@ export function createAdminErrorDetailViewModel(
         message: detail.message,
         occurredAt: detail.occurredAt,
         applicationVersion: detail.applicationVersion,
+        status: detail.status,
         context: {
           applicationVersion: detail.context.applicationVersion,
           webEngine: detail.context.webEngine,
           webEngineVersion: detail.context.webEngineVersion,
+          anonymousClientId: detail.context.anonymousClientId,
           lastActions: detail.context.lastActions
         }
       };
+    },
+    async updateErrorStatus(errorId: string, status: AdminErrorStatus): Promise<AdminErrorDetail> {
+      void errorId;
+      void status;
+
+      if (!dependencies.updateErrorStatus) {
+        throw new Error("Not implemented yet");
+      }
+
+      return dependencies.updateErrorStatus(errorId, status);
     }
   };
 }

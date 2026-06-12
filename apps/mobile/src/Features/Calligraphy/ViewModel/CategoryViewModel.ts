@@ -32,6 +32,25 @@ export function createCategoryViewModel(
         }))
         .sort((left, right) => left.strokeCount - right.strokeCount);
     },
+    async searchKanjiByCategory(categoryId: string, term: string): Promise<ReadonlyArray<CalligraphyKanjiSummary>> {
+      if (term.trim().length === 0) {
+        throw new ApplicationError("Not implemented yet");
+      }
+
+      if (!dependencies.searchKanjiByCategory) {
+        throw new ApplicationError("Not implemented yet");
+      }
+
+      const grouping = parseCategoryGrouping(categoryId);
+      const kanji = await dependencies.searchKanjiByCategory(categoryId, term);
+
+      return kanji.map(entry => ({
+        character: entry.character,
+        categoryId: entry.categoryId,
+        grouping,
+        strokeCount: entry.strokeCount
+      }));
+    },
     async startPractice(character: string, grouping?: CalligraphyGrouping): Promise<void> {
       if (character.trim().length === 0) {
         throw new ApplicationError("Select a kanji before starting practice.");

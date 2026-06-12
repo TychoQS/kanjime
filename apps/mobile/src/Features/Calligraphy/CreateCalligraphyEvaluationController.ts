@@ -3,7 +3,10 @@ import { createCalligraphyEvaluationViewModel } from "./ViewModel/CalligraphyEva
 import type {
   CalligraphyAttempt,
   CalligraphyEvaluationFeedback,
-  CalligraphyEvaluationResult
+  CalligraphyEvaluationResult,
+  CalligraphyReferenceVisual,
+  CalligraphySimilarityEvaluation,
+  CalligraphyVisualComparison
 } from "@kanjime/shared";
 
 /**
@@ -13,6 +16,13 @@ export interface CreateCalligraphyEvaluationControllerDependencies {
   readonly evaluateAttempt: (
       attempt: CalligraphyAttempt
   ) => Promise<CalligraphyEvaluationResult>;
+  readonly calculateGeneralSimilarity?: (
+      attempt: CalligraphyAttempt,
+      reference: CalligraphyReferenceVisual
+  ) => Promise<CalligraphySimilarityEvaluation>;
+  readonly createVisualComparison?: (
+      result: CalligraphyEvaluationResult
+  ) => CalligraphyVisualComparison;
 
   readonly createFeedback: (
       result: CalligraphyEvaluationResult

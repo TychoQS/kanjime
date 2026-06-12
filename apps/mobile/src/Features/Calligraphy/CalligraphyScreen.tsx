@@ -1,12 +1,10 @@
-import { IonButton, IonIcon, IonText } from "@ionic/react";
-import { arrowBack } from "ionicons/icons";
-
 import { useAppViewModelContext } from "../../Shared/AppViewModelContext";
 import { translate, type TranslationKey } from "../../Shared/I18n";
 import { MobilePage } from "../Shell/MobilePage";
 import { ErrorView } from "../Error/View/ErrorView";
 import { CalligraphyEvaluationView } from "./View/CalligraphyEvaluationView";
 import { CalligraphyPracticeView } from "./View/CalligraphyPracticeView";
+import { CategoryView } from "./View/CategoryView";
 import { CalligraphyView } from "./View/CalligraphyView";
 
 /**
@@ -45,48 +43,21 @@ export function CalligraphyScreen(): JSX.Element {
  */
 export function CalligraphyCategoryScreen(): JSX.Element {
   const { calligraphy, preferences } = useAppViewModelContext();
-  const language = preferences.preferences.language;
 
   return (
-    <MobilePage title={translate(language, "calligraphy")} testId="calligraphy-category-screen">
-      <div className="calligraphy-category-screen" data-testid="calligraphy-category-view">
-        <IonButton
-          className="calligraphy-back-button"
-          data-testid="calligraphy-category-back-button"
-          fill="clear"
-          onClick={() => {
-            void calligraphy.returnHome();
-          }}
-          aria-label={translate(language, "back")}
-        >
-          <IonIcon icon={arrowBack} slot="icon-only" />
-        </IonButton>
-        <section className="results-panel grow-panel">
-          <div className="section-heading">
-            <span>{translate(language, "kanji")}</span>
-          </div>
-          <div className="result-list scroll-list">
-            {calligraphy.categoryKanji.length === 0 ? (
-              <IonText color="medium">
-                <p className="empty-state-text">{translate(language, "emptyCategory")}</p>
-              </IonText>
-            ) : calligraphy.categoryKanji.map(entry => (
-              <button
-                className="result-row"
-                data-testid={`calligraphy-kanji-${entry.character}`}
-                key={entry.character}
-                onClick={() => {
-                  void calligraphy.startPractice(entry.character);
-                }}
-                type="button"
-              >
-                <span className="result-kanji">{entry.character}</span>
-                <span className="result-meta">{translate(language, "strokeCount")}: {entry.strokeCount}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-      </div>
+    <MobilePage title={translate(preferences.preferences.language, "calligraphy")} testId="calligraphy-category-screen">
+      <CategoryView
+        categoryId={calligraphy.selectedCategoryId ?? ""}
+        searchTerm=""
+        visibleKanji={calligraphy.categoryKanji}
+        onBackRequested={() => {
+          void calligraphy.returnHome();
+        }}
+        onKanjiSelected={character => {
+          void calligraphy.startPractice(character);
+        }}
+        onSearchTermChanged={() => undefined}
+      />
     </MobilePage>
   );
 }

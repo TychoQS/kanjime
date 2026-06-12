@@ -13,6 +13,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type {
   AdminErrorDetail,
+  AdminErrorFilter,
+  AdminErrorStatus,
   AdminErrorSummary,
   AdminTechnicalSummary,
   AdminVersionFormState,
@@ -47,6 +49,8 @@ const SIGN_IN_DESCRIPTION = "Use a Google account to access version configuratio
 const SIGNING_IN_LABEL = "Signing in";
 const SIGN_IN_LABEL = "Sign in with Google";
 const SIGN_OUT_LABEL = "Sign out";
+const ADMIN_ERROR_FILTERS: ReadonlyArray<AdminErrorFilter> = ["all", "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "DISCARDED"];
+const ADMIN_ERROR_STATUSES: ReadonlyArray<AdminErrorStatus> = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "DISCARDED"];
 
 /**
  * Administration shell that composes feature views and navigation.
@@ -68,6 +72,7 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     composition.createInitialVersionConfiguration()
   );
   const [errors, setErrors] = useState<ReadonlyArray<AdminErrorSummary>>([]);
+  const [activeErrorsFilter, setActiveErrorsFilter] = useState<AdminErrorFilter>("all");
   const [errorsMessage, setErrorsMessage] = useState<string | null>(null);
   const [isErrorsLoading, setIsErrorsLoading] = useState(false);
   const [errorDetail, setErrorDetail] = useState<AdminErrorDetail | null>(null);
@@ -325,6 +330,10 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
               errors={errors}
               isLoading={isErrorsLoading}
               errorMessage={errorsMessage}
+              activeFilter={activeErrorsFilter}
+              availableFilters={ADMIN_ERROR_FILTERS}
+              availableStatuses={ADMIN_ERROR_STATUSES}
+              onFilterSelected={setActiveErrorsFilter}
               onErrorSelected={errorId => {
                 void openErrorDetail(errorId);
               }}
@@ -335,6 +344,8 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
               detail={errorDetail}
               isLoading={isErrorDetailLoading}
               errorMessage={errorDetailMessage}
+              availableStatuses={ADMIN_ERROR_STATUSES}
+              onStatusSelected={() => undefined}
               onBackRequested={() => setActiveSection("errors")}
             />
           ) : null}

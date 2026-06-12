@@ -1,4 +1,4 @@
-import type { AdminErrorSummary } from "@kanjime/shared";
+import type { AdminErrorFilter, AdminErrorSummary } from "@kanjime/shared";
 
 import type { AdminErrorsInterface } from "../Contracts/AdminErrorsInterface";
 import type { CreateAdminErrorsControllerDependencies } from "../CreateAdminErrorsController";
@@ -20,8 +20,18 @@ export function createAdminErrorsViewModel(
         message: error.message,
         occurredAt: error.occurredAt,
         applicationVersion: error.applicationVersion,
+        status: error.status,
         contextSummary: error.contextSummary
       }));
+    },
+    async filterReportedErrors(filter: AdminErrorFilter): Promise<ReadonlyArray<AdminErrorSummary>> {
+      void filter;
+
+      if (!dependencies.filterReportedErrors) {
+        throw new Error("Not implemented yet");
+      }
+
+      return dependencies.filterReportedErrors(filter);
     },
     subscribeToErrors(callback: (errors: ReadonlyArray<AdminErrorSummary>) => void): () => void {
       if (dependencies.subscribeToErrors) {

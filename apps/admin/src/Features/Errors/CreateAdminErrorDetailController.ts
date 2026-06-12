@@ -1,4 +1,4 @@
-import type { AdminErrorDetail } from "@kanjime/shared";
+import type { AdminErrorDetail, AdminErrorStatus } from "@kanjime/shared";
 
 import type { AdminErrorDetailInterface } from "./Contracts/AdminErrorDetailInterface";
 import { createAdminErrorDetailViewModel } from "./ViewModel/AdminErrorDetailViewModel";
@@ -8,6 +8,7 @@ import { createAdminErrorDetailViewModel } from "./ViewModel/AdminErrorDetailVie
  */
 export interface CreateAdminErrorDetailControllerDependencies {
   readonly getErrorDetail: (errorId: string) => Promise<AdminErrorDetail>;
+  readonly updateErrorStatus?: (errorId: string, status: AdminErrorStatus) => Promise<AdminErrorDetail>;
 }
 
 /**

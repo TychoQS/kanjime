@@ -19,6 +19,17 @@ export interface CategoryInterface {
   getKanjiByCategory(categoryId: string): Promise<ReadonlyArray<CalligraphyKanjiSummary>>;
 
   /**
+   * Searches visible kanji inside the selected category.
+   *
+   * Requirement IDs: R67.
+   *
+   * @pre The user is on the kanji list screen for a selected calligraphy category and provides a valid search term in hiragana, katakana, or kanji.
+   * @inv The filtered visible kanji belong exclusively to the selected category.
+   * @post The application returns only the kanji matching the provided search term.
+   */
+  searchKanjiByCategory(categoryId: string, term: string): Promise<ReadonlyArray<CalligraphyKanjiSummary>>;
+
+  /**
    * Starts calligraphy practice for the selected kanji.
    *
    * Requirement IDs: R48.

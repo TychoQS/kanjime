@@ -1,5 +1,13 @@
 import type { AdminAuthenticatedUser } from "../../src/Shared/FirebaseClient";
-import type { ApplicationErrorReport, ApplicationUserAction, VersionConfiguration } from "@kanjime/shared";
+import type {
+  AdminErrorDetail,
+  AdminErrorFilter,
+  AdminErrorStatus,
+  AdminErrorSummary,
+  ApplicationErrorReport,
+  ApplicationUserAction,
+  VersionConfiguration
+} from "@kanjime/shared";
 
 export const TEST_ADMIN_E2E_STORAGE_KEYS = {
   authUser: "kanjime.admin.e2e.authUser",
@@ -110,3 +118,50 @@ export const TEST_ADMIN_E2E_ERROR_REPORTS: ReadonlyArray<ApplicationErrorReport>
     isReadyForObservability: true
   }
 ] as const;
+
+export const TEST_ADMIN_ERROR_STATUSES: ReadonlyArray<AdminErrorStatus> = [
+  "OPEN",
+  "IN_PROGRESS",
+  "RESOLVED",
+  "CLOSED",
+  "DISCARDED"
+];
+
+export const TEST_ADMIN_ERROR_FILTERS: ReadonlyArray<AdminErrorFilter> = [
+  "all",
+  ...TEST_ADMIN_ERROR_STATUSES
+];
+
+export const TEST_ADMIN_ERROR_SUMMARIES: ReadonlyArray<AdminErrorSummary> = [
+  {
+    id: "admin-error-open",
+    message: "The camera permission was denied.",
+    occurredAt: "2026-06-05T10:00:00.000Z",
+    applicationVersion: "1.2.0",
+    status: "OPEN",
+    contextSummary: "web 126.0"
+  },
+  {
+    id: "admin-error-resolved",
+    message: "The recognition worker was restarted.",
+    occurredAt: "2026-06-05T11:00:00.000Z",
+    applicationVersion: "1.2.1",
+    status: "RESOLVED",
+    contextSummary: "android 125.1"
+  }
+];
+
+export const TEST_ADMIN_ERROR_DETAIL: AdminErrorDetail = {
+  id: "admin-error-open",
+  message: "The camera permission was denied.",
+  occurredAt: "2026-06-05T10:00:00.000Z",
+  applicationVersion: "1.2.0",
+  status: "OPEN",
+  context: {
+    applicationVersion: "1.2.0",
+    webEngine: "web",
+    webEngineVersion: "126.0",
+    anonymousClientId: "anon-installation-001",
+    lastActions: TEST_ADMIN_E2E_LAST_ACTIONS
+  }
+};

@@ -193,6 +193,51 @@ export interface CalligraphyEvaluationMetrics {
 }
 
 /**
+ * Similarity strategy used by the visual calligraphy comparison.
+ */
+export type CalligraphySimilarityStrategy = "SIFT" | "FALLBACK";
+
+/**
+ * Visual similarity result produced for a finalized calligraphy attempt.
+ */
+export interface CalligraphyVisualSimilarityResult {
+  readonly targetCharacter: string;
+  readonly attemptId: string;
+  readonly score: number;
+  readonly strategy: CalligraphySimilarityStrategy;
+  readonly matchedKeypointCount: number;
+}
+
+/**
+ * Visual reference and attempt comparison shown with calligraphy metrics.
+ */
+export interface CalligraphyVisualComparison {
+  readonly targetCharacter: string;
+  readonly attemptId: string;
+  readonly referenceImageUri: string;
+  readonly attemptImageUri: string;
+  readonly isReferenceVisible: boolean;
+  readonly isAttemptVisible: boolean;
+  readonly isHomographyApplied: boolean;
+  readonly similarity: CalligraphyVisualSimilarityResult;
+}
+
+/**
+ * Reference visual asset used to compare a calligraphy attempt.
+ */
+export interface CalligraphyReferenceVisual {
+  readonly targetCharacter: string;
+  readonly referenceImageUri: string;
+}
+
+/**
+ * Similarity evaluation generated for a calligraphy attempt.
+ */
+export type CalligraphySimilarityEvaluation = CalligraphyVisualSimilarityResult & {
+  readonly fallbackReason?: "insufficient_keypoints";
+};
+
+/**
  * Per-aspect explainable feedback for a calligraphy attempt.
  */
 export interface CalligraphyEvaluationAspect {
@@ -210,6 +255,8 @@ export interface CalligraphyEvaluationResult {
   readonly summary: string;
   readonly recommendation?: string;
   readonly metrics: CalligraphyEvaluationMetrics;
+  readonly similarityEvaluation?: CalligraphySimilarityEvaluation;
+  readonly visualComparison?: CalligraphyVisualComparison;
   readonly aspects?: ReadonlyArray<CalligraphyEvaluationAspect>;
 }
 
@@ -222,6 +269,7 @@ export interface CalligraphyEvaluationFeedback {
   readonly recommendation?: string;
   readonly aspects?: ReadonlyArray<CalligraphyEvaluationAspect>;
   readonly isOverlayVisible: boolean;
+  readonly visualComparison?: CalligraphyVisualComparison;
 }
 
 /**
@@ -373,6 +421,7 @@ export interface ApplicationErrorContext {
   readonly applicationVersion: string;
   readonly webEngine: string;
   readonly webEngineVersion: string;
+  readonly anonymousClientId?: string;
   readonly lastActions: ReadonlyArray<ApplicationUserAction>;
 }
 
@@ -391,9 +440,20 @@ export interface ApplicationErrorReport {
   readonly applicationVersion: string;
   readonly webEngine: string;
   readonly webEngineVersion: string;
+  readonly anonymousClientId?: string;
   readonly lastActions: ReadonlyArray<ApplicationUserAction>;
   readonly isReadyForObservability: boolean;
 }
+
+/**
+ * Allowed administration statuses for a reported application error.
+ */
+export type AdminErrorStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "DISCARDED";
+
+/**
+ * Visible filters supported by the administration error list.
+ */
+export type AdminErrorFilter = AdminErrorStatus | "all";
 
 /**
  * Iteration 3 error report alias shared by mobile and administration code.
@@ -438,6 +498,7 @@ export interface AdminErrorSummary {
   readonly message: string;
   readonly occurredAt: string;
   readonly applicationVersion: string;
+  readonly status: AdminErrorStatus;
   readonly contextSummary: string;
 }
 
@@ -449,5 +510,6 @@ export interface AdminErrorDetail {
   readonly message: string;
   readonly occurredAt: string;
   readonly applicationVersion: string;
+  readonly status: AdminErrorStatus;
   readonly context: ApplicationErrorContext;
 }

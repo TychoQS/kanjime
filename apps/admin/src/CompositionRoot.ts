@@ -2,7 +2,9 @@ import packageMetadata from "../package.json";
 
 import type {
   AdminErrorDetail,
+  AdminErrorFilter,
   AdminErrorSummary,
+  AdminErrorStatus,
   AdminTechnicalSummary,
   ApplicationErrorReport,
   ObservabilityRepository,
@@ -66,6 +68,11 @@ export function createAdminCompositionRoot(): AdminCompositionRoot {
       const reports = await repository.listErrorReports();
       return reports.map(report => createErrorSummary(report));
     },
+    filterReportedErrors: async (filter: AdminErrorFilter) => {
+      const reports = await repository.listErrorReports();
+      const summaries = reports.map(report => createErrorSummary(report));
+      return filter === "all" ? summaries : summaries.filter(summary => summary.status === filter);
+    },
     subscribeToErrors: callback => {
       return repository.subscribeToErrors!(reports => {
         callback(reports.map(report => createErrorSummary(report)));
@@ -82,6 +89,18 @@ export function createAdminCompositionRoot(): AdminCompositionRoot {
       }
 
       return createErrorDetail(report);
+    },
+    updateErrorStatus: async (errorId: string, status: AdminErrorStatus) => {
+      const report = await repository.getErrorReport(errorId);
+
+      if (report === null) {
+        throw new Error("The selected error could not be found.");
+      }
+
+      return {
+        ...createErrorDetail(report),
+        status
+      };
     }
   });
 
@@ -136,6 +155,7 @@ function createErrorSummary(report: ApplicationErrorReport): AdminErrorSummary {
     message: report.message,
     occurredAt: report.occurredAt,
     applicationVersion: report.applicationVersion,
+    status: "OPEN",
     contextSummary: `${report.webEngine} ${report.webEngineVersion}`.trim()
   };
 }
@@ -146,6 +166,7 @@ function createErrorDetail(report: ApplicationErrorReport): AdminErrorDetail {
     message: report.message,
     occurredAt: report.occurredAt,
     applicationVersion: report.applicationVersion,
+    status: "OPEN",
     context: {
       applicationVersion: report.applicationVersion,
       webEngine: report.webEngine,

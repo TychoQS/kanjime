@@ -9,6 +9,10 @@ export interface CreateCategoryControllerDependencies {
   readonly getKanjiByCategory: (
       categoryId: string
   ) => Promise<ReadonlyArray<CategoryKanjiEntry>>;
+  readonly searchKanjiByCategory?: (
+      categoryId: string,
+      term: string
+  ) => Promise<ReadonlyArray<CategoryKanjiEntry>>;
   readonly startCalligraphyPractice: (character: string, grouping?: CalligraphyGrouping) => Promise<void>;
   readonly returnToCalligraphy: () => Promise<void>;
 }

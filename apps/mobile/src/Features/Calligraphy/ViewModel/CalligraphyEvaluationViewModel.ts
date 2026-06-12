@@ -4,7 +4,10 @@ import type {
   CalligraphyAttempt,
   CalligraphyEvaluationFeedback,
   CalligraphyEvaluationMetrics,
-  CalligraphyEvaluationResult
+  CalligraphyEvaluationResult,
+  CalligraphyReferenceVisual,
+  CalligraphySimilarityEvaluation,
+  CalligraphyVisualComparison
 } from "@kanjime/shared";
 import { ApplicationError, StrokeError } from "@kanjime/shared";
 
@@ -32,6 +35,26 @@ export function createCalligraphyEvaluationViewModel(
       }
 
       return Math.max(0, Math.min(100, Math.round(result.score)));
+    },
+    async calculateGeneralSimilarity(
+      attempt: CalligraphyAttempt,
+      reference: CalligraphyReferenceVisual
+    ): Promise<CalligraphySimilarityEvaluation> {
+      void attempt;
+      void reference;
+
+      if (!dependencies.calculateGeneralSimilarity) {
+        throw new ApplicationError("Not implemented yet");
+      }
+
+      return dependencies.calculateGeneralSimilarity(attempt, reference);
+    },
+    createVisualComparison(result: CalligraphyEvaluationResult): CalligraphyVisualComparison {
+      if (!dependencies.createVisualComparison) {
+        throw new ApplicationError("Not implemented yet");
+      }
+
+      return dependencies.createVisualComparison(result);
     },
     createFeedback(result: CalligraphyEvaluationResult): CalligraphyEvaluationFeedback {
       if (!isValidEvaluationResult(result)) {

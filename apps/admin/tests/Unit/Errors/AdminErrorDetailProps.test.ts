@@ -27,6 +27,7 @@ describe("AdminErrorDetailProps", () => {
     message: ERROR_MESSAGE,
     occurredAt: ERROR_DATE,
     applicationVersion: APPLICATION_VERSION,
+    status: "OPEN",
     context: ERROR_CONTEXT
   };
 
@@ -62,6 +63,8 @@ describe("AdminErrorDetailProps", () => {
       detail,
       isLoading: false,
       errorMessage: null,
+      availableStatuses: ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "DISCARDED"],
+      onStatusSelected: () => undefined,
       onBackRequested: () => undefined
     };
 
@@ -84,6 +87,8 @@ describe("AdminErrorDetailProps", () => {
       detail,
       isLoading: false,
       errorMessage: null,
+      availableStatuses: ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "DISCARDED"],
+      onStatusSelected: () => undefined,
       onBackRequested: () => undefined
     };
 

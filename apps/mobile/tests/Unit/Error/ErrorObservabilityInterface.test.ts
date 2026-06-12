@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { CreateErrorObservabilityController } from "../../../src/Features/Error/CreateErrorObservabilityController";
 import { createValueRecorder } from "../../Support/DependencyFactories";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
-import type { ApplicationErrorContext, ApplicationUserAction } from "@kanjime/shared";
+import type {ApplicationErrorContext, ApplicationUserAction, NavigationPage} from "@kanjime/shared";
 
 describe("ErrorObservabilityInterface", () => {
   const APPLICATION_VERSION = "1.0.0";
@@ -23,6 +23,26 @@ describe("ErrorObservabilityInterface", () => {
     webEngine: WEB_ENGINE,
     webEngineVersion: WEB_ENGINE_VERSION,
     lastActions: LAST_ACTIONS
+  };
+
+  const errorObservabilityController = CreateErrorObservabilityController({
+    createReportId: () => "report-001",
+    readCurrentDate: () => "2026-06-12T10:00:00.000Z"
+  });
+  const firebaseInstallationId = "c6QwLZc2R8S9T0uV1wXyZa";
+  const firebaseInstallationIdPattern = /^[A-Za-z0-9_-]{22}$/;
+  const controlledError = new Error("An unexpected error has occurred.");
+  const executionContext = {
+    applicationVersion: "1.2.3",
+    webEngine: "web",
+    webEngineVersion: "126.0",
+    anonymousClientId: firebaseInstallationId,
+    lastActions: [
+      {
+        type: "error:captured" as const,
+        occurredAt: "2026-06-12T09:59:00.000Z"
+      }
+    ]
   };
 
   /**
@@ -97,7 +117,7 @@ describe("ErrorObservabilityInterface", () => {
       recordedActions.push(action);
     };
 
-    const simulateNavigation = (delegate: (page: any, character?: string) => void) => {
+    const simulateNavigation = (delegate: (page: NavigationPage, character?: string) => void) => {
       delegate("calligraphy", undefined);
       delegate("kanjiEntry", "漢");
       delegate("kanjiEntry", undefined);
@@ -112,13 +132,22 @@ describe("ErrorObservabilityInterface", () => {
       });
     });
 
-    expect(recordedActions.length).toBe(3);
-    expect(recordedActions[0].type).toBe("navigation:opened");
-    expect((recordedActions[0] as any).page).toBe("calligraphy");
-    expect(recordedActions[1].type).toBe("navigation:opened");
-    expect((recordedActions[1] as any).page).toBe("kanjiEntry");
-    expect(recordedActions[2].type).toBe("navigation:opened");
-    expect((recordedActions[2] as any).page).toBe("classification");
+    expect(recordedActions).toHaveLength(3);
+
+    expect(recordedActions[0]).toMatchObject({
+      type: "navigation:opened",
+      page: "calligraphy"
+    });
+
+    expect(recordedActions[1]).toMatchObject({
+      type: "navigation:opened",
+      page: "kanjiEntry"
+    });
+
+    expect(recordedActions[2]).toMatchObject({
+      type: "navigation:opened",
+      page: "classification"
+    });
   });
 
   /**
@@ -244,5 +273,68 @@ describe("ErrorObservabilityInterface", () => {
     const catchBlock = safeGetCode.substring(catchIndex, nextCloseBraceIndex + 1);
 
     expect(catchBlock, "safeGetVisibleResults catch block must not call captureUnexpectedError").not.toContain("captureUnexpectedError");
+  });
+
+  /**
+   * Requirement R71 - Precondition (valid):
+   * a captured error with an anonymous Firebase installation identifier should generate a report.
+   */
+  it(buildRequirementTitle("R71", "Unit", "Precondition", "captured errors with an anonymous Firebase installation identifier generate a report"), async () => {
+    await expect(
+        errorObservabilityController.createErrorReport(controlledError, executionContext),
+        "R71 valid precondition should accept a captured error and an anonymous Firebase installation identifier."
+    ).resolves.toEqual(expect.objectContaining({
+      anonymousClientId: firebaseInstallationId
+    }));
+  });
+
+  /**
+   * Requirement R71 - Precondition (invalid):
+   * personal identifiers should be rejected when building an anonymous observability report.
+   */
+  it(buildRequirementTitle("R71", "Unit", "Precondition", "personal identifiers are rejected from anonymous error reports"), async () => {
+    await expect(
+        errorObservabilityController.createErrorReport(controlledError, {
+          ...executionContext,
+          anonymousClientId: "user@example.test"
+        }),
+        "R71 invalid precondition should reject personal data inside the anonymous client identifier slot."
+    ).rejects.toThrow("anonymous");
+  });
+
+  /**
+   * Requirement R71 - Invariant:
+   * the anonymous Firebase installation identifier included in the report should not contain personal user data.
+   */
+  it(buildRequirementTitle("R71", "Unit", "Invariant", "the anonymous Firebase installation identifier has a non-personal URL-safe format"), async () => {
+    const report = await errorObservabilityController.createErrorReport(controlledError, executionContext);
+
+    expect(
+        report.anonymousClientId,
+        "R71 invariant should preserve the anonymous Firebase installation identifier."
+    ).toBe(firebaseInstallationId);
+
+    expect(
+        report.anonymousClientId,
+        "R71 invariant should keep the anonymous identifier in a Firebase-like URL-safe installation id format."
+    ).toMatch(firebaseInstallationIdPattern);
+
+    expect(
+        report.anonymousClientId?.includes("@"),
+        "R71 invariant should keep personal data such as e-mail fragments out of the anonymous Firebase installation identifier."
+    ).toBe(false);
+  });
+
+  /**
+   * Requirement R71 - Postcondition:
+   * the generated report should include the anonymous Firebase installation identifier.
+   */
+  it(buildRequirementTitle("R71", "Unit", "Postcondition", "the generated report includes the anonymous Firebase installation identifier"), async () => {
+    const report = await errorObservabilityController.createErrorReport(controlledError, executionContext);
+
+    expect(
+        report.anonymousClientId,
+        "R71 postcondition should include the anonymous Firebase installation identifier in the generated report.")
+        .toBe(firebaseInstallationId);
   });
 });

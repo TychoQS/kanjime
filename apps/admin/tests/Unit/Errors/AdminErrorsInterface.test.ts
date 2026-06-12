@@ -3,6 +3,7 @@ import { CreateAdminErrorsController } from "../../../src/Features/Errors/Create
 import { createAsyncValueRecorder } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
 import type { AdminErrorSummary } from "@kanjime/shared";
+import {TEST_ADMIN_ERROR_SUMMARIES} from "../../Support/TestData";
 
 describe("AdminErrorsInterface", () => {
   const ERROR_IDENTIFIER = "error-report-1";
@@ -20,6 +21,10 @@ describe("AdminErrorsInterface", () => {
       contextSummary: "Recognition screen"
     }
   ];
+
+  const errorsController = CreateAdminErrorsController({
+    listReportedErrors: async () => TEST_ADMIN_ERROR_SUMMARIES
+  });
 
   /**
    * Requirement: R65
@@ -105,5 +110,60 @@ describe("AdminErrorsInterface", () => {
 
     unsubscribe();
     expect(subscriberCallback).toBeNull();
+  });
+
+  /**
+   * Requirement R73 - Precondition (valid):
+   * the reported-error list should contain reports with at least two different statuses.
+   */
+  it(buildRequirementTitle("R73", "Unit", "Precondition", "reported errors exist with multiple statuses"), async () => {
+    const reportedErrors = await errorsController.listReportedErrors();
+    const reportedStatuses = new Set(reportedErrors.map(error => error.status));
+
+    expect(
+        reportedErrors.length,
+        "R73 valid precondition should provide registered reported errors."
+    ).toBeGreaterThan(0);
+
+    expect(
+        reportedStatuses.size,
+        "R73 valid precondition should provide reported errors with at least two different statuses."
+    ).toBeGreaterThanOrEqual(2);
+  });
+
+  /**
+   * Requirement R73 - Invariant:
+   * the visual filter "all" should never appear as a real report status.
+   */
+  it(buildRequirementTitle("R73", "Unit", "Invariant", "the all option remains a visualization-only filter"), async () => {
+    const filteredErrors = await errorsController.filterReportedErrors("all");
+
+    expect(
+        filteredErrors.every(error => String(error.status) !== "all"),
+        "R73 invariant should keep the visual filter \"all\" outside the assignable report statuses."
+    ).toBe(true);
+
+    expect(
+        filteredErrors.map(error => error.status),
+        "R73 invariant should return only real report statuses after applying the \"all\" visual filter."
+    ).toEqual(["OPEN", "RESOLVED"]);
+  });
+
+  /**
+   * Requirement R73 - Postcondition:
+   * the visible list should match the selected status filter.
+   */
+  it(buildRequirementTitle("R73", "Unit", "Postcondition", "the visible list matches the selected status filter"), async () => {
+    const filteredErrors = await errorsController.filterReportedErrors("RESOLVED");
+
+    expect(
+        filteredErrors,
+        "R73 postcondition should return only the reported errors matching the selected status filter."
+    ).toEqual([TEST_ADMIN_ERROR_SUMMARIES[1]]);
+
+    expect(
+        filteredErrors.every(error => error.status === "RESOLVED"),
+        "R73 postcondition should keep every visible report aligned with the selected status filter."
+    ).toBe(true);
   });
 });

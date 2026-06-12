@@ -3,6 +3,7 @@ import { CreateAdminErrorDetailController } from "../../../src/Features/Errors/C
 import { createAsyncArgumentRecorder } from "../../Support/DependencyFactories";
 import { describe, expect, it } from "vitest";
 import type { AdminErrorDetail, ApplicationErrorContext, ApplicationUserAction } from "@kanjime/shared";
+import {TEST_ADMIN_ERROR_DETAIL, TEST_ADMIN_ERROR_STATUSES} from "../../Support/TestData";
 
 describe("AdminErrorDetailInterface", () => {
   const ERROR_IDENTIFIER = "error-report-1";
@@ -35,6 +36,10 @@ describe("AdminErrorDetailInterface", () => {
     status: "OPEN",
     context: ERROR_CONTEXT
   };
+
+  const detailController = CreateAdminErrorDetailController({
+    getErrorDetail: async () => TEST_ADMIN_ERROR_DETAIL
+  });
 
   /**
    * Requirement: R66
@@ -90,4 +95,55 @@ describe("AdminErrorDetailInterface", () => {
     expect(detail.context.lastActions.length, "The error detail exposes more than the ten allowed user actions.").toBeLessThanOrEqual(10);
     expect(detail.context.lastActions, "The error detail does not preserve the expected user actions included in the execution context.").toEqual(LAST_ACTIONS);
   });
+
+  /**
+   * Requirement R72 - Precondition (valid):
+   * the administrator should be able to open the detail of an existing error report.
+   */
+  it(buildRequirementTitle("R72", "Unit", "Precondition", "existing error reports can be opened in the detail view"), async () => {
+    await expect(
+        detailController.getErrorDetail(TEST_ADMIN_ERROR_DETAIL.id),
+        "R72 valid precondition should load the detail of an existing reported error."
+    ).resolves.toEqual(expect.objectContaining({
+      id: TEST_ADMIN_ERROR_DETAIL.id
+    }));
+  });
+
+  /**
+   * Requirement R72 - Precondition (invalid):
+   * a non-assignable status should be rejected by the detail contract.
+   */
+  it(buildRequirementTitle("R72", "Unit", "Precondition", "non-assignable statuses are rejected"), async () => {
+    await expect(
+        detailController.updateErrorStatus(TEST_ADMIN_ERROR_DETAIL.id, "all" as unknown as "OPEN"),
+        "R72 invalid precondition should reject values that are not real assignable statuses."
+    ).rejects.toThrow("allowed");
+  });
+
+  /**
+   * Requirement R72 - Invariant:
+   * the selected status should always belong to the allowed administration set.
+   */
+  it(buildRequirementTitle("R72", "Unit", "Invariant", "updated statuses stay inside the allowed administration set"), async () => {
+    const updatedDetail = await detailController.updateErrorStatus(TEST_ADMIN_ERROR_DETAIL.id, "RESOLVED");
+
+    expect(
+        TEST_ADMIN_ERROR_STATUSES.includes(updatedDetail.status ?? ""),
+        "R72 invariant should keep updated error statuses inside the allowed administration set."
+    ).toBe(true);
+  });
+
+  /**
+   * Requirement R72 - Postcondition:
+   * the selected error detail should expose the new status after the update.
+   */
+  it(buildRequirementTitle("R72", "Unit", "Postcondition", "the selected error detail exposes the new status"), async () => {
+    const updatedDetail = await detailController.updateErrorStatus(TEST_ADMIN_ERROR_DETAIL.id, "CLOSED");
+
+    expect(
+        updatedDetail.status,
+        "R72 postcondition should expose the new administrator-selected status on the returned error detail."
+    ).toBe("CLOSED");
+  });
+
 });

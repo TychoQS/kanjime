@@ -29,48 +29,42 @@ describe("AdminErrorDetailProps requirements", () => {
 
   /**
    * Requirement R32 - Precondition (valid):
-   * the error-detail screen should render the real status options for the selected report.
+   * the administrator should be on the detail screen of an existing error report.
    */
-  it(buildRequirementTitle("R32", "Unit", "Precondition", "the error-detail screen renders the real status options"), () => {
+  it(buildRequirementTitle("R32", "Unit", "Precondition", "the error-detail screen renders the selected report detail"), () => {
     renderWithIonic();
 
     expect(
-      screen.queryByText("OPEN"),
-      "R32 valid precondition should render the current OPEN status for the selected report."
+        screen.queryByText(TEST_ADMIN_ERROR_DETAIL.message),
+        "R32 valid precondition should render the selected reported error detail."
     ).not.toBeNull();
-    expect(
-      screen.queryByText("RESOLVED"),
-      "R32 valid precondition should render RESOLVED as another real selectable status."
-    ).not.toBeNull();
-  });
-
-  /**
-   * Requirement R32 - Precondition (invalid):
-   * the visual filter "all" should never appear as a selectable detail status.
-   */
-  it(buildRequirementTitle("R32", "Unit", "Precondition", "the visual filter all is not selectable in the detail screen"), () => {
-    renderWithIonic();
 
     expect(
-      screen.queryByText("all"),
-      "R32 invalid precondition should not render the visual filter \"all\" as a selectable detail status."
-    ).toBeNull();
+        screen.queryByText(TEST_ADMIN_ERROR_DETAIL.id),
+        "R32 valid precondition should expose the selected reported error identifier in the detail screen."
+    ).not.toBeNull();
   });
 
   /**
    * Requirement R32 - Invariant:
-   * the real statuses should stay separated from list-only filters.
+   * the visual filter "all" should stay separated from the real detail statuses.
    */
   it(buildRequirementTitle("R32", "Unit", "Invariant", "the detail screen keeps real statuses separated from list-only filters"), () => {
     renderWithIonic();
 
     expect(
-      screen.queryByTestId("admin-error-detail-status-open"),
-      "R32 invariant should render a dedicated element for the OPEN status."
+        screen.queryByTestId("admin-error-detail-status-open"),
+        "R32 invariant should render a dedicated element for the OPEN status."
     ).not.toBeNull();
+
     expect(
-      screen.queryByTestId("admin-error-detail-filter-all"),
-      "R32 invariant should render the list-only filter separately from the real statuses when it needs to be referenced."
+        screen.queryByText("all"),
+        "R32 invariant should not render the visual filter \"all\" as a selectable detail status."
+    ).toBeNull();
+
+    expect(
+        screen.queryByTestId("admin-error-detail-filter-all"),
+        "R32 invariant should not render the list-only filter as a detail status element."
     ).toBeNull();
   });
 
@@ -82,12 +76,23 @@ describe("AdminErrorDetailProps requirements", () => {
     renderWithIonic();
 
     expect(
-      screen.queryByText("IN_PROGRESS"),
-      "R32 postcondition should render IN_PROGRESS as a real report status."
+        screen.queryByText("OPEN"),
+        "R32 postcondition should render OPEN as a real report status."
     ).not.toBeNull();
+
     expect(
-      screen.queryByText("DISCARDED"),
-      "R32 postcondition should render DISCARDED as a real report status."
+        screen.queryByText("IN_PROGRESS"),
+        "R32 postcondition should render IN_PROGRESS as a real report status."
+    ).not.toBeNull();
+
+    expect(
+        screen.queryByText("RESOLVED"),
+        "R32 postcondition should render RESOLVED as a real report status."
+    ).not.toBeNull();
+
+    expect(
+        screen.queryByText("DISCARDED"),
+        "R32 postcondition should render DISCARDED as a real report status."
     ).not.toBeNull();
   });
 });

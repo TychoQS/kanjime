@@ -32,48 +32,42 @@ describe("AdminErrorsProps requirements", () => {
 
   /**
    * Requirement R31 - Precondition (valid):
-   * the reported-errors screen should render filters and real statuses together.
+   * the administrator should be on the reported-errors screen with existing reports.
    */
-  it(buildRequirementTitle("R31", "Unit", "Precondition", "the reported-errors screen renders filters and real statuses"), () => {
+  it(buildRequirementTitle("R31", "Unit", "Precondition", "the reported-errors screen renders existing reports"), () => {
     renderWithIonic();
 
     expect(
-      screen.queryByText("all"),
-      "R31 valid precondition should render the visual filter \"all\" on the reported-errors screen."
+        screen.queryByText(TEST_ADMIN_ERROR_SUMMARIES[0].message),
+        "R31 valid precondition should render an existing reported error on the administration errors screen."
     ).not.toBeNull();
-    expect(
-      screen.queryByText("OPEN"),
-      "R31 valid precondition should render at least one real error status on the reported-errors screen."
-    ).not.toBeNull();
-  });
-
-  /**
-   * Requirement R31 - Precondition (invalid):
-   * the visual filter "all" should not appear as the status of any report row.
-   */
-  it(buildRequirementTitle("R31", "Unit", "Precondition", "the visual filter all does not appear as a row status"), () => {
-    renderWithIonic();
 
     expect(
-      screen.queryByTestId("admin-error-status-all"),
-      "R31 invalid precondition should avoid rendering the visual filter \"all\" as a report status."
-    ).toBeNull();
+        screen.queryByText(TEST_ADMIN_ERROR_SUMMARIES[1].message),
+        "R31 valid precondition should render another existing reported error on the administration errors screen."
+    ).not.toBeNull();
   });
 
   /**
    * Requirement R31 - Invariant:
-   * the visual filter "all" should stay separated from the real statuses.
+   * the visual filter "all" should stay separated from the real report statuses.
    */
   it(buildRequirementTitle("R31", "Unit", "Invariant", "the visual filter stays separated from the real statuses"), () => {
     renderWithIonic();
 
     expect(
-      screen.queryByTestId("admin-errors-filter-all"),
-      "R31 invariant should render a dedicated UI element for the visual filter \"all\"."
+        screen.queryByTestId("admin-errors-filter-all"),
+        "R31 invariant should render a dedicated UI element for the visual filter \"all\"."
     ).not.toBeNull();
+
     expect(
-      screen.queryByTestId("admin-errors-status-open"),
-      "R31 invariant should render a dedicated UI element for the real OPEN status."
+        screen.queryByTestId("admin-error-status-all"),
+        "R31 invariant should never render the visual filter \"all\" as a report row status."
+    ).toBeNull();
+
+    expect(
+        screen.queryByTestId("admin-errors-status-open"),
+        "R31 invariant should render a dedicated UI element for the real OPEN status."
     ).not.toBeNull();
   });
 
@@ -85,16 +79,23 @@ describe("AdminErrorsProps requirements", () => {
     renderWithIonic();
 
     expect(
-      screen.queryByText("IN_PROGRESS"),
-      "R31 postcondition should show IN_PROGRESS as a real report status."
+        screen.queryByText("OPEN"),
+        "R31 postcondition should show OPEN as a real report status."
     ).not.toBeNull();
+
     expect(
-      screen.queryByText("RESOLVED"),
-      "R31 postcondition should show RESOLVED as a real report status."
+        screen.queryByText("IN_PROGRESS"),
+        "R31 postcondition should show IN_PROGRESS as a real report status."
     ).not.toBeNull();
+
     expect(
-      screen.queryByText("DISCARDED"),
-      "R31 postcondition should show DISCARDED as a real report status."
+        screen.queryByText("RESOLVED"),
+        "R31 postcondition should show RESOLVED as a real report status."
+    ).not.toBeNull();
+
+    expect(
+        screen.queryByText("DISCARDED"),
+        "R31 postcondition should show DISCARDED as a real report status."
     ).not.toBeNull();
   });
 });

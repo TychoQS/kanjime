@@ -1,5 +1,5 @@
 import { cleanup, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import {describe, expect, it, vi} from "vitest";
 import userEvent from "@testing-library/user-event";
 import { CalligraphyView } from "../../../src/Features/Calligraphy/View/CalligraphyView";
 import type { CalligraphyProps } from "../../../src/Features/Calligraphy/Contracts/CalligraphyProps";
@@ -7,10 +7,12 @@ import {
   TEST_CALLIGRAPHY_JLPT_GROUPING_LABEL,
   TEST_CALLIGRAPHY_JLPT_GROUPING,
   TEST_CALLIGRAPHY_VIEW_CATEGORY, TEST_CALLIGRAPHY_JOYO_GROUPING_LABEL, TEST_CALLIGRAPHY_JOYO_GROUPING,
-  TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES, TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES
+  TEST_CALLIGRAPHY_VISIBLE_JLPT_CATEGORIES, TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES, TEST_CALLIGRAPHY_CATEGORY_ID,
+  TEST_PRIMARY_CHARACTER, TEST_SECONDARY_CHARACTER
 } from "../../Support/TestData";
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 import { renderWithIonic } from "../../Support/RenderWithIonic";
+import {CategoryView} from "../../../src/Features/Calligraphy/View/CategoryView";
 
 
 const defaultProps: CalligraphyProps = {
@@ -21,6 +23,29 @@ const defaultProps: CalligraphyProps = {
 };
 
 describe("CalligraphyProps", () => {
+
+  const baseProps = {
+    categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,
+    searchTerm: "",
+    visibleKanji: [
+      {
+        character: TEST_PRIMARY_CHARACTER,
+        categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,
+        grouping: TEST_CALLIGRAPHY_JLPT_GROUPING,
+        strokeCount: 4
+      },
+      {
+        character: TEST_SECONDARY_CHARACTER,
+        categoryId: TEST_CALLIGRAPHY_CATEGORY_ID,
+        grouping: TEST_CALLIGRAPHY_JLPT_GROUPING,
+        strokeCount: 5
+      }
+    ],
+    onBackRequested: vi.fn(),
+    onKanjiSelected: vi.fn(),
+    onSearchTermChanged: vi.fn()
+  } as const;
+
   /**
    * Requirement: R17
    * Type: Unit
@@ -313,4 +338,44 @@ describe("CalligraphyProps", () => {
 
     expect(onCategorySelected, "CalligraphyView didn't trigger onCategorySelected exactly once per category.").toHaveBeenCalledTimes(TEST_CALLIGRAPHY_VISIBLE_JOYO_CATEGORIES.length);
   });
+
+  /**
+   * Requirement R29 - Invariant:
+   * the search field should remain visible before and after a filtering attempt.
+   */
+  it(buildRequirementTitle("R29", "Unit", "Invariant", "the category search field remains visible before and after filtering"), () => {
+    const { rerender } = renderWithIonic(<CategoryView {...baseProps} />);
+
+    expect(
+        screen.queryByRole("searchbox"),
+        "R29 invariant should keep the category search field visible before applying a filter."
+    ).not.toBeNull();
+
+    rerender(
+        <CategoryView
+            {...baseProps}
+            searchTerm={TEST_PRIMARY_CHARACTER}
+            visibleKanji={[baseProps.visibleKanji[0]]}
+        />
+    );
+
+    expect(
+        screen.queryByRole("searchbox"),
+        "R29 invariant should keep the category search field visible after applying a filter."
+    ).not.toBeNull();
+  });
+
+  /**
+   * Requirement R29 - Postcondition:
+   * the user should identify the search field without additional navigation.
+   */
+  it(buildRequirementTitle("R29", "Unit", "Postcondition", "the category search field is visible without extra navigation"), () => {
+    renderWithIonic(<CategoryView {...baseProps} />);
+
+    expect(
+        screen.queryByLabelText(/search/i),
+        "R29 postcondition should make the category search field discoverable without opening extra menus or screens."
+    ).not.toBeNull();
+  });
+
 });

@@ -216,6 +216,8 @@ export interface CalligraphyVisualComparison {
   readonly attemptId: string;
   readonly referenceImageUri: string;
   readonly attemptImageUri: string;
+  readonly alignedAttemptImageUri?: string;
+  readonly matchedKeypoints?: ReadonlyArray<readonly [StrokePoint, StrokePoint]>;
   readonly isReferenceVisible: boolean;
   readonly isAttemptVisible: boolean;
   readonly isHomographyApplied: boolean;

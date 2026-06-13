@@ -41,12 +41,34 @@ export function CalligraphyEvaluationView(props: CalligraphyEvaluationProps): JS
           <section className="calligraphy-visual-comparison" data-testid="calligraphy-visual-comparison">
             <figure className="calligraphy-visual-frame">
               <figcaption>{translate(language, "strokeOrder")}</figcaption>
-              <img
-                alt={translate(language, "strokeOrder")}
-                className="calligraphy-comparison-image"
-                data-testid="calligraphy-reference-visual"
-                src={comparison.referenceImageUri}
-              />
+              <div className="calligraphy-reference-keypoint-layer">
+                <img
+                  alt={translate(language, "strokeOrder")}
+                  className="calligraphy-comparison-image"
+                  data-testid="calligraphy-reference-visual"
+                  src={comparison.referenceImageUri}
+                />
+                {comparison.matchedKeypoints && comparison.matchedKeypoints.length >= 4 ? (
+                  <svg
+                    aria-hidden="true"
+                    className="calligraphy-keypoint-overlay"
+                    data-testid="calligraphy-keypoint-overlay"
+                    preserveAspectRatio="none"
+                    viewBox="0 0 109 109"
+                  >
+                    {comparison.matchedKeypoints.map(([referencePoint], index) => (
+                      <circle
+                        className="calligraphy-keypoint"
+                        cx={referencePoint.x}
+                        cy={referencePoint.y}
+                        data-testid="calligraphy-keypoint"
+                        key={`${referencePoint.x}-${referencePoint.y}-${index}`}
+                        r="2.5"
+                      />
+                    ))}
+                  </svg>
+                ) : null}
+              </div>
             </figure>
             <figure className="calligraphy-visual-frame">
               <figcaption>{translate(language, "drawing")}</figcaption>
@@ -57,6 +79,17 @@ export function CalligraphyEvaluationView(props: CalligraphyEvaluationProps): JS
                 src={comparison.attemptImageUri}
               />
             </figure>
+            {comparison.alignedAttemptImageUri ? (
+              <figure className="calligraphy-visual-frame">
+                <figcaption>{translate(language, "alignedAttempt")}</figcaption>
+                <img
+                  alt={translate(language, "alignedAttempt")}
+                  className="calligraphy-comparison-image"
+                  data-testid="calligraphy-aligned-attempt-visual"
+                  src={comparison.alignedAttemptImageUri}
+                />
+              </figure>
+            ) : null}
           </section>
         ) : null}
         <ul className="calligraphy-metric-list" data-testid="calligraphy-metric-list">

@@ -10,6 +10,7 @@ import type {
   StrokePoint
 } from "@kanjime/shared";
 import { ApplicationError, StrokeError } from "@kanjime/shared";
+import { applyOpenCvHomography, type OpenCvHomographyResult } from "../../../Shared/OpenCvHomographyWorkerClient";
 
 interface ReferenceStroke {
   readonly points: ReadonlyArray<StrokePoint>;
@@ -63,15 +64,15 @@ export async function evaluateCalligraphyAttempt(
   const metrics = {
     strokeCount: calculateStrokeCountScore(normalizedAttempt.length, normalizedReference.length),
     strokeOrder: hasValidStrokeCount
-          ? calculateStrokeOrderScore(normalizedAttempt, normalizedReference)
-          : SCORE_MIN,
+      ? calculateStrokeOrderScore(normalizedAttempt, normalizedReference)
+      : SCORE_MIN,
     approximateDirection: hasValidStrokeCount
-          ? calculateDirectionScore(normalizedAttempt, normalizedReference)
-          : SCORE_MIN,
+      ? calculateDirectionScore(normalizedAttempt, normalizedReference)
+      : SCORE_MIN,
     generalSimilarity: hasValidStrokeCount
-          ? similarityEvaluation.score
-          : SCORE_MIN
-    };
+      ? similarityEvaluation.score
+      : SCORE_MIN
+  };
   const score = calculateGlobalCalligraphyScore(metrics, normalizedAttempt);
   const aspects = createAspects(metrics);
   const visualComparison = await createVisualComparisonFromStrokes(
@@ -498,14 +499,18 @@ async function createVisualComparisonFromStrokes(
     throw new ApplicationError("The visual comparison cannot be created from the current attempt.");
   }
 
+  const homography = await tryApplyHomography(referenceStrokes, attemptStrokes);
+
   return {
     targetCharacter: attempt.targetCharacter,
     attemptId: similarity.attemptId,
     referenceImageUri: reference.referenceImageUri,
     attemptImageUri,
+    alignedAttemptImageUri: homography.alignedAttemptImageUri,
+    matchedKeypoints: homography.matchedKeypoints,
     isReferenceVisible: reference.referenceImageUri.startsWith("data:image/"),
     isAttemptVisible: true,
-    isHomographyApplied: await tryApplyHomography(referenceStrokes, attemptStrokes),
+    isHomographyApplied: homography.isHomographyApplied,
     similarity
   };
 }
@@ -560,49 +565,42 @@ function createFallbackVisualDataUri(variant: "reference" | "attempt"): string {
 async function tryApplyHomography(
   referenceStrokes: ReadonlyArray<Stroke>,
   attemptStrokes: ReadonlyArray<Stroke>
-): Promise<boolean> {
+): Promise<OpenCvHomographyResult> {
   const referencePoints = sampleCollection(referenceStrokes).slice(0, MAX_REPORTED_KEYPOINTS);
   const attemptPoints = sampleCollection(attemptStrokes).slice(0, MAX_REPORTED_KEYPOINTS);
   const correspondenceCount = Math.min(referencePoints.length, attemptPoints.length);
 
   if (correspondenceCount < 4) {
-    return false;
+    return createUnavailableHomographyResult();
   }
 
   try {
-    const cv = await import("@techstark/opencv-js");
-    const referenceMat = cv.matFromArray(
-      correspondenceCount,
-      1,
-      cv.CV_32FC2,
-      referencePoints.slice(0, correspondenceCount).flatMap(point => [point.x, point.y])
-    );
-    const attemptMat = cv.matFromArray(
-      correspondenceCount,
-      1,
-      cv.CV_32FC2,
-      attemptPoints.slice(0, correspondenceCount).flatMap(point => [point.x, point.y])
-    );
-    const mask = new cv.Mat();
-    const homography = cv.findHomography(referenceMat, attemptMat, cv.RANSAC, 3, mask);
-    const source = cv.Mat.zeros(VISUAL_SIZE, VISUAL_SIZE, cv.CV_8UC1);
-    const aligned = new cv.Mat();
-
-    cv.warpPerspective(source, aligned, homography, new cv.Size(VISUAL_SIZE, VISUAL_SIZE));
-
-    const isApplied = homography.rows > 0 && homography.cols > 0;
-
-    referenceMat.delete();
-    attemptMat.delete();
-    mask.delete();
-    homography.delete();
-    source.delete();
-    aligned.delete();
-
-    return isApplied;
+    return await applyOpenCvHomography({
+      referenceImage: createTransferableSvgImage(createStrokeDataUri(referenceStrokes, "reference")),
+      attemptImage: createTransferableSvgImage(createStrokeDataUri(attemptStrokes, "attempt")),
+      referencePoints: referencePoints.slice(0, correspondenceCount),
+      attemptPoints: attemptPoints.slice(0, correspondenceCount),
+      visualSize: VISUAL_SIZE
+    });
   } catch {
-    return false;
+    return createUnavailableHomographyResult();
   }
+}
+
+function createUnavailableHomographyResult(): OpenCvHomographyResult {
+  return {
+    isHomographyApplied: false
+  };
+}
+
+function createTransferableSvgImage(imageUri: string): ArrayBuffer {
+  const svg = decodeSvgDataUri(imageUri) ?? "";
+  const encodedSvg = new TextEncoder().encode(svg);
+
+  return encodedSvg.buffer.slice(
+    encodedSvg.byteOffset,
+    encodedSvg.byteOffset + encodedSvg.byteLength
+  );
 }
 
 function roundSvg(value: number): string {
@@ -718,7 +716,7 @@ function calculateDirectionScore(
 
   function getNormalizedAngularDifference(attemptAngle: number, referenceAngle: number) {
     return Math.abs(
-        Math.atan2(Math.sin(attemptAngle - referenceAngle), Math.cos(attemptAngle - referenceAngle))
+      Math.atan2(Math.sin(attemptAngle - referenceAngle), Math.cos(attemptAngle - referenceAngle))
     );
   }
 

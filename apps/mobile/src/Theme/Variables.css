@@ -819,7 +819,7 @@ html[data-theme="dark"] ion-action-sheet {
 .calligraphy-visual-comparison {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
 }
 
 .calligraphy-visual-frame {
@@ -846,6 +846,28 @@ html[data-theme="dark"] ion-action-sheet {
   display: block;
   object-fit: contain;
   width: 100%;
+}
+
+.calligraphy-reference-keypoint-layer {
+  aspect-ratio: 1;
+  position: relative;
+  width: 100%;
+}
+
+.calligraphy-reference-keypoint-layer .calligraphy-comparison-image {
+  height: 100%;
+}
+
+.calligraphy-keypoint-overlay {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.calligraphy-keypoint {
+  fill: var(--ion-color-primary);
+  stroke: var(--app-surface);
+  stroke-width: 1;
 }
 
 .calligraphy-back-button {

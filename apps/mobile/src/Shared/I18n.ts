@@ -137,7 +137,9 @@ export const CALLIGRAPHY_TRANSLATION_KEYS = [
   "recommendDirection",
   "recommendSimilarity",
   "calligraphyError",
+  "alignedAttempt",
   "drawingArea",
+  "initializingApplication",
   "loadingLanguage",
   "applicationNavigation",
   "closeNavigation"
@@ -263,7 +265,9 @@ export const ENGLISH_TRANSLATIONS: TranslationMap = {
   recommendDirection: "Focus on the start and end direction of each stroke.",
   recommendSimilarity: "Focus on the overall shape and position of the character.",
   calligraphyError: "An unexpected error has occurred and the practice could not be evaluated.",
+  alignedAttempt: "Aligned attempt",
   drawingArea: "Drawing area",
+  initializingApplication: "Initializing...",
   loadingLanguage: "Loading language",
   applicationNavigation: "Application navigation",
   closeNavigation: "Close navigation"
@@ -304,7 +308,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendStrokeOrder: "Focus on drawing the strokes in the reference order.",
     recommendDirection: "Focus on the start and end direction of each stroke.",
     recommendSimilarity: "Focus on the overall shape and position of the character.",
-    calligraphy: "Calligraphy"
+    calligraphy: "Calligraphy",
+    initializingApplication: "Initializing...",
+    alignedAttempt: "Aligned attempt"
   },
   "es-ES": {
     appName: "KanjiMe",
@@ -416,8 +422,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendSimilarity: "Céntrate en la forma general y la posición del carácter.",
     drawingArea: "Área de dibujo",
     loadingLanguage: "Cargando idioma",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Navegación de la aplicación",
-    closeNavigation: "Cerrar navegación"
+    closeNavigation: "Cerrar navegación",
+    alignedAttempt: "Intento alineado"
   },
   "fr-FR": {
     appName: "KanjiMe",
@@ -529,8 +537,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "Calligraphie",
     drawingArea: "Zone de dessin",
     loadingLanguage: "Chargement de la langue",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Navigation de l'application",
-    closeNavigation: "Fermer la navigation"
+    closeNavigation: "Fermer la navigation",
+    alignedAttempt: "Essai aligné"
   },
   "de-DE": {
     appName: "KanjiMe",
@@ -642,8 +652,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "Kalligrafie",
     drawingArea: "Zeichenbereich",
     loadingLanguage: "Sprache wird geladen",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Anwendungsnavigation",
-    closeNavigation: "Navigation schließen"
+    closeNavigation: "Navigation schließen",
+    alignedAttempt: "Ausgerichteter Versuch"
   },
   "it-IT": {
     appName: "KanjiMe",
@@ -755,8 +767,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "Calligrafia",
     drawingArea: "Area di disegno",
     loadingLanguage: "Caricamento della lingua",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Navigazione dell'applicazione",
-    closeNavigation: "Chiudi navigazione"
+    closeNavigation: "Chiudi navigazione",
+    alignedAttempt: "Tentativo allineato"
   },
   "pt-PT": {
     appName: "KanjiMe",
@@ -868,8 +882,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "Caligrafia",
     drawingArea: "Área de desenho",
     loadingLanguage: "A carregar o idioma",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Navegação da aplicação",
-    closeNavigation: "Fechar navegação"
+    closeNavigation: "Fechar navegação",
+    alignedAttempt: "Tentativa alinhada"
   },
   "ja-JP": {
     appName: "KanjiMe",
@@ -981,8 +997,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "書道",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   },
   "zh-CN": {
     appName: "KanjiMe",
@@ -1094,8 +1112,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "书法",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   },
   "zh-TW": {
     appName: "KanjiMe",
@@ -1207,8 +1227,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "書法",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   },
   "ko-KR": {
     appName: "KanjiMe",
@@ -1320,8 +1342,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "서예",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   },
   "hi-IN": {
     appName: "KanjiMe",
@@ -1433,8 +1457,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "सुलेख",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   },
   "ar-SA": {
     appName: "KanjiMe",
@@ -1546,8 +1572,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "الخط",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   },
   "sw-KE": {
     appName: "KanjiMe",
@@ -1659,8 +1687,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "Kaligrafia",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   },
   "am-ET": {
     appName: "KanjiMe",
@@ -1772,8 +1802,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "ካሊግራፊ",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   },
   "ha-NG": {
     appName: "KanjiMe",
@@ -1885,8 +1917,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "Kira",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   },
   "yo-NG": {
     appName: "KanjiMe",
@@ -1998,8 +2032,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "Akọsilẹ",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   },
   "zu-ZA": {
     appName: "KanjiMe",
@@ -2111,8 +2147,10 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     calligraphy: "I-Calligraphy",
     drawingArea: "Drawing area",
     loadingLanguage: "Loading language",
+    initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
-    closeNavigation: "Close navigation"
+    closeNavigation: "Close navigation",
+    alignedAttempt: "Aligned attempt"
   }
 };
 

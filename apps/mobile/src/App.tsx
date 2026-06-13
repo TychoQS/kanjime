@@ -67,7 +67,7 @@ function AppRoot(): JSX.Element {
         <LoadingScreenView
           blocksInteraction
           isVisible
-          message={translate(preferences.preferences.language, "loadingModel")}
+          message={translate(preferences.preferences.language, "initializingApplication")}
         />
       </IonApp>
     );

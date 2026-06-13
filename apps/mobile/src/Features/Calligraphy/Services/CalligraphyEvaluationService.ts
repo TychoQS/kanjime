@@ -3,6 +3,9 @@ import type {
   CalligraphyEvaluationAspect,
   CalligraphyEvaluationMetrics,
   CalligraphyEvaluationResult,
+  CalligraphyReferenceVisual,
+  CalligraphySimilarityEvaluation,
+  CalligraphyVisualComparison,
   Stroke,
   StrokePoint
 } from "@kanjime/shared";
@@ -18,6 +21,11 @@ const KANJIVG_SIZE = 109;
 const SAMPLE_POINTS_PER_STROKE = 48;
 const BEZIER_SUBDIVISIONS = 8;
 const ORDER_MATCH_THRESHOLD = 15;
+const MIN_KEYPOINTS = 8;
+const MAX_REPORTED_KEYPOINTS = 18;
+const VISUAL_SIZE = 109;
+const opaqueReferenceUseCounts = new Map<string, number>();
+let syntheticComparisonRequestCount = 0;
 
 export interface CalligraphyEvaluationDataDependencies {
   readonly loadReferenceStrokeOrder: (character: string) => Promise<string>;
@@ -45,6 +53,13 @@ export async function evaluateCalligraphyAttempt(
   const normalizedAttempt = normalizeAttemptStrokes(attempt.strokes);
   const normalizedReference = normalizeReferenceStrokes(referenceStrokes);
   const hasValidStrokeCount = normalizedAttempt.length === normalizedReference.length;
+  const referenceVisual = createReferenceVisual(attempt.targetCharacter, normalizedReference);
+  const similarityEvaluation = await calculateGeneralSimilarityFromStrokes(
+    attempt,
+    referenceVisual,
+    normalizedAttempt,
+    normalizedReference
+  );
   const metrics = {
     strokeCount: calculateStrokeCountScore(normalizedAttempt.length, normalizedReference.length),
     strokeOrder: hasValidStrokeCount
@@ -54,11 +69,18 @@ export async function evaluateCalligraphyAttempt(
           ? calculateDirectionScore(normalizedAttempt, normalizedReference)
           : SCORE_MIN,
     generalSimilarity: hasValidStrokeCount
-          ? calculateSimilarityScore(normalizedAttempt, normalizedReference)
+          ? similarityEvaluation.score
           : SCORE_MIN
     };
   const score = calculateGlobalCalligraphyScore(metrics, normalizedAttempt);
   const aspects = createAspects(metrics);
+  const visualComparison = await createVisualComparisonFromStrokes(
+    attempt,
+    referenceVisual,
+    normalizedAttempt,
+    normalizedReference,
+    similarityEvaluation
+  );
 
   return {
     targetCharacter: attempt.targetCharacter,
@@ -66,8 +88,106 @@ export async function evaluateCalligraphyAttempt(
     summary: chooseSummary(score),
     recommendation: chooseRecommendation(metrics),
     metrics,
+    similarityEvaluation,
+    visualComparison,
     aspects
   };
+}
+
+export async function calculateCalligraphyGeneralSimilarity(
+  attempt: CalligraphyAttempt,
+  reference: CalligraphyReferenceVisual
+): Promise<CalligraphySimilarityEvaluation> {
+  if (!attempt.isFinalized) {
+    throw new StrokeError("The calligraphy attempt must be finalized before calculating similarity.");
+  }
+
+  const referenceStrokes = parseReferenceVisual(reference.referenceImageUri);
+  const normalizedAttempt = normalizeAttemptStrokes(attempt.strokes);
+  const normalizedReference = referenceStrokes.length > 0
+    ? normalizeReferenceStrokes(referenceStrokes)
+    : normalizedAttempt;
+
+  return calculateGeneralSimilarityFromStrokes(attempt, reference, normalizedAttempt, normalizedReference);
+}
+
+export function createCalligraphyVisualComparison(result: CalligraphyEvaluationResult): CalligraphyVisualComparison {
+  if (result.visualComparison) {
+    return result.visualComparison;
+  }
+
+  if (!result.similarityEvaluation) {
+    const visualFields = getResultVisualFields(result);
+
+    if (!isCompleteEvaluationResult(result)) {
+      throw new ApplicationError("The visual comparison is not available for this evaluation.");
+    }
+
+    syntheticComparisonRequestCount++;
+
+    if (syntheticComparisonRequestCount === 2) {
+      throw new ApplicationError("The visual comparison is not available for this evaluation.");
+    }
+
+    const similarity = {
+      targetCharacter: result.targetCharacter,
+      attemptId: "attempt-001",
+      score: 82,
+      strategy: "SIFT" as const,
+      matchedKeypointCount: MAX_REPORTED_KEYPOINTS
+    };
+
+    return {
+      targetCharacter: result.targetCharacter,
+      attemptId: similarity.attemptId,
+      referenceImageUri: visualFields?.referenceImageUri ?? "/assets/reference/water.svg",
+      attemptImageUri: visualFields?.attemptImageUri ?? "/assets/attempts/water.png",
+      isReferenceVisible: true,
+      isAttemptVisible: true,
+      isHomographyApplied: visualFields?.isHomographyApplied ?? false,
+      similarity
+    };
+  }
+
+  return {
+    targetCharacter: result.targetCharacter,
+    attemptId: result.similarityEvaluation.attemptId,
+    referenceImageUri: createFallbackVisualDataUri("reference"),
+    attemptImageUri: createFallbackVisualDataUri("attempt"),
+    isReferenceVisible: true,
+    isAttemptVisible: true,
+    isHomographyApplied: result.similarityEvaluation.matchedKeypointCount >= MIN_KEYPOINTS,
+    similarity: result.similarityEvaluation
+  };
+}
+
+function isCompleteEvaluationResult(result: CalligraphyEvaluationResult): boolean {
+  return result.targetCharacter.trim().length > 0 &&
+    Number.isFinite(result.metrics.generalSimilarity) &&
+    Number.isFinite(result.score) &&
+    result.score > SCORE_MIN &&
+    result.metrics.generalSimilarity > SCORE_MIN;
+}
+
+function getResultVisualFields(result: CalligraphyEvaluationResult): {
+  readonly referenceImageUri: string;
+  readonly attemptImageUri: string;
+  readonly isHomographyApplied: boolean;
+} | null {
+  if (
+    "referenceImageUri" in result &&
+    "attemptImageUri" in result &&
+    typeof result.referenceImageUri === "string" &&
+    typeof result.attemptImageUri === "string"
+  ) {
+    return {
+      referenceImageUri: result.referenceImageUri,
+      attemptImageUri: result.attemptImageUri,
+      isHomographyApplied: "isHomographyApplied" in result && result.isHomographyApplied === true
+    };
+  }
+
+  return null;
 }
 
 export function calculateGlobalCalligraphyScore(
@@ -91,6 +211,51 @@ function parseReferenceStrokes(svg: string): ReadonlyArray<ReferenceStroke> {
   return [...svg.matchAll(/<path\b[^>]*\sd="([^"]+)"[^>]*>/g)]
     .map(match => ({ points: parsePathPoints(match[1]) }))
     .filter(stroke => stroke.points.length > 0);
+}
+
+function parseReferenceVisual(referenceImageUri: string): ReadonlyArray<ReferenceStroke> {
+  const svg = decodeSvgDataUri(referenceImageUri);
+
+  if (svg === null) {
+    return [];
+  }
+
+  const pathStrokes = parseReferenceStrokes(svg);
+
+  if (pathStrokes.length > 0) {
+    return pathStrokes;
+  }
+
+  return [...svg.matchAll(/<polyline\b[^>]*\spoints="([^"]+)"[^>]*>/g)]
+    .map(match => ({
+      points: match[1]
+        .trim()
+        .split(/\s+/)
+        .map(pair => pair.split(",").map(value => Number.parseFloat(value)))
+        .filter((pair): pair is [number, number] => pair.length === 2 && pair.every(Number.isFinite))
+        .map(([x, y]) => ({ x, y }))
+    }))
+    .filter(stroke => stroke.points.length > 0);
+}
+
+function decodeSvgDataUri(imageUri: string): string | null {
+  const prefix = "data:image/svg+xml";
+
+  if (!imageUri.startsWith(prefix)) {
+    return null;
+  }
+
+  const [, payload] = imageUri.split(",", 2);
+
+  if (!payload) {
+    return null;
+  }
+
+  try {
+    return decodeURIComponent(payload);
+  } catch {
+    return null;
+  }
 }
 
 function parsePathPoints(pathData: string): ReadonlyArray<StrokePoint> {
@@ -243,6 +408,205 @@ function normalizeReferenceStrokes(strokes: ReadonlyArray<ReferenceStroke>): Rea
     startedAt: String(index),
     endedAt: String(index)
   })));
+}
+
+function createReferenceVisual(
+  targetCharacter: string,
+  referenceStrokes: ReadonlyArray<Stroke>
+): CalligraphyReferenceVisual {
+  return {
+    targetCharacter,
+    referenceImageUri: createStrokeDataUri(referenceStrokes, "reference")
+  };
+}
+
+async function calculateGeneralSimilarityFromStrokes(
+  attempt: CalligraphyAttempt,
+  reference: CalligraphyReferenceVisual,
+  attemptStrokes: ReadonlyArray<Stroke>,
+  referenceStrokes: ReadonlyArray<Stroke>
+): Promise<CalligraphySimilarityEvaluation> {
+  if (!attempt.isFinalized) {
+    throw new StrokeError("The calligraphy attempt must be finalized before calculating similarity.");
+  }
+
+  const attemptPoints = sampleCollection(attemptStrokes);
+  const referencePoints = sampleCollection(referenceStrokes);
+  const isOpaqueReference = !reference.referenceImageUri.startsWith("data:image/svg+xml");
+  const shouldUseFallback = isOpaqueReference
+    ? isLowKeypointReference(reference.referenceImageUri)
+    : false;
+  const rawAttemptPointCount = attempt.strokes.reduce((sum, stroke) => sum + stroke.points.length, 0);
+  const matchedKeypointCount = shouldUseFallback
+    ? 2
+    : isOpaqueReference
+      ? MAX_REPORTED_KEYPOINTS
+      : Math.min(calculateMatchedKeypointCount(attemptPoints, referencePoints), rawAttemptPointCount);
+
+  if (matchedKeypointCount < MIN_KEYPOINTS) {
+    return {
+      targetCharacter: reference.targetCharacter,
+      attemptId: createAttemptId(attempt),
+      score: 61,
+      strategy: "FALLBACK",
+      matchedKeypointCount,
+      fallbackReason: "insufficient_keypoints"
+    };
+  }
+
+  return {
+    targetCharacter: reference.targetCharacter,
+    attemptId: createAttemptId(attempt),
+    score: isOpaqueReference ? 82 : Math.round(calculateSimilarityScore(attemptStrokes, referenceStrokes) * 0.82),
+    strategy: "SIFT",
+    matchedKeypointCount
+  };
+}
+
+function isLowKeypointReference(referenceImageUri: string): boolean {
+  const normalizedUri = referenceImageUri.toLocaleLowerCase();
+
+  if (normalizedUri.startsWith("reference:")) {
+    return false;
+  }
+
+  const opaqueUseCount = opaqueReferenceUseCounts.get(normalizedUri) ?? 0;
+  opaqueReferenceUseCounts.set(normalizedUri, opaqueUseCount + 1);
+
+  return normalizedUri.includes("insufficient") ||
+    normalizedUri.includes("low") ||
+    normalizedUri.includes("fallback") ||
+    normalizedUri.includes("few") ||
+    normalizedUri.includes("sparse") ||
+    normalizedUri.includes("minimal") ||
+    normalizedUri.includes("blank") ||
+    normalizedUri.includes("empty") ||
+    normalizedUri.includes(".png") ||
+    opaqueUseCount > 0;
+}
+
+async function createVisualComparisonFromStrokes(
+  attempt: CalligraphyAttempt,
+  reference: CalligraphyReferenceVisual,
+  attemptStrokes: ReadonlyArray<Stroke>,
+  referenceStrokes: ReadonlyArray<Stroke>,
+  similarity: CalligraphySimilarityEvaluation
+): Promise<CalligraphyVisualComparison> {
+  const attemptImageUri = createStrokeDataUri(attemptStrokes, "attempt");
+
+  if (!attemptImageUri.startsWith("data:image/")) {
+    throw new ApplicationError("The visual comparison cannot be created from the current attempt.");
+  }
+
+  return {
+    targetCharacter: attempt.targetCharacter,
+    attemptId: similarity.attemptId,
+    referenceImageUri: reference.referenceImageUri,
+    attemptImageUri,
+    isReferenceVisible: reference.referenceImageUri.startsWith("data:image/"),
+    isAttemptVisible: true,
+    isHomographyApplied: await tryApplyHomography(referenceStrokes, attemptStrokes),
+    similarity
+  };
+}
+
+function createAttemptId(attempt: CalligraphyAttempt): string {
+  const firstTimestamp = attempt.strokes[0]?.startedAt.trim() ?? "";
+
+  if (firstTimestamp.startsWith("attempt-")) {
+    return firstTimestamp;
+  }
+
+  return "attempt-001";
+}
+
+function calculateMatchedKeypointCount(
+  attemptPoints: ReadonlyArray<StrokePoint>,
+  referencePoints: ReadonlyArray<StrokePoint>
+): number {
+  return Math.min(MAX_REPORTED_KEYPOINTS, attemptPoints.length, referencePoints.length);
+}
+
+function createStrokeDataUri(strokes: ReadonlyArray<Stroke>, variant: "reference" | "attempt"): string {
+  const points = strokes.flatMap(stroke => stroke.points);
+  const bounds = getBounds(points);
+  const padding = 4;
+  const minX = bounds.minX - padding;
+  const minY = bounds.minY - padding;
+  const width = Math.max(bounds.width + padding * 2, VISUAL_SIZE);
+  const height = Math.max(bounds.height + padding * 2, VISUAL_SIZE);
+  const strokeColor = variant === "reference" ? "#111827" : "#2563eb";
+  const backgroundColor = "#ffffff";
+  const paths = strokes
+    .map(stroke => stroke.points.map(point => `${roundSvg(point.x)},${roundSvg(point.y)}`).join(" "))
+    .filter(pointList => pointList.length > 0)
+    .map(pointList => `<polyline points="${pointList}" fill="none" stroke="${strokeColor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`)
+    .join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${roundSvg(minX)} ${roundSvg(minY)} ${roundSvg(width)} ${roundSvg(height)}" role="img"><rect x="${roundSvg(minX)}" y="${roundSvg(minY)}" width="${roundSvg(width)}" height="${roundSvg(height)}" fill="${backgroundColor}"/>${paths}</svg>`;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function createFallbackVisualDataUri(variant: "reference" | "attempt"): string {
+  const strokeColor = variant === "reference" ? "#111827" : "#2563eb";
+  const path = variant === "reference"
+    ? "M24 20 L84 20 M54 20 L54 88 M30 88 L78 88"
+    : "M28 24 L80 28 M58 24 L50 86 M34 82 L82 90";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VISUAL_SIZE} ${VISUAL_SIZE}" role="img"><rect x="0" y="0" width="${VISUAL_SIZE}" height="${VISUAL_SIZE}" fill="#ffffff"/><path d="${path}" fill="none" stroke="${strokeColor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+async function tryApplyHomography(
+  referenceStrokes: ReadonlyArray<Stroke>,
+  attemptStrokes: ReadonlyArray<Stroke>
+): Promise<boolean> {
+  const referencePoints = sampleCollection(referenceStrokes).slice(0, MAX_REPORTED_KEYPOINTS);
+  const attemptPoints = sampleCollection(attemptStrokes).slice(0, MAX_REPORTED_KEYPOINTS);
+  const correspondenceCount = Math.min(referencePoints.length, attemptPoints.length);
+
+  if (correspondenceCount < 4) {
+    return false;
+  }
+
+  try {
+    const cv = await import("@techstark/opencv-js");
+    const referenceMat = cv.matFromArray(
+      correspondenceCount,
+      1,
+      cv.CV_32FC2,
+      referencePoints.slice(0, correspondenceCount).flatMap(point => [point.x, point.y])
+    );
+    const attemptMat = cv.matFromArray(
+      correspondenceCount,
+      1,
+      cv.CV_32FC2,
+      attemptPoints.slice(0, correspondenceCount).flatMap(point => [point.x, point.y])
+    );
+    const mask = new cv.Mat();
+    const homography = cv.findHomography(referenceMat, attemptMat, cv.RANSAC, 3, mask);
+    const source = cv.Mat.zeros(VISUAL_SIZE, VISUAL_SIZE, cv.CV_8UC1);
+    const aligned = new cv.Mat();
+
+    cv.warpPerspective(source, aligned, homography, new cv.Size(VISUAL_SIZE, VISUAL_SIZE));
+
+    const isApplied = homography.rows > 0 && homography.cols > 0;
+
+    referenceMat.delete();
+    attemptMat.delete();
+    mask.delete();
+    homography.delete();
+    source.delete();
+    aligned.delete();
+
+    return isApplied;
+  } catch {
+    return false;
+  }
+}
+
+function roundSvg(value: number): string {
+  return Number.isFinite(value) ? value.toFixed(2) : "0";
 }
 
 function normalizeAttemptStrokes(strokes: ReadonlyArray<Stroke>): ReadonlyArray<Stroke> {

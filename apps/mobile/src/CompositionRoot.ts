@@ -79,6 +79,7 @@ import { ObservabilityPersistence } from "./Shared/ObservabilityPersistence";
 import { UserActionTracker } from "./Shared/UserActionTracker";
 import { captureVideoFrame, openRearCameraStream, stopCameraStream } from "./Features/Classification/Camera/WebRtcCamera";
 import { pickImageFromDevice } from "./Features/Classification/Image/WebImagePicker";
+import { readFirebaseInstallationId } from "./Shared/FirebaseInstallationClient";
 
 export interface AboutDisplayItem {
   readonly label: string;
@@ -230,15 +231,17 @@ export function createCompositionRoot(): CompositionRoot {
   });
 
   const createErrorContext = async (): Promise<ApplicationErrorContext> => {
-    const [applicationVersion, deviceInfo] = await Promise.all([
+    const [applicationVersion, deviceInfo, anonymousClientId] = await Promise.all([
       loadCurrentApplicationVersion(),
-      loadDeviceInfo()
+      loadDeviceInfo(),
+      readFirebaseInstallationId()
     ]);
 
     return {
       applicationVersion: applicationVersion ?? packageMetadata.version,
       webEngine: deviceInfo.webEngine,
       webEngineVersion: deviceInfo.webEngineVersion,
+      ...(anonymousClientId ? { anonymousClientId } : {}),
       lastActions: userActionTracker.listRecentActions()
     };
   };
@@ -499,6 +502,7 @@ export function createCompositionRoot(): CompositionRoot {
 
   const categoryController = CreateCategoryController({
     getKanjiByCategory: categoryId => kanjiRepository.getCalligraphyKanjiByCategory(categoryId),
+    searchKanjiByCategory: (categoryId, term) => kanjiRepository.searchCalligraphyKanjiByCategory(categoryId, term),
     startCalligraphyPractice: async (character, grouping) => {
       recordUserAction({
         type: "calligraphy:practice-started",
@@ -523,6 +527,7 @@ export function createCompositionRoot(): CompositionRoot {
       summary: result.summary,
       recommendation: result.recommendation ?? "recommendSimilarity",
       aspects: result.aspects ?? [],
+      visualComparison: result.visualComparison,
       isOverlayVisible: true
     })
   });

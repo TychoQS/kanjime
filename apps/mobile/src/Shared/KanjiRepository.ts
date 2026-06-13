@@ -278,6 +278,27 @@ export class KanjiRepository {
       .sort((left, right) => left.strokeCount - right.strokeCount || left.character.localeCompare(right.character));
   }
 
+  async searchCalligraphyKanjiByCategory(categoryId: string, term: string): Promise<ReadonlyArray<CategoryKanjiEntry>> {
+    await this.initialize();
+    const parsedCategory = parseCalligraphyCategoryId(categoryId);
+    const trimmedTerm = term.trim();
+
+    if (parsedCategory === null || trimmedTerm.length === 0) {
+      return [];
+    }
+
+    const results = await this.search(trimmedTerm);
+
+    return results
+      .filter(summary => belongsToCalligraphyCategory(summary, parsedCategory.grouping, parsedCategory.label))
+      .map(summary => ({
+        character: summary.character,
+        categoryId,
+        strokeCount: summary.strokeCount
+      }))
+      .sort((left, right) => left.strokeCount - right.strokeCount || left.character.localeCompare(right.character));
+  }
+
   private async preloadSummaries(): Promise<void> {
     const database = this.requireDatabase();
     const rows = readRows(

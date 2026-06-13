@@ -1,4 +1,4 @@
-import { IonButton, IonIcon, IonText } from "@ionic/react";
+import { IonButton, IonIcon, IonSearchbar, IonText } from "@ionic/react";
 import { arrowBack } from "ionicons/icons";
 
 import { translate } from "../../../Shared/I18n";
@@ -25,6 +25,17 @@ export function CategoryView(props: CategoryProps): JSX.Element {
         <div className="section-heading">
           <span>{translate(language, "kanji")}</span>
         </div>
+        <IonSearchbar
+          aria-label={translate(language, "search")}
+          className="calligraphy-category-search"
+          data-testid="calligraphy-category-search"
+          inputmode="search"
+          placeholder={translate(language, "searchPlaceholder")}
+          role="searchbox"
+          value={props.searchTerm}
+          onIonInput={event => props.onSearchTermChanged(event.detail.value ?? "")}
+          onIonClear={() => props.onSearchTermChanged("")}
+        />
         <div className="result-list scroll-list">
           {props.visibleKanji.length === 0 ? (
             <IonText color="medium">

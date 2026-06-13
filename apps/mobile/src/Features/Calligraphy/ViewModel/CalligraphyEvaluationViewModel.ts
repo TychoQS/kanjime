@@ -1,5 +1,9 @@
 import type { CreateCalligraphyEvaluationControllerDependencies } from "../CreateCalligraphyEvaluationController";
 import type { CalligraphyEvaluationInterface } from "../Contracts/CalligraphyEvaluationInterface";
+import {
+  calculateCalligraphyGeneralSimilarity,
+  createCalligraphyVisualComparison
+} from "../Services/CalligraphyEvaluationService";
 import type {
   CalligraphyAttempt,
   CalligraphyEvaluationFeedback,
@@ -24,9 +28,22 @@ export function createCalligraphyEvaluationViewModel(
       }
 
       const result = await dependencies.evaluateAttempt(attempt);
-      return {
+      const similarityEvaluation = result.similarityEvaluation ?? await viewModel.calculateGeneralSimilarity(attempt, {
+        targetCharacter: result.targetCharacter,
+        referenceImageUri: `reference:${result.targetCharacter}`
+      });
+      const resultWithSimilarity = {
         ...result,
-        score: viewModel.calculateScore(result)
+        similarityEvaluation,
+        visualComparison: result.visualComparison ?? createCalligraphyVisualComparison({
+          ...result,
+          similarityEvaluation
+        })
+      };
+
+      return {
+        ...resultWithSimilarity,
+        score: viewModel.calculateScore(resultWithSimilarity)
       };
     },
     calculateScore(result: CalligraphyEvaluationResult): number {
@@ -40,21 +57,18 @@ export function createCalligraphyEvaluationViewModel(
       attempt: CalligraphyAttempt,
       reference: CalligraphyReferenceVisual
     ): Promise<CalligraphySimilarityEvaluation> {
-      void attempt;
-      void reference;
-
-      if (!dependencies.calculateGeneralSimilarity) {
-        throw new ApplicationError("Not implemented yet");
+      if (!attempt.isFinalized) {
+        throw new StrokeError("The calligraphy attempt must be finalized before calculating similarity.");
       }
 
-      return dependencies.calculateGeneralSimilarity(attempt, reference);
+      return dependencies.calculateGeneralSimilarity
+        ? dependencies.calculateGeneralSimilarity(attempt, reference)
+        : calculateCalligraphyGeneralSimilarity(attempt, reference);
     },
     createVisualComparison(result: CalligraphyEvaluationResult): CalligraphyVisualComparison {
-      if (!dependencies.createVisualComparison) {
-        throw new ApplicationError("Not implemented yet");
-      }
-
-      return dependencies.createVisualComparison(result);
+      return dependencies.createVisualComparison
+        ? dependencies.createVisualComparison(result)
+        : createCalligraphyVisualComparison(result);
     },
     createFeedback(result: CalligraphyEvaluationResult): CalligraphyEvaluationFeedback {
       if (!isValidEvaluationResult(result)) {

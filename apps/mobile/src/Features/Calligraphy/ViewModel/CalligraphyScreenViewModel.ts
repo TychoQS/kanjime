@@ -33,6 +33,7 @@ export interface CalligraphyScreenViewModel {
   readonly activeGrouping: CalligraphyGrouping;
   readonly categories: ReadonlyArray<CalligraphyCategory>;
   readonly selectedCategoryId: string | null;
+  readonly categorySearchTerm: string;
   readonly categoryKanji: ReadonlyArray<CalligraphyKanjiSummary>;
   readonly targetCharacter: string | null;
   readonly strokes: ReadonlyArray<Stroke>;
@@ -41,6 +42,7 @@ export interface CalligraphyScreenViewModel {
   readonly errorMessage: string | null;
   selectGrouping(grouping: CalligraphyGrouping): void;
   openCategory(categoryId: string): Promise<void>;
+  updateCategorySearchTerm(term: string): void;
   returnHome(): Promise<void>;
   startPractice(character: string): Promise<void>;
   returnToCategory(): Promise<void>;
@@ -65,6 +67,7 @@ export function useCalligraphyScreenViewModel(
   const [activeGrouping, setActiveGrouping] = useState(dependencies.calligraphyController.getActiveGrouping());
   const [categories, setCategories] = useState(dependencies.calligraphyController.getVisibleCategories());
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [categorySearchTerm, setCategorySearchTerm] = useState("");
   const [categoryKanji, setCategoryKanji] = useState<ReadonlyArray<CalligraphyKanjiSummary>>([]);
   const [targetCharacter, setTargetCharacter] = useState<string | null>(null);
   const [strokes, setStrokes] = useState(dependencies.calligraphyCanvasController.getStrokeHistory());
@@ -137,6 +140,7 @@ export function useCalligraphyScreenViewModel(
             const kanji = await dependencies.categoryController.getKanjiByCategory(catId);
             if (isMounted) {
               setSelectedCategoryId(catId);
+              setCategorySearchTerm("");
               setCategoryKanji(kanji);
               setTargetCharacter(null);
               setFeedback(null);
@@ -156,6 +160,7 @@ export function useCalligraphyScreenViewModel(
             if (isMounted) {
               setMode("home");
               setSelectedCategoryId(null);
+              setCategorySearchTerm("");
               setCategoryKanji([]);
               setTargetCharacter(null);
               setFeedback(null);
@@ -181,6 +186,7 @@ export function useCalligraphyScreenViewModel(
     activeGrouping,
     categories,
     selectedCategoryId,
+    categorySearchTerm,
     categoryKanji,
     targetCharacter,
     strokes,
@@ -199,6 +205,28 @@ export function useCalligraphyScreenViewModel(
     openCategory(categoryId: string): Promise<void> {
       history.push(`/calligraphy/category/${encodeURIComponent(categoryId)}`);
       return Promise.resolve();
+    },
+    updateCategorySearchTerm(term: string): void {
+      setCategorySearchTerm(term);
+
+      if (selectedCategoryId === null) {
+        return;
+      }
+
+      const categoryId = selectedCategoryId;
+      const trimmedTerm = term.trim();
+      const loadKanji = trimmedTerm.length === 0
+        ? dependencies.categoryController.getKanjiByCategory(categoryId)
+        : dependencies.categoryController.searchKanjiByCategory(categoryId, trimmedTerm);
+
+      void loadKanji
+        .then(kanji => {
+          setCategoryKanji(kanji);
+        })
+        .catch(error => {
+          void captureUnexpectedError(dependencies.captureUnexpectedError, error);
+          setErrorMessage("calligraphyError");
+        });
     },
     returnHome(): Promise<void> {
       history.goBack();

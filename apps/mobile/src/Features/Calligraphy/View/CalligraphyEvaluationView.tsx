@@ -16,6 +16,11 @@ const METRIC_LABELS = {
 export function CalligraphyEvaluationView(props: CalligraphyEvaluationProps): JSX.Element | null {
   const language = document.documentElement.lang || "en-US";
   const summary = translateOrRaw(language, props.feedback.summary);
+  const comparison = props.comparison ?? props.feedback.visualComparison ?? null;
+
+  if (props.metrics !== undefined && comparison === null) {
+    throw new Error("The visual comparison data is required before rendering evaluation feedback.");
+  }
 
   return (
     <>
@@ -32,6 +37,28 @@ export function CalligraphyEvaluationView(props: CalligraphyEvaluationProps): JS
           <strong className="calligraphy-score-value" data-testid="calligraphy-score-value">{props.feedback.score}</strong>
         </p>
         <p data-testid="calligraphy-evaluation-summary">{summary}</p>
+        {comparison ? (
+          <section className="calligraphy-visual-comparison" data-testid="calligraphy-visual-comparison">
+            <figure className="calligraphy-visual-frame">
+              <figcaption>{translate(language, "strokeOrder")}</figcaption>
+              <img
+                alt={translate(language, "strokeOrder")}
+                className="calligraphy-comparison-image"
+                data-testid="calligraphy-reference-visual"
+                src={comparison.referenceImageUri}
+              />
+            </figure>
+            <figure className="calligraphy-visual-frame">
+              <figcaption>{translate(language, "drawing")}</figcaption>
+              <img
+                alt={translate(language, "drawing")}
+                className="calligraphy-comparison-image"
+                data-testid="calligraphy-attempt-visual"
+                src={comparison.attemptImageUri}
+              />
+            </figure>
+          </section>
+        ) : null}
         <ul className="calligraphy-metric-list" data-testid="calligraphy-metric-list">
           {(props.feedback.aspects ?? []).map(aspect => (
             <li data-testid={`calligraphy-metric-${aspect.id}`} key={aspect.id}>

@@ -48,7 +48,7 @@ export function CalligraphyCategoryScreen(): JSX.Element {
     <MobilePage title={translate(preferences.preferences.language, "calligraphy")} testId="calligraphy-category-screen">
       <CategoryView
         categoryId={calligraphy.selectedCategoryId ?? ""}
-        searchTerm=""
+        searchTerm={calligraphy.categorySearchTerm}
         visibleKanji={calligraphy.categoryKanji}
         onBackRequested={() => {
           void calligraphy.returnHome();
@@ -56,7 +56,7 @@ export function CalligraphyCategoryScreen(): JSX.Element {
         onKanjiSelected={character => {
           void calligraphy.startPractice(character);
         }}
-        onSearchTermChanged={() => undefined}
+        onSearchTermChanged={calligraphy.updateCategorySearchTerm}
       />
     </MobilePage>
   );
@@ -102,6 +102,7 @@ export function CalligraphyPracticeScreen(): JSX.Element {
             {calligraphy.feedback ? (
               <CalligraphyEvaluationView
                 feedback={calligraphy.feedback}
+                comparison={calligraphy.feedback.visualComparison ?? null}
                 onDismissRequested={calligraphy.dismissFeedback}
               />
             ) : null}

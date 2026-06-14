@@ -1,5 +1,5 @@
 interface OpenCvGlobal {
-  readonly cv?: OpenCvRuntime;
+  readonly cv?: OpenCvRuntime | Promise<unknown>;
 }
 
 interface OpenCvRuntime {
@@ -7,7 +7,7 @@ interface OpenCvRuntime {
   onRuntimeInitialized?: () => void;
 }
 
-const OPENCV_SCRIPT_SRC = "/assets/opencv.js";
+const OPENCV_SCRIPT_SRC = "/opencv/opencv.js";
 
 let initializationPromise: Promise<void> | null = null;
 
@@ -47,6 +47,14 @@ export function initializeOpenCv(): Promise<void> {
         return;
       }
 
+      if (cv instanceof Promise) {
+        cv.then(() => resolve()).catch(error => {
+          initializationPromise = null;
+          reject(error instanceof Error ? error : new Error(String(error)));
+        });
+        return;
+      }
+
       if (isOpenCvReady()) {
         resolve();
         return;
@@ -64,9 +72,15 @@ export function initializeOpenCv(): Promise<void> {
 }
 
 export function isOpenCvReady(): boolean {
-  return readOpenCvRuntime()?.Mat !== undefined;
+  const cv = readOpenCvRuntime();
+
+  if (cv instanceof Promise) {
+    return false;
+  }
+
+  return cv?.Mat !== undefined;
 }
 
-function readOpenCvRuntime(): OpenCvRuntime | undefined {
+function readOpenCvRuntime(): OpenCvRuntime | Promise<unknown> | undefined {
   return (globalThis as OpenCvGlobal).cv;
 }

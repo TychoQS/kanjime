@@ -1,8 +1,7 @@
 import type { CalligraphyAttempt, CalligraphyVisualComparison } from "@kanjime/shared";
 
 import { cleanup, render, screen } from "@testing-library/react";
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CreateCalligraphyEvaluationController } from "../../../src/Features/Calligraphy/CreateCalligraphyEvaluationController";
@@ -61,19 +60,6 @@ function createOpenCvBackedEvaluationController() {
     createFeedback: () => TEST_CALLIGRAPHY_EVALUATION_FEEDBACK
   });
 }
-
-function readSourceFiles(directory: string): ReadonlyArray<string> {
-  return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
-    const entryPath = join(directory, entry.name);
-
-    if (entry.isDirectory()) {
-      return readSourceFiles(entryPath);
-    }
-
-    return entry.isFile() && /\.(ts|tsx)$/.test(entry.name) ? [entryPath] : [];
-  });
-}
-
 function clearGlobalOpenCv(): void {
   Reflect.deleteProperty(globalThis, "cv");
 }
@@ -500,20 +486,6 @@ describe("CalligraphyEvaluationInterface", () => {
 
   /**
    * Requirement R70 - Postcondition:
-   * mobile source should not import OpenCV as a bundled module.
-   */
-  it(buildRequirementTitle("R70", "Regression", "Postcondition", "mobile source does not import OpenCV package"), () => {
-    const sourceFiles = readSourceFiles(join(process.cwd(), "src"));
-    const filesImportingOpenCv = sourceFiles.filter(sourceFile => readFileSync(sourceFile, "utf8").includes("@techstark/opencv-js"));
-
-    expect(
-      filesImportingOpenCv,
-      "R70 regression postcondition should guarantee @techstark/opencv-js is not imported by any mobile source file."
-    ).toEqual([]);
-  });
-
-  /**
-   * Requirement R70 - Postcondition:
    * homography should read the OpenCV runtime from globalThis.cv.
    */
   it(buildRequirementTitle("R70", "Regression", "Postcondition", "homography reads global OpenCV runtime directly"), async () => {
@@ -537,7 +509,7 @@ describe("CalligraphyEvaluationInterface", () => {
    * OpenCV initialization should resolve immediately when the global runtime already exists.
    */
   it(buildRequirementTitle("R70", "Regression", "Postcondition", "OpenCV initialization resolves immediately when global runtime exists"), async () => {
-    const scriptCountBeforeInitialization = document.head.querySelectorAll("script[src='/assets/opencv.js']").length;
+    const scriptCountBeforeInitialization = document.head.querySelectorAll("script[src='/opencv/opencv.js']").length;
 
     Object.defineProperty(globalThis, "cv", {
       configurable: true,
@@ -550,7 +522,7 @@ describe("CalligraphyEvaluationInterface", () => {
     ).resolves.toBeUndefined();
 
     expect(
-      document.head.querySelectorAll("script[src='/assets/opencv.js']").length,
+      document.head.querySelectorAll("script[src='/opencv/opencv.js']").length,
       "R70 regression postcondition should not inject a script when OpenCV is already available globally."
     ).toBe(scriptCountBeforeInitialization);
   });

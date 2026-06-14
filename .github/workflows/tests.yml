@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -38,16 +40,25 @@ jobs:
         run: npm ci
 
       - name: Install data processing system dependencies
-        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils podman
 
       - name: Prepare database
         run: npm run data:prepare
+
+      - name: Build OpenCV.js
+        run: npm run build:opencv -w @kanjime/mobile
 
       - name: Lint monorepo
         run: npm run lint
 
       - name: Build monorepo
         run: npm run build
+
+      - name: Upload OpenCV.js asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-opencv-js
+          path: apps/mobile/public/opencv
 
       - name: Run unit and integration tests
         run: npm run test
@@ -77,6 +88,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -92,6 +105,12 @@ jobs:
 
       - name: Prepare database
         run: npm run data:prepare
+
+      - name: Download OpenCV.js asset
+        uses: actions/download-artifact@v4
+        with:
+          name: mobile-opencv-js
+          path: apps/mobile/public/opencv
 
       - name: Install Playwright browser and dependencies
         run: npx playwright install --with-deps ${{ matrix.browser }}

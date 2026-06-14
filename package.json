@@ -16,6 +16,7 @@
     "build:admin": "npm run build:shared && npm run build:app -w @kanjime/admin",
     "build:android": "npm run build:shared && npm run build:android -w @kanjime/mobile",
     "build:mobile": "npm run build:shared && npm run build:app -w @kanjime/mobile",
+    "build:opencv": "npm run build:opencv -w @kanjime/mobile",
     "build:shared": "npm run build -w @kanjime/shared",
     "data:build": "npm run data:build -w @kanjime/mobile",
     "data:download": "npm run data:download -w @kanjime/mobile",

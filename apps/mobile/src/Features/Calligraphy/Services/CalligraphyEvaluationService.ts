@@ -10,6 +10,7 @@ import type {
   StrokePoint
 } from "@kanjime/shared";
 import { ApplicationError, StrokeError } from "@kanjime/shared";
+import { getOpenCvRuntime } from "../../../Shared/OpenCvService";
 
 interface ReferenceStroke {
   readonly points: ReadonlyArray<StrokePoint>;
@@ -45,10 +46,6 @@ interface OpenCvHomographyRuntime {
   matFromArray(rows: number, cols: number, type: number, data: ReadonlyArray<number>): OpenCvMat;
   findHomography(reference: OpenCvMat, attempt: OpenCvMat, method: number, threshold: number, mask: OpenCvMat): OpenCvMat;
   warpPerspective(source: OpenCvMat, destination: OpenCvMat, transform: OpenCvMat, size: object): void;
-}
-
-interface OpenCvGlobal {
-  readonly cv?: unknown;
 }
 
 const SCORE_MIN = 0;
@@ -601,12 +598,7 @@ async function tryApplyHomography(
   referenceStrokes: ReadonlyArray<Stroke>,
   attemptStrokes: ReadonlyArray<Stroke>
 ): Promise<OpenCvHomographyResult> {
-  const cv = readOpenCvRuntime();
-
-  if (!isOpenCvHomographyRuntime(cv)) {
-    return createUnavailableHomographyResult();
-  }
-
+  const cv = await getOpenCvRuntime() as unknown as OpenCvHomographyRuntime;
   const referencePoints = sampleCollection(referenceStrokes).slice(0, MAX_REPORTED_KEYPOINTS);
   const attemptPoints = sampleCollection(attemptStrokes).slice(0, MAX_REPORTED_KEYPOINTS);
   const correspondenceCount = Math.min(referencePoints.length, attemptPoints.length);
@@ -686,34 +678,6 @@ function createAlignedAttemptImageUri(image: ArrayBuffer): string {
     .join("");
 
   return `data:image/svg+xml;base64,${btoa(binary)}`;
-}
-
-function readOpenCvRuntime(): unknown {
-  return (globalThis as OpenCvGlobal).cv;
-}
-
-function isOpenCvHomographyRuntime(value: unknown): value is OpenCvHomographyRuntime {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  const runtime = value as Record<string, unknown>;
-  const mat = runtime.Mat;
-
-  if (typeof mat !== "function") {
-    return false;
-  }
-
-  const matConstructor = mat as unknown as Record<string, unknown>;
-
-  return typeof matConstructor.zeros === "function" &&
-    typeof runtime.Size === "function" &&
-    typeof runtime.matFromArray === "function" &&
-    typeof runtime.findHomography === "function" &&
-    typeof runtime.warpPerspective === "function" &&
-    typeof runtime.CV_32FC2 === "number" &&
-    typeof runtime.CV_8UC1 === "number" &&
-    typeof runtime.RANSAC === "number";
 }
 
 function deleteOpenCvMat(mat: OpenCvMat): void {

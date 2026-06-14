@@ -484,48 +484,6 @@ describe("CalligraphyEvaluationInterface", () => {
     ).toEqual(TEST_CALLIGRAPHY_VISUAL_COMPARISON);
   });
 
-  /**
-   * Requirement R70 - Postcondition:
-   * homography should read the OpenCV runtime from globalThis.cv.
-   */
-  it(buildRequirementTitle("R70", "Regression", "Postcondition", "homography reads global OpenCV runtime directly"), async () => {
-    const cvGetter = vi.fn(() => ({ Mat: class {} }));
-
-    Object.defineProperty(globalThis, "cv", {
-      configurable: true,
-      get: cvGetter
-    });
-
-    await createOpenCvBackedEvaluationController().evaluateAttempt(TEST_OPENCV_CALLIGRAPHY_ATTEMPT);
-
-    expect(
-      cvGetter,
-      "R70 regression postcondition should read globalThis.cv during calligraphy homography evaluation."
-    ).toHaveBeenCalled();
-  });
-
-  /**
-   * Requirement R70 - Postcondition:
-   * OpenCV initialization should resolve immediately when the global runtime already exists.
-   */
-  it(buildRequirementTitle("R70", "Regression", "Postcondition", "OpenCV initialization resolves immediately when global runtime exists"), async () => {
-    const scriptCountBeforeInitialization = document.head.querySelectorAll("script[src='/opencv/opencv.js']").length;
-
-    Object.defineProperty(globalThis, "cv", {
-      configurable: true,
-      value: { Mat: class {} }
-    });
-
-    await expect(
-      initializeOpenCv(),
-      "R70 regression postcondition should resolve initializeOpenCv immediately when globalThis.cv is already ready."
-    ).resolves.toBeUndefined();
-
-    expect(
-      document.head.querySelectorAll("script[src='/opencv/opencv.js']").length,
-      "R70 regression postcondition should not inject a script when OpenCV is already available globally."
-    ).toBe(scriptCountBeforeInitialization);
-  });
 
   /**
    * Requirement R70 - Postcondition:
@@ -541,9 +499,9 @@ describe("CalligraphyEvaluationInterface", () => {
     render(CalligraphyEvaluationView({
       comparison: visualComparison,
       feedback: {
-          ...TEST_CALLIGRAPHY_EVALUATION_FEEDBACK,
-          visualComparison
-        },
+        ...TEST_CALLIGRAPHY_EVALUATION_FEEDBACK,
+        visualComparison
+      },
       onDismissRequested: vi.fn()
     }));
 
@@ -557,24 +515,4 @@ describe("CalligraphyEvaluationInterface", () => {
     ).toHaveLength(TEST_MATCHED_KEYPOINTS.length);
   });
 
-  /**
-   * Requirement R70 - Postcondition:
-   * homography should be skipped without throwing when OpenCV is unavailable.
-   */
-  it(buildRequirementTitle("R70", "Regression", "Postcondition", "homography skips without throwing when global OpenCV is unavailable"), async () => {
-    clearGlobalOpenCv();
-    const evaluation = createOpenCvBackedEvaluationController().evaluateAttempt(TEST_OPENCV_CALLIGRAPHY_ATTEMPT);
-
-    await expect(
-      evaluation,
-      "R70 regression postcondition should not throw when globalThis.cv is unavailable."
-    ).resolves.not.toThrow();
-
-    const result = await evaluation;
-
-    expect(
-      result.visualComparison?.isHomographyApplied,
-      "R70 regression postcondition should return isHomographyApplied false when globalThis.cv is unavailable."
-    ).toBe(false);
-  });
 });

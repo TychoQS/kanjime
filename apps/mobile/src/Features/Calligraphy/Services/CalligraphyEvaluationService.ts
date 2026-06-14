@@ -10,10 +10,45 @@ import type {
   StrokePoint
 } from "@kanjime/shared";
 import { ApplicationError, StrokeError } from "@kanjime/shared";
-import { applyOpenCvHomography, type OpenCvHomographyResult } from "../../../Shared/OpenCvHomographyWorkerClient";
 
 interface ReferenceStroke {
   readonly points: ReadonlyArray<StrokePoint>;
+}
+
+interface OpenCvHomographyResult {
+  readonly isHomographyApplied: boolean;
+  readonly matchedKeypoints?: ReadonlyArray<readonly [StrokePoint, StrokePoint]>;
+  readonly alignedAttemptImageUri?: string;
+}
+
+interface OpenCvMat {
+  readonly rows?: number;
+  readonly cols?: number;
+  delete?: () => void;
+}
+
+interface OpenCvMatConstructor {
+  new(): OpenCvMat;
+  zeros(rows: number, cols: number, type: number): OpenCvMat;
+}
+
+interface OpenCvSizeConstructor {
+  new(width: number, height: number): object;
+}
+
+interface OpenCvHomographyRuntime {
+  readonly CV_32FC2: number;
+  readonly CV_8UC1: number;
+  readonly RANSAC: number;
+  readonly Mat: OpenCvMatConstructor;
+  readonly Size: OpenCvSizeConstructor;
+  matFromArray(rows: number, cols: number, type: number, data: ReadonlyArray<number>): OpenCvMat;
+  findHomography(reference: OpenCvMat, attempt: OpenCvMat, method: number, threshold: number, mask: OpenCvMat): OpenCvMat;
+  warpPerspective(source: OpenCvMat, destination: OpenCvMat, transform: OpenCvMat, size: object): void;
+}
+
+interface OpenCvGlobal {
+  readonly cv?: unknown;
 }
 
 const SCORE_MIN = 0;
@@ -566,6 +601,12 @@ async function tryApplyHomography(
   referenceStrokes: ReadonlyArray<Stroke>,
   attemptStrokes: ReadonlyArray<Stroke>
 ): Promise<OpenCvHomographyResult> {
+  const cv = readOpenCvRuntime();
+
+  if (!isOpenCvHomographyRuntime(cv)) {
+    return createUnavailableHomographyResult();
+  }
+
   const referencePoints = sampleCollection(referenceStrokes).slice(0, MAX_REPORTED_KEYPOINTS);
   const attemptPoints = sampleCollection(attemptStrokes).slice(0, MAX_REPORTED_KEYPOINTS);
   const correspondenceCount = Math.min(referencePoints.length, attemptPoints.length);
@@ -575,13 +616,49 @@ async function tryApplyHomography(
   }
 
   try {
-    return await applyOpenCvHomography({
-      referenceImage: createTransferableSvgImage(createStrokeDataUri(referenceStrokes, "reference")),
-      attemptImage: createTransferableSvgImage(createStrokeDataUri(attemptStrokes, "attempt")),
-      referencePoints: referencePoints.slice(0, correspondenceCount),
-      attemptPoints: attemptPoints.slice(0, correspondenceCount),
-      visualSize: VISUAL_SIZE
-    });
+    const attemptImage = createTransferableSvgImage(createStrokeDataUri(attemptStrokes, "attempt"));
+    const matchedKeypoints = referencePoints.slice(0, correspondenceCount).map((referencePoint, index) => [
+      referencePoint,
+      attemptPoints[index]
+    ] as const);
+    const referenceMat = cv.matFromArray(
+      correspondenceCount,
+      1,
+      cv.CV_32FC2,
+      referencePoints.slice(0, correspondenceCount).flatMap(point => [point.x, point.y])
+    );
+    const attemptMat = cv.matFromArray(
+      correspondenceCount,
+      1,
+      cv.CV_32FC2,
+      attemptPoints.slice(0, correspondenceCount).flatMap(point => [point.x, point.y])
+    );
+    const mask = new cv.Mat();
+    const homography = cv.findHomography(referenceMat, attemptMat, cv.RANSAC, 3, mask);
+    const source = cv.Mat.zeros(VISUAL_SIZE, VISUAL_SIZE, cv.CV_8UC1);
+    const aligned = new cv.Mat();
+    const size = new cv.Size(VISUAL_SIZE, VISUAL_SIZE);
+
+    cv.warpPerspective(source, aligned, homography, size);
+
+    const isHomographyApplied = (homography.rows ?? 0) > 0 && (homography.cols ?? 0) > 0;
+
+    deleteOpenCvMat(referenceMat);
+    deleteOpenCvMat(attemptMat);
+    deleteOpenCvMat(mask);
+    deleteOpenCvMat(homography);
+    deleteOpenCvMat(source);
+    deleteOpenCvMat(aligned);
+
+    if (!isHomographyApplied || matchedKeypoints.length < 4) {
+      return createUnavailableHomographyResult();
+    }
+
+    return {
+      isHomographyApplied: true,
+      matchedKeypoints,
+      alignedAttemptImageUri: createAlignedAttemptImageUri(attemptImage)
+    };
   } catch {
     return createUnavailableHomographyResult();
   }
@@ -601,6 +678,48 @@ function createTransferableSvgImage(imageUri: string): ArrayBuffer {
     encodedSvg.byteOffset,
     encodedSvg.byteOffset + encodedSvg.byteLength
   );
+}
+
+function createAlignedAttemptImageUri(image: ArrayBuffer): string {
+  const binary = Array.from(new Uint8Array(image))
+    .map(byte => String.fromCharCode(byte))
+    .join("");
+
+  return `data:image/svg+xml;base64,${btoa(binary)}`;
+}
+
+function readOpenCvRuntime(): unknown {
+  return (globalThis as OpenCvGlobal).cv;
+}
+
+function isOpenCvHomographyRuntime(value: unknown): value is OpenCvHomographyRuntime {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const runtime = value as Record<string, unknown>;
+  const mat = runtime.Mat;
+
+  if (typeof mat !== "function") {
+    return false;
+  }
+
+  const matConstructor = mat as unknown as Record<string, unknown>;
+
+  return typeof matConstructor.zeros === "function" &&
+    typeof runtime.Size === "function" &&
+    typeof runtime.matFromArray === "function" &&
+    typeof runtime.findHomography === "function" &&
+    typeof runtime.warpPerspective === "function" &&
+    typeof runtime.CV_32FC2 === "number" &&
+    typeof runtime.CV_8UC1 === "number" &&
+    typeof runtime.RANSAC === "number";
+}
+
+function deleteOpenCvMat(mat: OpenCvMat): void {
+  if (typeof mat.delete === "function") {
+    mat.delete();
+  }
 }
 
 function roundSvg(value: number): string {

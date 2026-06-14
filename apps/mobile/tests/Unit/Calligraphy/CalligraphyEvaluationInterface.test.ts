@@ -1,20 +1,14 @@
 import type { CalligraphyAttempt, CalligraphyVisualComparison } from "@kanjime/shared";
 
 import { cleanup, render, screen } from "@testing-library/react";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CreateCalligraphyEvaluationController } from "../../../src/Features/Calligraphy/CreateCalligraphyEvaluationController";
 import { evaluateCalligraphyAttempt } from "../../../src/Features/Calligraphy/Services/CalligraphyEvaluationService";
 import { CalligraphyEvaluationView } from "../../../src/Features/Calligraphy/View/CalligraphyEvaluationView";
-import {
-  applyOpenCvHomography,
-  configureOpenCvWorkerFactory,
-  initializeOpenCvWorker,
-  type OpenCvHomographyResult,
-  resetOpenCvWorkerClient,
-  type OpenCvWorkerRequest,
-  type OpenCvWorkerResponse
-} from "../../../src/Shared/OpenCvHomographyWorkerClient";
+import { initializeOpenCv } from "../../../src/Shared/OpenCvService";
 
 import {
   TEST_CALLIGRAPHY_EMPTY_ATTEMPT,
@@ -34,13 +28,6 @@ import {
 import { buildRequirementTitle } from "../../Support/RequirementTest";
 import { createAsyncArgumentRecorder } from "../../Support/DependencyFactories";
 
-const openCvMainThreadImport = vi.hoisted(() => vi.fn());
-
-vi.mock("@techstark/opencv-js", () => {
-  openCvMainThreadImport();
-  return {};
-});
-
 const TEST_ALIGNED_ATTEMPT_IMAGE_URI = "data:image/svg+xml;base64,PHN2Zy8+";
 const TEST_MATCHED_KEYPOINTS = [
   [{ x: 10, y: 10 }, { x: 12, y: 11 }],
@@ -49,7 +36,7 @@ const TEST_MATCHED_KEYPOINTS = [
   [{ x: 70, y: 18 }, { x: 71, y: 20 }]
 ] as const;
 const TEST_REFERENCE_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 109 109\"><path d=\"M10 10 C 30 20 50 20 90 10\"/></svg>";
-const TEST_WORKER_CALLIGRAPHY_ATTEMPT: CalligraphyAttempt = {
+const TEST_OPENCV_CALLIGRAPHY_ATTEMPT: CalligraphyAttempt = {
   targetCharacter: "水",
   categoryId: "jlpt-n5",
   isFinalized: true,
@@ -66,75 +53,7 @@ const TEST_WORKER_CALLIGRAPHY_ATTEMPT: CalligraphyAttempt = {
   }]
 };
 
-class FakeOpenCvWorker {
-  readonly messages: OpenCvWorkerRequest[] = [];
-  readonly transferCounts: number[] = [];
-  private readonly listeners: Array<(event: MessageEvent<OpenCvWorkerResponse>) => void> = [];
-
-  constructor(private readonly homographyResult: OpenCvHomographyResult) {}
-
-  postMessage(message: OpenCvWorkerRequest, transfer: Transferable[] = []): void {
-    this.messages.push(message);
-    this.transferCounts.push(transfer.length);
-
-    if (message.type === "initialize") {
-      this.emit({
-        id: message.id,
-        type: "initialized"
-      });
-      return;
-    }
-
-    this.emit({
-      id: message.id,
-      type: "homographyResult",
-      result: this.homographyResult
-    });
-  }
-
-  addEventListener(type: "message", listener: (event: MessageEvent<OpenCvWorkerResponse>) => void): void {
-    if (type === "message") {
-      this.listeners.push(listener);
-    }
-  }
-
-  removeEventListener(type: "message", listener: (event: MessageEvent<OpenCvWorkerResponse>) => void): void {
-    if (type !== "message") {
-      return;
-    }
-
-    const listenerIndex = this.listeners.indexOf(listener);
-
-    if (listenerIndex >= 0) {
-      this.listeners.splice(listenerIndex, 1);
-    }
-  }
-
-  terminate(): void {
-    this.listeners.splice(0, this.listeners.length);
-  }
-
-  private emit(message: OpenCvWorkerResponse): void {
-    this.listeners.forEach(listener => listener({
-      data: message
-    } as MessageEvent<OpenCvWorkerResponse>));
-  }
-}
-
-function configureFakeOpenCvWorker(result: OpenCvHomographyResult): FakeOpenCvWorker[] {
-  const workerInstances: FakeOpenCvWorker[] = [];
-
-  configureOpenCvWorkerFactory(() => {
-    const worker = new FakeOpenCvWorker(result);
-    workerInstances.push(worker);
-    return worker;
-  });
-  initializeOpenCvWorker();
-
-  return workerInstances;
-}
-
-function createWorkerBackedEvaluationController() {
+function createOpenCvBackedEvaluationController() {
   return CreateCalligraphyEvaluationController({
     evaluateAttempt: attempt => evaluateCalligraphyAttempt({
       loadReferenceStrokeOrder: async () => TEST_REFERENCE_SVG
@@ -143,12 +62,27 @@ function createWorkerBackedEvaluationController() {
   });
 }
 
+function readSourceFiles(directory: string): ReadonlyArray<string> {
+  return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
+    const entryPath = join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      return readSourceFiles(entryPath);
+    }
+
+    return entry.isFile() && /\.(ts|tsx)$/.test(entry.name) ? [entryPath] : [];
+  });
+}
+
+function clearGlobalOpenCv(): void {
+  Reflect.deleteProperty(globalThis, "cv");
+}
+
 describe("CalligraphyEvaluationInterface", () => {
 
   afterEach(() => {
     cleanup();
-    resetOpenCvWorkerClient();
-    openCvMainThreadImport.mockClear();
+    clearGlobalOpenCv();
     vi.restoreAllMocks();
   });
 
@@ -566,102 +500,59 @@ describe("CalligraphyEvaluationInterface", () => {
 
   /**
    * Requirement R70 - Postcondition:
-   * OpenCV homography should run through a single worker instance without importing OpenCV on the main thread.
+   * mobile source should not import OpenCV as a bundled module.
    */
-  it(buildRequirementTitle("R70", "Regression", "Postcondition", "OpenCV homography runs through one worker without main-thread initialization"), async () => {
-    const workerInstances = configureFakeOpenCvWorker({
-      isHomographyApplied: true,
-      matchedKeypoints: TEST_MATCHED_KEYPOINTS,
-      alignedAttemptImageUri: TEST_ALIGNED_ATTEMPT_IMAGE_URI
-    });
-    const controller = createWorkerBackedEvaluationController();
-
-    const firstResult = await controller.evaluateAttempt(TEST_WORKER_CALLIGRAPHY_ATTEMPT);
-    const secondResult = await controller.evaluateAttempt(TEST_WORKER_CALLIGRAPHY_ATTEMPT);
-    const workerMessages = workerInstances[0].messages;
-    const homographyMessages = workerMessages.filter(message => message.type === "applyHomography");
-    const homographyTransferCounts = workerInstances[0].transferCounts.filter((_, index) => workerMessages[index].type === "applyHomography");
+  it(buildRequirementTitle("R70", "Regression", "Postcondition", "mobile source does not import OpenCV package"), () => {
+    const sourceFiles = readSourceFiles(join(process.cwd(), "src"));
+    const filesImportingOpenCv = sourceFiles.filter(sourceFile => readFileSync(sourceFile, "utf8").includes("@techstark/opencv-js"));
 
     expect(
-      openCvMainThreadImport,
-      "R70 regression postcondition should not initialize OpenCV on the main thread."
-    ).not.toHaveBeenCalled();
-    expect(
-      workerMessages[0]?.type,
-      "R70 regression postcondition should initialize OpenCV through the worker startup message."
-    ).toBe("initialize");
-    expect(
-      workerInstances,
-      "R70 regression postcondition should instantiate a single OpenCV worker across consecutive evaluations."
-    ).toHaveLength(1);
-    expect(
-      homographyMessages,
-      "R70 regression postcondition should send each homography evaluation to the OpenCV worker."
-    ).toHaveLength(2);
-    expect(
-      homographyTransferCounts,
-      "R70 regression postcondition should transfer the reference and attempt images to the worker for each evaluation."
-    ).toEqual([2, 2]);
-    expect(
-      firstResult.visualComparison?.isHomographyApplied,
-      "R70 regression postcondition should consume the worker homography result for the first evaluation."
-    ).toBe(true);
-    expect(
-      secondResult.visualComparison?.isHomographyApplied,
-      "R70 regression postcondition should consume the worker homography result for the second evaluation."
-    ).toBe(true);
+      filesImportingOpenCv,
+      "R70 regression postcondition should guarantee @techstark/opencv-js is not imported by any mobile source file."
+    ).toEqual([]);
   });
 
   /**
    * Requirement R70 - Postcondition:
-   * the worker should return matched keypoints and an aligned attempt data URI when enough correspondences exist.
+   * homography should read the OpenCV runtime from globalThis.cv.
    */
-  it(buildRequirementTitle("R70", "Regression", "Postcondition", "the worker returns matched keypoints and aligned attempt data URI"), async () => {
-    configureFakeOpenCvWorker({
-      isHomographyApplied: true,
-      matchedKeypoints: TEST_MATCHED_KEYPOINTS,
-      alignedAttemptImageUri: TEST_ALIGNED_ATTEMPT_IMAGE_URI
+  it(buildRequirementTitle("R70", "Regression", "Postcondition", "homography reads global OpenCV runtime directly"), async () => {
+    const cvGetter = vi.fn(() => ({ Mat: class {} }));
+
+    Object.defineProperty(globalThis, "cv", {
+      configurable: true,
+      get: cvGetter
     });
 
-    const result = await applyOpenCvHomography({
-      referenceImage: new TextEncoder().encode(TEST_REFERENCE_SVG).buffer,
-      attemptImage: new TextEncoder().encode(TEST_REFERENCE_SVG).buffer,
-      referencePoints: TEST_MATCHED_KEYPOINTS.map(([referencePoint]) => referencePoint),
-      attemptPoints: TEST_MATCHED_KEYPOINTS.map(([, attemptPoint]) => attemptPoint),
-      visualSize: 109
-    });
+    await createOpenCvBackedEvaluationController().evaluateAttempt(TEST_OPENCV_CALLIGRAPHY_ATTEMPT);
 
     expect(
-      result.matchedKeypoints,
-      "R70 regression postcondition should return matched keypoints as reference and attempt coordinate pairs."
-    ).toEqual(TEST_MATCHED_KEYPOINTS);
-    expect(
-      result.alignedAttemptImageUri,
-      "R70 regression postcondition should return the aligned attempt as a valid data URI."
-    ).toMatch(/^data:image\/svg\+xml;base64,/);
+      cvGetter,
+      "R70 regression postcondition should read globalThis.cv during calligraphy homography evaluation."
+    ).toHaveBeenCalled();
   });
 
   /**
    * Requirement R70 - Postcondition:
-   * the visual comparison should expose worker homography metadata when homography is applied.
+   * OpenCV initialization should resolve immediately when the global runtime already exists.
    */
-  it(buildRequirementTitle("R70", "Regression", "Postcondition", "visual comparison exposes keypoints and aligned attempt when homography applies"), async () => {
-    configureFakeOpenCvWorker({
-      isHomographyApplied: true,
-      matchedKeypoints: TEST_MATCHED_KEYPOINTS,
-      alignedAttemptImageUri: TEST_ALIGNED_ATTEMPT_IMAGE_URI
+  it(buildRequirementTitle("R70", "Regression", "Postcondition", "OpenCV initialization resolves immediately when global runtime exists"), async () => {
+    const scriptCountBeforeInitialization = document.head.querySelectorAll("script[src='/assets/opencv.js']").length;
+
+    Object.defineProperty(globalThis, "cv", {
+      configurable: true,
+      value: { Mat: class {} }
     });
 
-    const result = await createWorkerBackedEvaluationController().evaluateAttempt(TEST_WORKER_CALLIGRAPHY_ATTEMPT);
+    await expect(
+      initializeOpenCv(),
+      "R70 regression postcondition should resolve initializeOpenCv immediately when globalThis.cv is already ready."
+    ).resolves.toBeUndefined();
 
     expect(
-      result.visualComparison?.matchedKeypoints,
-      "R70 regression postcondition should expose matched keypoints in CalligraphyVisualComparison when homography applies."
-    ).toEqual(TEST_MATCHED_KEYPOINTS);
-    expect(
-      result.visualComparison?.alignedAttemptImageUri,
-      "R70 regression postcondition should expose the aligned attempt image URI in CalligraphyVisualComparison when homography applies."
-    ).toBe(TEST_ALIGNED_ATTEMPT_IMAGE_URI);
+      document.head.querySelectorAll("script[src='/assets/opencv.js']").length,
+      "R70 regression postcondition should not inject a script when OpenCV is already available globally."
+    ).toBe(scriptCountBeforeInitialization);
   });
 
   /**
@@ -696,144 +587,22 @@ describe("CalligraphyEvaluationInterface", () => {
 
   /**
    * Requirement R70 - Postcondition:
-   * insufficient matches should omit optional homography fields without interrupting evaluation.
+   * homography should be skipped without throwing when OpenCV is unavailable.
    */
-  it(buildRequirementTitle("R70", "Regression", "Postcondition", "insufficient matches omit aligned image and keypoints without throwing"), async () => {
-    configureFakeOpenCvWorker({
-      isHomographyApplied: true,
-      matchedKeypoints: TEST_MATCHED_KEYPOINTS.slice(0, 3),
-      alignedAttemptImageUri: TEST_ALIGNED_ATTEMPT_IMAGE_URI
-    });
-    const evaluation = createWorkerBackedEvaluationController().evaluateAttempt(TEST_WORKER_CALLIGRAPHY_ATTEMPT);
+  it(buildRequirementTitle("R70", "Regression", "Postcondition", "homography skips without throwing when global OpenCV is unavailable"), async () => {
+    clearGlobalOpenCv();
+    const evaluation = createOpenCvBackedEvaluationController().evaluateAttempt(TEST_OPENCV_CALLIGRAPHY_ATTEMPT);
 
     await expect(
       evaluation,
-      "R70 regression postcondition should not throw when the worker reports fewer than four homography matches."
+      "R70 regression postcondition should not throw when globalThis.cv is unavailable."
     ).resolves.not.toThrow();
 
     const result = await evaluation;
 
     expect(
-      result.visualComparison?.matchedKeypoints,
-      "R70 regression postcondition should omit matched keypoints when fewer than four matches are available."
-    ).toBeUndefined();
-    expect(
-      result.visualComparison?.alignedAttemptImageUri,
-      "R70 regression postcondition should omit the aligned image when fewer than four matches are available."
-    ).toBeUndefined();
-  });
-
-  /**
-   * Requirement R70 - Postcondition:
-   * homography should not be requested from the worker before OpenCV initialization resolves.
-   */
-  it(buildRequirementTitle("R70", "Regression", "Postcondition", "homography is not applied before OpenCV worker initialization resolves"), async () => {
-    class DelayedOpenCvWorker {
-      readonly messages: OpenCvWorkerRequest[] = [];
-      private readonly listeners: Array<(event: MessageEvent<OpenCvWorkerResponse>) => void> = [];
-
-      postMessage(message: OpenCvWorkerRequest): void {
-        this.messages.push(message);
-
-        if (message.type === "applyHomography") {
-          this.emit({
-            id: message.id,
-            type: "homographyResult",
-            result: {
-              isHomographyApplied: true,
-              matchedKeypoints: TEST_MATCHED_KEYPOINTS,
-              alignedAttemptImageUri: TEST_ALIGNED_ATTEMPT_IMAGE_URI
-            }
-          });
-        }
-      }
-
-      addEventListener(type: "message", listener: (event: MessageEvent<OpenCvWorkerResponse>) => void): void {
-        if (type === "message") {
-          this.listeners.push(listener);
-        }
-      }
-
-      removeEventListener(type: "message", listener: (event: MessageEvent<OpenCvWorkerResponse>) => void): void {
-        if (type !== "message") {
-          return;
-        }
-
-        const listenerIndex = this.listeners.indexOf(listener);
-
-        if (listenerIndex >= 0) {
-          this.listeners.splice(listenerIndex, 1);
-        }
-      }
-
-      terminate(): void {
-        this.listeners.splice(0, this.listeners.length);
-      }
-
-      resolveInitialization(): void {
-        const initializeMessage = this.messages.find(message => message.type === "initialize");
-
-        if (initializeMessage !== undefined) {
-          this.emit({
-            id: initializeMessage.id,
-            type: "initialized"
-          });
-        }
-      }
-
-      private emit(message: OpenCvWorkerResponse): void {
-        this.listeners.forEach(listener => listener({
-          data: message
-        } as MessageEvent<OpenCvWorkerResponse>));
-      }
-    }
-
-    const worker = new DelayedOpenCvWorker();
-    let hasInitializationResolved = false;
-
-    configureOpenCvWorkerFactory(() => worker);
-
-    const initialization = initializeOpenCvWorker().then(() => {
-      hasInitializationResolved = true;
-    });
-    const earlyHomography = await applyOpenCvHomography({
-      referenceImage: new TextEncoder().encode(TEST_REFERENCE_SVG).buffer,
-      attemptImage: new TextEncoder().encode(TEST_REFERENCE_SVG).buffer,
-      referencePoints: TEST_MATCHED_KEYPOINTS.map(([referencePoint]) => referencePoint),
-      attemptPoints: TEST_MATCHED_KEYPOINTS.map(([, attemptPoint]) => attemptPoint),
-      visualSize: 109
-    });
-
-    expect(
-      hasInitializationResolved,
-      "R70 regression postcondition should keep initialization pending until the worker emits initialized."
+      result.visualComparison?.isHomographyApplied,
+      "R70 regression postcondition should return isHomographyApplied false when globalThis.cv is unavailable."
     ).toBe(false);
-    expect(
-      earlyHomography.isHomographyApplied,
-      "R70 regression postcondition should skip homography while OpenCV worker initialization is pending."
-    ).toBe(false);
-    expect(
-      worker.messages.filter(message => message.type === "applyHomography"),
-      "R70 regression postcondition should not send applyHomography before initializeOpenCvWorker resolves."
-    ).toHaveLength(0);
-
-    worker.resolveInitialization();
-    await initialization;
-    await applyOpenCvHomography({
-      referenceImage: new TextEncoder().encode(TEST_REFERENCE_SVG).buffer,
-      attemptImage: new TextEncoder().encode(TEST_REFERENCE_SVG).buffer,
-      referencePoints: TEST_MATCHED_KEYPOINTS.map(([referencePoint]) => referencePoint),
-      attemptPoints: TEST_MATCHED_KEYPOINTS.map(([, attemptPoint]) => attemptPoint),
-      visualSize: 109
-    });
-
-    expect(
-      hasInitializationResolved,
-      "R70 regression postcondition should resolve initializeOpenCvWorker after the initialized worker message."
-    ).toBe(true);
-    expect(
-      worker.messages.filter(message => message.type === "applyHomography"),
-      "R70 regression postcondition should send applyHomography only after initializeOpenCvWorker resolves."
-    ).toHaveLength(1);
   });
 });

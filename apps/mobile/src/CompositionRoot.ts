@@ -80,7 +80,7 @@ import { UserActionTracker } from "./Shared/UserActionTracker";
 import { captureVideoFrame, openRearCameraStream, stopCameraStream } from "./Features/Classification/Camera/WebRtcCamera";
 import { pickImageFromDevice } from "./Features/Classification/Image/WebImagePicker";
 import { readFirebaseInstallationId } from "./Shared/FirebaseInstallationClient";
-import { initializeOpenCvWorker } from "./Shared/OpenCvHomographyWorkerClient";
+import { initializeOpenCv } from "./Shared/OpenCvService";
 
 export interface AboutDisplayItem {
   readonly label: string;
@@ -574,7 +574,7 @@ export function createCompositionRoot(): CompositionRoot {
     updateAvailableController,
     async initialize(): Promise<ApplicationPreferences> {
       await Promise.all([
-        initializeOpenCvWorker(),
+        initializeOpenCv(),
         kanjiRepository.initialize(),
         persistence.initialize(),
         modelLoaderController.loadModel()

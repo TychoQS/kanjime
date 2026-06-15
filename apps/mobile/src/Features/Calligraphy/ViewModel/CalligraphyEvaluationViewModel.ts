@@ -66,9 +66,15 @@ export function createCalligraphyEvaluationViewModel(
         : calculateCalligraphyGeneralSimilarity(attempt, reference);
     },
     createVisualComparison(result: CalligraphyEvaluationResult): CalligraphyVisualComparison {
+      if (!result.visualComparison) {
+        throw new ApplicationError(
+            "The visual comparison could not be created because the evaluation result does not contain visual comparison data."
+        );
+      }
+
       return dependencies.createVisualComparison
-        ? dependencies.createVisualComparison(result)
-        : createCalligraphyVisualComparison(result);
+          ? dependencies.createVisualComparison(result)
+          : createCalligraphyVisualComparison(result);
     },
     createFeedback(result: CalligraphyEvaluationResult): CalligraphyEvaluationFeedback {
       if (!isValidEvaluationResult(result)) {

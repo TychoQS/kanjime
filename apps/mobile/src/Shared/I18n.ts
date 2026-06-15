@@ -142,7 +142,9 @@ export const CALLIGRAPHY_TRANSLATION_KEYS = [
   "initializingApplication",
   "loadingLanguage",
   "applicationNavigation",
-  "closeNavigation"
+  "closeNavigation",
+  "calligraphyReference",
+  "calligraphyAttempt"
 ] as const;
 
 export const TRANSLATION_KEYS = [
@@ -270,7 +272,9 @@ export const ENGLISH_TRANSLATIONS: TranslationMap = {
   initializingApplication: "Initializing...",
   loadingLanguage: "Loading language",
   applicationNavigation: "Application navigation",
-  closeNavigation: "Close navigation"
+  closeNavigation: "Close navigation",
+  calligraphyReference: "Reference",
+  calligraphyAttempt: "Attempt"
 };
 
 export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
@@ -310,7 +314,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     recommendSimilarity: "Focus on the overall shape and position of the character.",
     calligraphy: "Calligraphy",
     initializingApplication: "Initializing...",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "Reference",
+    calligraphyAttempt: "Attempt"
   },
   "es-ES": {
     appName: "KanjiMe",
@@ -425,7 +431,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Navegación de la aplicación",
     closeNavigation: "Cerrar navegación",
-    alignedAttempt: "Intento alineado"
+    alignedAttempt: "Intento alineado",
+    calligraphyReference: "Referencia",
+    calligraphyAttempt: "Intento"
   },
   "fr-FR": {
     appName: "KanjiMe",
@@ -540,7 +548,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Navigation de l'application",
     closeNavigation: "Fermer la navigation",
-    alignedAttempt: "Essai aligné"
+    alignedAttempt: "Essai aligné",
+    calligraphyReference: "Référence",
+    calligraphyAttempt: "Essai"
   },
   "de-DE": {
     appName: "KanjiMe",
@@ -655,7 +665,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Anwendungsnavigation",
     closeNavigation: "Navigation schließen",
-    alignedAttempt: "Ausgerichteter Versuch"
+    alignedAttempt: "Ausgerichteter Versuch",
+    calligraphyReference: "Referenz",
+    calligraphyAttempt: "Versuch"
   },
   "it-IT": {
     appName: "KanjiMe",
@@ -770,7 +782,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Navigazione dell'applicazione",
     closeNavigation: "Chiudi navigazione",
-    alignedAttempt: "Tentativo allineato"
+    alignedAttempt: "Tentativo allineato",
+    calligraphyReference: "Riferimento",
+    calligraphyAttempt: "Tentativo"
   },
   "pt-PT": {
     appName: "KanjiMe",
@@ -885,7 +899,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Navegação da aplicação",
     closeNavigation: "Fechar navegação",
-    alignedAttempt: "Tentativa alinhada"
+    alignedAttempt: "Tentativa alinhada",
+    calligraphyReference: "Referência",
+    calligraphyAttempt: "Tentativa"
   },
   "ja-JP": {
     appName: "KanjiMe",
@@ -1000,7 +1016,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "参照",
+    calligraphyAttempt: "試行"
   },
   "zh-CN": {
     appName: "KanjiMe",
@@ -1115,7 +1133,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "参考",
+    calligraphyAttempt: "尝试"
   },
   "zh-TW": {
     appName: "KanjiMe",
@@ -1230,7 +1250,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "參考",
+    calligraphyAttempt: "嘗試"
   },
   "ko-KR": {
     appName: "KanjiMe",
@@ -1345,7 +1367,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "참조",
+    calligraphyAttempt: "시도"
   },
   "hi-IN": {
     appName: "KanjiMe",
@@ -1460,7 +1484,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "संदर्भ",
+    calligraphyAttempt: "प्रयास"
   },
   "ar-SA": {
     appName: "KanjiMe",
@@ -1575,7 +1601,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "المرجع",
+    calligraphyAttempt: "المحاولة"
   },
   "sw-KE": {
     appName: "KanjiMe",
@@ -1690,7 +1718,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "Rejeleo",
+    calligraphyAttempt: "Jaribio"
   },
   "am-ET": {
     appName: "KanjiMe",
@@ -1805,7 +1835,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "ማመሳከሪያ",
+    calligraphyAttempt: "ሙከራ"
   },
   "ha-NG": {
     appName: "KanjiMe",
@@ -1920,7 +1952,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "Tunanin",
+    calligraphyAttempt: "Gwaji"
   },
   "yo-NG": {
     appName: "KanjiMe",
@@ -2035,7 +2069,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "Itọkasi",
+    calligraphyAttempt: "Igbiyanju"
   },
   "zu-ZA": {
     appName: "KanjiMe",
@@ -2150,7 +2186,9 @@ export const LOCALIZED_TRANSLATIONS: Record<SupportedLocale, TranslationMap> = {
     initializingApplication: "Initializing...",
     applicationNavigation: "Application navigation",
     closeNavigation: "Close navigation",
-    alignedAttempt: "Aligned attempt"
+    alignedAttempt: "Aligned attempt",
+    calligraphyReference: "Isethenjwa",
+    calligraphyAttempt: "Umzamo"
   }
 };
 

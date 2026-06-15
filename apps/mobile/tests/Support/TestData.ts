@@ -218,18 +218,6 @@ export const TEST_CALLIGRAPHY_ATTEMPT_WITH_STROKE: CalligraphyAttempt = {
   ]
 };
 
-export const TEST_CALLIGRAPHY_EVALUATION_RESULT: CalligraphyEvaluationResult = {
-  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
-  score: TEST_CALLIGRAPHY_EVALUATION_SCORE,
-  summary: TEST_CALLIGRAPHY_EVALUATION_SUMMARY,
-  metrics: {
-    strokeCount: 1,
-    strokeOrder: 1,
-    approximateDirection: 1,
-    generalSimilarity: 0.8
-  }
-};
-
 export const TEST_CALLIGRAPHY_EVALUATION_METRICS: CalligraphyEvaluationMetrics = {
   strokeCount: 84,
   strokeOrder: 79,
@@ -274,6 +262,20 @@ export const TEST_CALLIGRAPHY_FALLBACK_SIMILARITY: CalligraphySimilarityEvaluati
   strategy: "FALLBACK",
   matchedKeypointCount: 2,
   fallbackReason: "insufficient_keypoints"
+};
+
+export const TEST_CALLIGRAPHY_EVALUATION_RESULT: CalligraphyEvaluationResult = {
+  targetCharacter: TEST_CALLIGRAPHY_TARGET_CHARACTER,
+  score: TEST_CALLIGRAPHY_EVALUATION_SCORE,
+  summary: TEST_CALLIGRAPHY_EVALUATION_SUMMARY,
+  metrics: {
+    strokeCount: 1,
+    strokeOrder: 1,
+    approximateDirection: 1,
+    generalSimilarity: 0.8
+  },
+  similarityEvaluation: TEST_CALLIGRAPHY_SIFT_SIMILARITY,
+  visualComparison: TEST_CALLIGRAPHY_VISUAL_COMPARISON
 };
 
 export const TEST_CALLIGRAPHY_EVALUATION_FEEDBACK: CalligraphyEvaluationFeedback = {

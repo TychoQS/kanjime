@@ -900,9 +900,25 @@ html[data-theme="dark"] ion-action-sheet {
 }
 
 @media (max-width: 420px) {
-  .calligraphy-visual-comparison {
-    grid-template-columns: 1fr;
+  .calligraphy-visual-comparison--separate {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .calligraphy-visual-comparison--separate .calligraphy-visual-frame {
+    padding: 6px;
+  }
+
+  .calligraphy-visual-comparison--separate .calligraphy-visual-frame figcaption {
+    font-size: 0.78rem;
+  }
+}
+
+.calligraphy-visual-comparison--separate {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.calligraphy-visual-comparison--matching {
+  grid-template-columns: 1fr;
 }
 
 @keyframes stroke-draw {
@@ -1019,6 +1035,10 @@ html[data-theme="dark"] ion-action-sheet {
   justify-content: center;
   min-height: 100%;
   text-align: center;
+}
+
+.calligraphy-comparison-image {
+  background: var(--app-surface);
 }
 
 .loading-state[data-blocks-interaction="true"] {

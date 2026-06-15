@@ -1,13 +1,11 @@
-import type { CalligraphyAttempt, CalligraphyVisualComparison } from "@kanjime/shared";
+import type { CalligraphyVisualComparison } from "@kanjime/shared";
 
 import { cleanup, render, screen } from "@testing-library/react";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CreateCalligraphyEvaluationController } from "../../../src/Features/Calligraphy/CreateCalligraphyEvaluationController";
-import { evaluateCalligraphyAttempt } from "../../../src/Features/Calligraphy/Services/CalligraphyEvaluationService";
 import { CalligraphyEvaluationView } from "../../../src/Features/Calligraphy/View/CalligraphyEvaluationView";
-import { initializeOpenCv } from "../../../src/Shared/OpenCvService";
 
 import {
   TEST_CALLIGRAPHY_EMPTY_ATTEMPT,
@@ -34,32 +32,7 @@ const TEST_MATCHED_KEYPOINTS = [
   [{ x: 50, y: 24 }, { x: 52, y: 25 }],
   [{ x: 70, y: 18 }, { x: 71, y: 20 }]
 ] as const;
-const TEST_REFERENCE_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 109 109\"><path d=\"M10 10 C 30 20 50 20 90 10\"/></svg>";
-const TEST_OPENCV_CALLIGRAPHY_ATTEMPT: CalligraphyAttempt = {
-  targetCharacter: "水",
-  categoryId: "jlpt-n5",
-  isFinalized: true,
-  strokes: [{
-    startedAt: "attempt-r70-worker",
-    endedAt: "attempt-r70-worker-end",
-    points: [
-      { x: 10, y: 10 },
-      { x: 30, y: 18 },
-      { x: 50, y: 24 },
-      { x: 70, y: 18 },
-      { x: 90, y: 10 }
-    ]
-  }]
-};
 
-function createOpenCvBackedEvaluationController() {
-  return CreateCalligraphyEvaluationController({
-    evaluateAttempt: attempt => evaluateCalligraphyAttempt({
-      loadReferenceStrokeOrder: async () => TEST_REFERENCE_SVG
-    }, attempt),
-    createFeedback: () => TEST_CALLIGRAPHY_EVALUATION_FEEDBACK
-  });
-}
 function clearGlobalOpenCv(): void {
   Reflect.deleteProperty(globalThis, "cv");
 }
@@ -74,6 +47,7 @@ describe("CalligraphyEvaluationInterface", () => {
 
   const evaluationController = CreateCalligraphyEvaluationController({
     evaluateAttempt: async () => TEST_CALLIGRAPHY_EVALUATION_RESULT,
+    calculateGeneralSimilarity: async () => TEST_CALLIGRAPHY_SIFT_SIMILARITY,
     createFeedback: () => TEST_CALLIGRAPHY_EVALUATION_FEEDBACK
   });
 
@@ -82,6 +56,8 @@ describe("CalligraphyEvaluationInterface", () => {
       ...TEST_CALLIGRAPHY_EVALUATION_RESULT,
       similarityEvaluation: TEST_CALLIGRAPHY_FALLBACK_SIMILARITY
     }),
+    calculateGeneralSimilarity: async () => TEST_CALLIGRAPHY_FALLBACK_SIMILARITY,
+    createVisualComparison: () => TEST_CALLIGRAPHY_VISUAL_COMPARISON,
     createFeedback: () => TEST_CALLIGRAPHY_EVALUATION_FEEDBACK
   });
 
@@ -118,6 +94,8 @@ describe("CalligraphyEvaluationInterface", () => {
 
     const controller = CreateCalligraphyEvaluationController({
       evaluateAttempt: evaluationRecorder.handler,
+      calculateGeneralSimilarity: async () => TEST_CALLIGRAPHY_SIFT_SIMILARITY,
+      createVisualComparison: () => TEST_CALLIGRAPHY_VISUAL_COMPARISON,
       createFeedback
     });
 
@@ -147,6 +125,8 @@ describe("CalligraphyEvaluationInterface", () => {
 
     const controller = CreateCalligraphyEvaluationController({
       evaluateAttempt: evaluationRecorder.handler,
+      calculateGeneralSimilarity: async () => TEST_CALLIGRAPHY_SIFT_SIMILARITY,
+      createVisualComparison: () => TEST_CALLIGRAPHY_VISUAL_COMPARISON,
       createFeedback
     });
 
@@ -487,9 +467,9 @@ describe("CalligraphyEvaluationInterface", () => {
 
   /**
    * Requirement R70 - Postcondition:
-   * the view should render aligned attempt imagery and keypoint overlays when comparison data is available.
+   * the view should render the similarity matching visual when matched keypoints are available.
    */
-  it(buildRequirementTitle("R70", "Regression", "Postcondition", "view renders aligned attempt image and matched keypoint overlay"), () => {
+  it(buildRequirementTitle("R70", "Regression", "Postcondition", "view renders similarity matching visual when matched keypoints are available"), () => {
     const visualComparison: CalligraphyVisualComparison = {
       ...TEST_CALLIGRAPHY_VISUAL_COMPARISON,
       alignedAttemptImageUri: TEST_ALIGNED_ATTEMPT_IMAGE_URI,
@@ -505,13 +485,36 @@ describe("CalligraphyEvaluationInterface", () => {
       onDismissRequested: vi.fn()
     }));
 
+    const matchingVisual = screen.getByTestId("calligraphy-matching-visual");
+
     expect(
-      screen.getByTestId("calligraphy-aligned-attempt-visual").getAttribute("src"),
-      "R70 regression postcondition should render the aligned attempt image when it is available."
-    ).toBe(TEST_ALIGNED_ATTEMPT_IMAGE_URI);
+        matchingVisual,
+        "R70 regression postcondition should render the similarity matching visual when matched keypoints are available."
+    ).toBeDefined();
+
     expect(
-      screen.getAllByTestId("calligraphy-keypoint"),
-      "R70 regression postcondition should render one reference overlay point for each matched keypoint."
+        matchingVisual.getAttribute("aria-label"),
+        "R70 regression postcondition should expose the similarity visual with a translated accessible label."
+    ).toBe("Similarity");
+
+    expect(
+        screen.queryByTestId("calligraphy-reference-visual"),
+        "R70 regression postcondition should not render the standalone reference image when matching visual is available."
+    ).toBeNull();
+
+    expect(
+        screen.queryByTestId("calligraphy-attempt-visual"),
+        "R70 regression postcondition should not render the standalone attempt image when matching visual is available."
+    ).toBeNull();
+
+    expect(
+        screen.queryByTestId("calligraphy-aligned-attempt-visual"),
+        "R70 regression postcondition should not render the aligned attempt image when matching visual is available."
+    ).toBeNull();
+
+    expect(
+        screen.getAllByTestId("calligraphy-keypoint"),
+        "R70 regression postcondition should render one visible point for each matched keypoint in the similarity visual."
     ).toHaveLength(TEST_MATCHED_KEYPOINTS.length);
   });
 

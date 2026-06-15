@@ -19,33 +19,92 @@ interface ReferenceStroke {
 interface OpenCvHomographyResult {
   readonly isHomographyApplied: boolean;
   readonly matchedKeypoints?: ReadonlyArray<readonly [StrokePoint, StrokePoint]>;
-  readonly alignedAttemptImageUri?: string;
 }
 
 interface OpenCvMat {
   readonly rows?: number;
-  readonly cols?: number;
-  delete?: () => void;
+  ucharAt(row: number, col: number): number;
+  delete(): void;
 }
 
 interface OpenCvMatConstructor {
   new(): OpenCvMat;
-  zeros(rows: number, cols: number, type: number): OpenCvMat;
 }
 
-interface OpenCvSizeConstructor {
-  new(width: number, height: number): object;
+interface OpenCvKeypoint {
+  pt: { x: number; y: number };
+}
+
+interface OpenCvDMatch {
+  queryIdx: number;
+  trainIdx: number;
+  distance: number;
+}
+
+interface OpenCvKeypointVector {
+  size(): number;
+  get(index: number): OpenCvKeypoint;
+  delete(): void;
+}
+
+interface OpenCvDMatchVector {
+  size(): number;
+  get(index: number): OpenCvDMatch;
+}
+
+interface OpenCvDMatchVectorVector {
+  size(): number;
+  get(index: number): OpenCvDMatchVector;
+  delete(): void;
+}
+
+interface OpenCvSift {
+  detectAndCompute(image: OpenCvMat, mask: OpenCvMat, keypoints: OpenCvKeypointVector, descriptors: OpenCvMat): void;
+  delete(): void;
+}
+
+interface OpenCvBFMatcher {
+  knnMatch(query: OpenCvMat, train: OpenCvMat, matches: OpenCvDMatchVectorVector, k: number): void;
+  delete(): void;
 }
 
 interface OpenCvHomographyRuntime {
   readonly CV_32FC2: number;
-  readonly CV_8UC1: number;
   readonly RANSAC: number;
+  readonly NORM_L2: number;
+  readonly COLOR_RGBA2GRAY: number;
   readonly Mat: OpenCvMatConstructor;
-  readonly Size: OpenCvSizeConstructor;
+  readonly SIFT: { new(): OpenCvSift };
+  readonly BFMatcher: { new(normType: number, crossCheck: boolean): OpenCvBFMatcher };
+  readonly KeyPointVector: { new(): OpenCvKeypointVector };
+  readonly DMatchVectorVector: { new(): OpenCvDMatchVectorVector };
+  matFromImageData(imageData: ImageData): OpenCvMat;
   matFromArray(rows: number, cols: number, type: number, data: ReadonlyArray<number>): OpenCvMat;
-  findHomography(reference: OpenCvMat, attempt: OpenCvMat, method: number, threshold: number, mask: OpenCvMat): OpenCvMat;
-  warpPerspective(source: OpenCvMat, destination: OpenCvMat, transform: OpenCvMat, size: object): void;
+  cvtColor(src: OpenCvMat, dst: OpenCvMat, code: number): void;
+  findHomography(src: OpenCvMat, dst: OpenCvMat, method: number, threshold: number, mask: OpenCvMat): OpenCvMat;
+}
+
+interface SiftResult {
+  keypoints: OpenCvKeypointVector;
+  descriptors: OpenCvMat;
+}
+
+interface GoodMatch {
+  referenceKeypointIndex: number;
+  attemptKeypointIndex: number;
+}
+
+interface HomographyResult {
+  homographyMat: OpenCvMat;
+  inlierCount: number;
+  totalMatches: number;
+  inlierMatches: GoodMatch[];
+}
+
+interface InkMask {
+  readonly width: number;
+  readonly height: number;
+  readonly pixels: Uint8Array;
 }
 
 const SCORE_MIN = 0;
@@ -57,7 +116,14 @@ const ORDER_MATCH_THRESHOLD = 15;
 const MIN_KEYPOINTS = 8;
 const MAX_REPORTED_KEYPOINTS = 18;
 const VISUAL_SIZE = 109;
-const opaqueReferenceUseCounts = new Map<string, number>();
+const RASTER_SIZE = 256;
+const LOWE_RATIO = 0.75;
+const RANSAC_THRESHOLD = 5.0;
+const MIN_GOOD_MATCHES = 4;
+const INK_LUMINANCE_THRESHOLD = 245;
+const INK_NEIGHBOR_RADIUS = 3;
+
+
 let syntheticComparisonRequestCount = 0;
 
 export interface CalligraphyEvaluationDataDependencies {
@@ -101,9 +167,7 @@ export async function evaluateCalligraphyAttempt(
     approximateDirection: hasValidStrokeCount
       ? calculateDirectionScore(normalizedAttempt, normalizedReference)
       : SCORE_MIN,
-    generalSimilarity: hasValidStrokeCount
-      ? similarityEvaluation.score
-      : SCORE_MIN
+    generalSimilarity: similarityEvaluation.score
   };
   const score = calculateGlobalCalligraphyScore(metrics, normalizedAttempt);
   const aspects = createAspects(metrics);
@@ -391,9 +455,6 @@ function parsePathPoints(pathData: string): ReadonlyArray<StrokePoint> {
   return points;
 }
 
-/**
- * Tokenizes an SVG path data string into commands and numeric values.
- */
 function tokenizeSvgPath(pathData: string): ReadonlyArray<string | number> {
   const tokenPattern = /([MCcSsLlHhVvZzQqTtAa])|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g;
   const result: Array<string | number> = [];
@@ -410,9 +471,6 @@ function tokenizeSvgPath(pathData: string): ReadonlyArray<string | number> {
   return result;
 }
 
-/**
- * Samples points along a cubic Bézier curve and appends them (excluding the start).
- */
 function sampleCubicBezier(
   startX: number, startY: number,
   cp1x: number, cp1y: number,
@@ -463,59 +521,89 @@ async function calculateGeneralSimilarityFromStrokes(
     throw new StrokeError("The calligraphy attempt must be finalized before calculating similarity.");
   }
 
-  const attemptPoints = sampleCollection(attemptStrokes);
-  const referencePoints = sampleCollection(referenceStrokes);
-  const isOpaqueReference = !reference.referenceImageUri.startsWith("data:image/svg+xml");
-  const shouldUseFallback = isOpaqueReference
-    ? isLowKeypointReference(reference.referenceImageUri)
-    : false;
-  const rawAttemptPointCount = attempt.strokes.reduce((sum, stroke) => sum + stroke.points.length, 0);
-  const matchedKeypointCount = shouldUseFallback
-    ? 2
-    : isOpaqueReference
-      ? MAX_REPORTED_KEYPOINTS
-      : Math.min(calculateMatchedKeypointCount(attemptPoints, referencePoints), rawAttemptPointCount);
+  try {
+    const cv = await getOpenCvRuntime() as unknown as OpenCvHomographyRuntime;
 
-  if (matchedKeypointCount < MIN_KEYPOINTS) {
+    const referenceSvgUri = createOpenCvStrokeDataUri(referenceStrokes);
+    const attemptSvgUri = createOpenCvStrokeDataUri(attemptStrokes);
+
+    const [referenceImageData, attemptImageData] = await Promise.all([
+      rasterizeSvgToImageData(referenceSvgUri),
+      rasterizeSvgToImageData(attemptSvgUri)
+    ]);
+
+    const referenceInkMask = createInkMask(referenceImageData);
+    const attemptInkMask = createInkMask(attemptImageData);
+
+    const referenceGray = imageDataToGrayMat(cv, referenceImageData);
+    const attemptGray = imageDataToGrayMat(cv, attemptImageData);
+
+    const sift = new cv.SIFT();
+    const referenceFeatures = computeSiftFeatures(cv, sift, referenceGray);
+    const attemptFeatures = computeSiftFeatures(cv, sift, attemptGray);
+
+    referenceGray.delete();
+    attemptGray.delete();
+
+    const detectedKeypointCount = Math.min(
+      referenceFeatures.keypoints.size(),
+      attemptFeatures.keypoints.size()
+    );
+
+    if (detectedKeypointCount < MIN_KEYPOINTS) {
+      cleanupSiftResources(sift, referenceFeatures, attemptFeatures);
+      const fallbackScore = Math.round(calculateSimilarityScore(attemptStrokes, referenceStrokes));
+      return {
+        targetCharacter: reference.targetCharacter,
+        attemptId: createAttemptId(attempt),
+        score: fallbackScore,
+        strategy: "FALLBACK",
+        matchedKeypointCount: detectedKeypointCount,
+        fallbackReason: "insufficient_keypoints"
+      };
+    }
+
+    const goodMatches = findGoodMatches(cv, referenceFeatures.descriptors, attemptFeatures.descriptors);
+
+    const inkMatches = filterInkConsistentMatches(
+        referenceFeatures.keypoints,
+        attemptFeatures.keypoints,
+        referenceInkMask,
+        attemptInkMask,
+        goodMatches
+    );
+
+    const homographyResult = inkMatches.length >= MIN_GOOD_MATCHES
+        ? computeHomographyWithRansac(cv, referenceFeatures.keypoints, attemptFeatures.keypoints, inkMatches)
+        : null;
+
+    const score = homographyResult
+        ? calculateSiftScore(homographyResult.inlierCount, homographyResult.totalMatches)
+        : calculateSiftScore(inkMatches.length, detectedKeypointCount);
+
+    const matchedKeypointCount = homographyResult?.inlierCount ?? inkMatches.length;
+
+    homographyResult?.homographyMat.delete();
+    cleanupSiftResources(sift, referenceFeatures, attemptFeatures);
+
     return {
       targetCharacter: reference.targetCharacter,
       attemptId: createAttemptId(attempt),
-      score: 61,
+      score,
+      strategy: "SIFT",
+      matchedKeypointCount
+    };
+
+  } catch {
+    const score = Math.round(calculateSimilarityScore(attemptStrokes, referenceStrokes) * 0.82);
+    return {
+      targetCharacter: reference.targetCharacter,
+      attemptId: createAttemptId(attempt),
+      score,
       strategy: "FALLBACK",
-      matchedKeypointCount,
-      fallbackReason: "insufficient_keypoints"
+      matchedKeypointCount: 0
     };
   }
-
-  return {
-    targetCharacter: reference.targetCharacter,
-    attemptId: createAttemptId(attempt),
-    score: isOpaqueReference ? 82 : Math.round(calculateSimilarityScore(attemptStrokes, referenceStrokes) * 0.82),
-    strategy: "SIFT",
-    matchedKeypointCount
-  };
-}
-
-function isLowKeypointReference(referenceImageUri: string): boolean {
-  const normalizedUri = referenceImageUri.toLocaleLowerCase();
-
-  if (normalizedUri.startsWith("reference:")) {
-    return false;
-  }
-
-  const opaqueUseCount = opaqueReferenceUseCounts.get(normalizedUri) ?? 0;
-  opaqueReferenceUseCounts.set(normalizedUri, opaqueUseCount + 1);
-
-  return normalizedUri.includes("insufficient") ||
-    normalizedUri.includes("low") ||
-    normalizedUri.includes("fallback") ||
-    normalizedUri.includes("few") ||
-    normalizedUri.includes("sparse") ||
-    normalizedUri.includes("minimal") ||
-    normalizedUri.includes("blank") ||
-    normalizedUri.includes("empty") ||
-    normalizedUri.includes(".png") ||
-    opaqueUseCount > 0;
 }
 
 async function createVisualComparisonFromStrokes(
@@ -538,7 +626,6 @@ async function createVisualComparisonFromStrokes(
     attemptId: similarity.attemptId,
     referenceImageUri: reference.referenceImageUri,
     attemptImageUri,
-    alignedAttemptImageUri: homography.alignedAttemptImageUri,
     matchedKeypoints: homography.matchedKeypoints,
     isReferenceVisible: reference.referenceImageUri.startsWith("data:image/"),
     isAttemptVisible: true,
@@ -557,11 +644,48 @@ function createAttemptId(attempt: CalligraphyAttempt): string {
   return "attempt-001";
 }
 
-function calculateMatchedKeypointCount(
-  attemptPoints: ReadonlyArray<StrokePoint>,
-  referencePoints: ReadonlyArray<StrokePoint>
-): number {
-  return Math.min(MAX_REPORTED_KEYPOINTS, attemptPoints.length, referencePoints.length);
+function getRequiredCssVariableValue(variableName: string): string {
+  if (typeof document === "undefined" || typeof window === "undefined") {
+    throw new Error(`CSS variable ${variableName} cannot be read outside the browser.`);
+  }
+
+  const value = window
+      .getComputedStyle(document.documentElement)
+      .getPropertyValue(variableName)
+      .trim();
+
+  if (value.length === 0) {
+    throw new Error(`CSS variable ${variableName} is not defined.`);
+  }
+
+  return value;
+}
+
+function createSvgDataUri(svg: string): string {
+  const bytes = new TextEncoder().encode(svg);
+  const binary = Array.from(bytes, byte => String.fromCharCode(byte)).join("");
+
+  return `data:image/svg+xml;base64,${window.btoa(binary)}`;
+}
+
+function createOpenCvStrokeDataUri(strokes: ReadonlyArray<Stroke>): string {
+  const points = strokes.flatMap(stroke => stroke.points);
+  const bounds = getBounds(points);
+  const padding = 4;
+  const minX = bounds.minX - padding;
+  const minY = bounds.minY - padding;
+  const width = Math.max(bounds.width + padding * 2, VISUAL_SIZE);
+  const height = Math.max(bounds.height + padding * 2, VISUAL_SIZE);
+
+  const paths = strokes
+      .map(stroke => stroke.points.map(point => `${roundSvg(point.x)},${roundSvg(point.y)}`).join(" "))
+      .filter(pointList => pointList.length > 0)
+      .map(pointList => `<polyline points="${pointList}" fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`)
+      .join("");
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${roundSvg(minX)} ${roundSvg(minY)} ${roundSvg(width)} ${roundSvg(height)}" role="img"><rect x="${roundSvg(minX)}" y="${roundSvg(minY)}" width="${roundSvg(width)}" height="${roundSvg(height)}" fill="white"/>${paths}</svg>`;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
 function createStrokeDataUri(strokes: ReadonlyArray<Stroke>, variant: "reference" | "attempt"): string {
@@ -572,16 +696,18 @@ function createStrokeDataUri(strokes: ReadonlyArray<Stroke>, variant: "reference
   const minY = bounds.minY - padding;
   const width = Math.max(bounds.width + padding * 2, VISUAL_SIZE);
   const height = Math.max(bounds.height + padding * 2, VISUAL_SIZE);
-  const strokeColor = variant === "reference" ? "#111827" : "#2563eb";
-  const backgroundColor = "#ffffff";
-  const paths = strokes
-    .map(stroke => stroke.points.map(point => `${roundSvg(point.x)},${roundSvg(point.y)}`).join(" "))
-    .filter(pointList => pointList.length > 0)
-    .map(pointList => `<polyline points="${pointList}" fill="none" stroke="${strokeColor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`)
-    .join("");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${roundSvg(minX)} ${roundSvg(minY)} ${roundSvg(width)} ${roundSvg(height)}" role="img"><rect x="${roundSvg(minX)}" y="${roundSvg(minY)}" width="${roundSvg(width)}" height="${roundSvg(height)}" fill="${backgroundColor}"/>${paths}</svg>`;
+  const strokeColor = getRequiredCssVariableValue(
+      variant === "reference" ? "--ion-text-color" : "--ion-color-primary"
+  );
 
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  const paths = strokes
+      .map(stroke => stroke.points.map(point => `${roundSvg(point.x)},${roundSvg(point.y)}`).join(" "))
+      .filter(pointList => pointList.length > 0)
+      .map(pointList => `<polyline points="${pointList}" fill="none" stroke="${strokeColor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`)
+      .join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${roundSvg(minX)} ${roundSvg(minY)} ${roundSvg(width)} ${roundSvg(height)}" role="img">${paths}</svg>`;
+
+  return createSvgDataUri(svg);
 }
 
 function createFallbackVisualDataUri(variant: "reference" | "attempt"): string {
@@ -595,61 +721,98 @@ function createFallbackVisualDataUri(variant: "reference" | "attempt"): string {
 }
 
 async function tryApplyHomography(
-  referenceStrokes: ReadonlyArray<Stroke>,
-  attemptStrokes: ReadonlyArray<Stroke>
+    referenceStrokes: ReadonlyArray<Stroke>,
+    attemptStrokes: ReadonlyArray<Stroke>
 ): Promise<OpenCvHomographyResult> {
-  const cv = await getOpenCvRuntime() as unknown as OpenCvHomographyRuntime;
-  const referencePoints = sampleCollection(referenceStrokes).slice(0, MAX_REPORTED_KEYPOINTS);
-  const attemptPoints = sampleCollection(attemptStrokes).slice(0, MAX_REPORTED_KEYPOINTS);
-  const correspondenceCount = Math.min(referencePoints.length, attemptPoints.length);
-
-  if (correspondenceCount < 4) {
-    return createUnavailableHomographyResult();
-  }
-
   try {
-    const attemptImage = createTransferableSvgImage(createStrokeDataUri(attemptStrokes, "attempt"));
-    const matchedKeypoints = referencePoints.slice(0, correspondenceCount).map((referencePoint, index) => [
-      referencePoint,
-      attemptPoints[index]
-    ] as const);
-    const referenceMat = cv.matFromArray(
-      correspondenceCount,
-      1,
-      cv.CV_32FC2,
-      referencePoints.slice(0, correspondenceCount).flatMap(point => [point.x, point.y])
-    );
-    const attemptMat = cv.matFromArray(
-      correspondenceCount,
-      1,
-      cv.CV_32FC2,
-      attemptPoints.slice(0, correspondenceCount).flatMap(point => [point.x, point.y])
-    );
-    const mask = new cv.Mat();
-    const homography = cv.findHomography(referenceMat, attemptMat, cv.RANSAC, 3, mask);
-    const source = cv.Mat.zeros(VISUAL_SIZE, VISUAL_SIZE, cv.CV_8UC1);
-    const aligned = new cv.Mat();
-    const size = new cv.Size(VISUAL_SIZE, VISUAL_SIZE);
+    const cv = await getOpenCvRuntime() as unknown as OpenCvHomographyRuntime;
 
-    cv.warpPerspective(source, aligned, homography, size);
+    const referenceSvgUri = createOpenCvStrokeDataUri(referenceStrokes);
+    const attemptSvgUri = createOpenCvStrokeDataUri(attemptStrokes);
 
-    const isHomographyApplied = (homography.rows ?? 0) > 0 && (homography.cols ?? 0) > 0;
+    const [referenceImageData, attemptImageData] = await Promise.all([
+      rasterizeSvgToImageData(referenceSvgUri),
+      rasterizeSvgToImageData(attemptSvgUri)
+    ]);
 
-    deleteOpenCvMat(referenceMat);
-    deleteOpenCvMat(attemptMat);
-    deleteOpenCvMat(mask);
-    deleteOpenCvMat(homography);
-    deleteOpenCvMat(source);
-    deleteOpenCvMat(aligned);
+    const referenceInkMask = createInkMask(referenceImageData);
+    const attemptInkMask = createInkMask(attemptImageData);
 
-    if (!isHomographyApplied || matchedKeypoints.length < 4) {
+    const referenceGray = imageDataToGrayMat(cv, referenceImageData);
+    const attemptGray = imageDataToGrayMat(cv, attemptImageData);
+    const sift = new cv.SIFT();
+    const referenceFeatures = computeSiftFeatures(cv, sift, referenceGray);
+    const attemptFeatures = computeSiftFeatures(cv, sift, attemptGray);
+
+    referenceGray.delete();
+    attemptGray.delete();
+
+    if (
+        referenceFeatures.keypoints.size() < MIN_GOOD_MATCHES ||
+        attemptFeatures.keypoints.size() < MIN_GOOD_MATCHES
+    ) {
+      cleanupSiftResources(sift, referenceFeatures, attemptFeatures);
       return createUnavailableHomographyResult();
     }
 
+    const goodMatches = findGoodMatches(cv, referenceFeatures.descriptors, attemptFeatures.descriptors);
+
+    const inkMatches = filterInkConsistentMatches(
+        referenceFeatures.keypoints,
+        attemptFeatures.keypoints,
+        referenceInkMask,
+        attemptInkMask,
+        goodMatches
+    );
+
+    if (inkMatches.length < MIN_GOOD_MATCHES) {
+      cleanupSiftResources(sift, referenceFeatures, attemptFeatures);
+      return createUnavailableHomographyResult();
+    }
+
+    const homographyResult = computeHomographyWithRansac(
+        cv,
+        referenceFeatures.keypoints,
+        attemptFeatures.keypoints,
+        inkMatches
+    );
+
+    if (!homographyResult) {
+      cleanupSiftResources(sift, referenceFeatures, attemptFeatures);
+      return createUnavailableHomographyResult();
+    }
+
+    if (homographyResult.inlierCount < MIN_GOOD_MATCHES) {
+      homographyResult.homographyMat.delete();
+      cleanupSiftResources(sift, referenceFeatures, attemptFeatures);
+      return createUnavailableHomographyResult();
+    }
+
+    const scale = KANJIVG_SIZE / RASTER_SIZE;
+    const matchedKeypoints = homographyResult.inlierMatches
+        .slice(0, MAX_REPORTED_KEYPOINTS)
+        .map(match => {
+          const refKp = referenceFeatures.keypoints.get(match.referenceKeypointIndex);
+          const attKp = attemptFeatures.keypoints.get(match.attemptKeypointIndex);
+
+          return [
+            {
+              x: refKp.pt.x * scale,
+              y: refKp.pt.y * scale
+            },
+            {
+              x: attKp.pt.x * scale,
+              y: attKp.pt.y * scale
+            }
+          ] as const;
+        });
+
+    homographyResult.homographyMat.delete();
+    cleanupSiftResources(sift, referenceFeatures, attemptFeatures);
+
     return {
       isHomographyApplied: true,
-      matchedKeypoints,
-      alignedAttemptImageUri: createAlignedAttemptImageUri(attemptImage)
+      matchedKeypoints
     };
   } catch {
     return createUnavailableHomographyResult();
@@ -657,33 +820,224 @@ async function tryApplyHomography(
 }
 
 function createUnavailableHomographyResult(): OpenCvHomographyResult {
+  return { isHomographyApplied: false };
+}
+
+async function rasterizeSvgToImageData(svgDataUri: string): Promise<ImageData> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+
+    img.onload = () => {
+      const canvas = new OffscreenCanvas(RASTER_SIZE, RASTER_SIZE);
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        reject(new Error("Could not get 2D context for rasterization."));
+        return;
+      }
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, RASTER_SIZE, RASTER_SIZE);
+      ctx.drawImage(img, 0, 0, RASTER_SIZE, RASTER_SIZE);
+      resolve(ctx.getImageData(0, 0, RASTER_SIZE, RASTER_SIZE));
+    };
+
+    img.onerror = () => reject(new Error("Failed to load SVG for rasterization."));
+    img.src = svgDataUri;
+  });
+}
+
+function imageDataToGrayMat(cv: OpenCvHomographyRuntime, imageData: ImageData): OpenCvMat {
+  const rgbaMat = cv.matFromImageData(imageData);
+  const grayMat = new cv.Mat();
+
+  cv.cvtColor(rgbaMat, grayMat, cv.COLOR_RGBA2GRAY);
+  rgbaMat.delete();
+
+  return grayMat;
+}
+
+function computeSiftFeatures(cv: OpenCvHomographyRuntime, sift: OpenCvSift, grayMat: OpenCvMat): SiftResult {
+  const keypoints = new cv.KeyPointVector();
+  const descriptors = new cv.Mat();
+  const mask = new cv.Mat();
+
+  sift.detectAndCompute(grayMat, mask, keypoints, descriptors);
+  mask.delete();
+
+  return { keypoints, descriptors };
+}
+
+function findGoodMatches(
+  cv: OpenCvHomographyRuntime,
+  referenceDescriptors: OpenCvMat,
+  attemptDescriptors: OpenCvMat
+): GoodMatch[] {
+  const matcher = new cv.BFMatcher(cv.NORM_L2, false);
+  const knnMatches = new cv.DMatchVectorVector();
+
+  matcher.knnMatch(referenceDescriptors, attemptDescriptors, knnMatches, 2);
+
+  const goodMatches: GoodMatch[] = [];
+
+  for (let i = 0; i < knnMatches.size(); i++) {
+    const pair = knnMatches.get(i);
+
+    if (pair.size() < 2) {
+      continue;
+    }
+
+    const best = pair.get(0);
+    const secondBest = pair.get(1);
+
+    if (best.distance < LOWE_RATIO * secondBest.distance) {
+      goodMatches.push({
+        referenceKeypointIndex: best.queryIdx,
+        attemptKeypointIndex: best.trainIdx
+      });
+    }
+  }
+
+  matcher.delete();
+  knnMatches.delete();
+
+  return goodMatches;
+}
+
+function createInkMask(imageData: ImageData): InkMask {
+  const pixels = new Uint8Array(imageData.width * imageData.height);
+
+  for (let y = 0; y < imageData.height; y += 1) {
+    for (let x = 0; x < imageData.width; x += 1) {
+      const dataIndex = (y * imageData.width + x) * 4;
+      const red = imageData.data[dataIndex];
+      const green = imageData.data[dataIndex + 1];
+      const blue = imageData.data[dataIndex + 2];
+      const alpha = imageData.data[dataIndex + 3];
+
+      const luminance = 0.299 * red + 0.587 * green + 0.114 * blue;
+      const isInk = alpha > 0 && luminance < INK_LUMINANCE_THRESHOLD;
+
+      pixels[y * imageData.width + x] = isInk ? 1 : 0;
+    }
+  }
+
   return {
-    isHomographyApplied: false
+    width: imageData.width,
+    height: imageData.height,
+    pixels
   };
 }
 
-function createTransferableSvgImage(imageUri: string): ArrayBuffer {
-  const svg = decodeSvgDataUri(imageUri) ?? "";
-  const encodedSvg = new TextEncoder().encode(svg);
+function isNearInk(mask: InkMask, x: number, y: number): boolean {
+  const centerX = Math.round(x);
+  const centerY = Math.round(y);
 
-  return encodedSvg.buffer.slice(
-    encodedSvg.byteOffset,
-    encodedSvg.byteOffset + encodedSvg.byteLength
-  );
-}
+  const minX = Math.max(0, centerX - INK_NEIGHBOR_RADIUS);
+  const maxX = Math.min(mask.width - 1, centerX + INK_NEIGHBOR_RADIUS);
+  const minY = Math.max(0, centerY - INK_NEIGHBOR_RADIUS);
+  const maxY = Math.min(mask.height - 1, centerY + INK_NEIGHBOR_RADIUS);
 
-function createAlignedAttemptImageUri(image: ArrayBuffer): string {
-  const binary = Array.from(new Uint8Array(image))
-    .map(byte => String.fromCharCode(byte))
-    .join("");
-
-  return `data:image/svg+xml;base64,${btoa(binary)}`;
-}
-
-function deleteOpenCvMat(mat: OpenCvMat): void {
-  if (typeof mat.delete === "function") {
-    mat.delete();
+  for (let currentY = minY; currentY <= maxY; currentY += 1) {
+    for (let currentX = minX; currentX <= maxX; currentX += 1) {
+      if (mask.pixels[currentY * mask.width + currentX] === 1) {
+        return true;
+      }
+    }
   }
+
+  return false;
+}
+
+function filterInkConsistentMatches(
+    referenceKeypoints: OpenCvKeypointVector,
+    attemptKeypoints: OpenCvKeypointVector,
+    referenceInkMask: InkMask,
+    attemptInkMask: InkMask,
+    matches: ReadonlyArray<GoodMatch>
+): GoodMatch[] {
+  return matches.filter(match => {
+    const referenceKeypoint = referenceKeypoints.get(match.referenceKeypointIndex);
+    const attemptKeypoint = attemptKeypoints.get(match.attemptKeypointIndex);
+
+    return (
+        isNearInk(referenceInkMask, referenceKeypoint.pt.x, referenceKeypoint.pt.y) &&
+        isNearInk(attemptInkMask, attemptKeypoint.pt.x, attemptKeypoint.pt.y)
+    );
+  });
+}
+
+function computeHomographyWithRansac(
+  cv: OpenCvHomographyRuntime,
+  referenceKeypoints: OpenCvKeypointVector,
+  attemptKeypoints: OpenCvKeypointVector,
+  goodMatches: GoodMatch[]
+): HomographyResult | null {
+  if (goodMatches.length < MIN_GOOD_MATCHES) {
+    return null;
+  }
+
+  const srcCoords: number[] = [];
+  const dstCoords: number[] = [];
+
+  for (const match of goodMatches) {
+    const refKp = referenceKeypoints.get(match.referenceKeypointIndex);
+    const attKp = attemptKeypoints.get(match.attemptKeypointIndex);
+    srcCoords.push(attKp.pt.x, attKp.pt.y);
+    dstCoords.push(refKp.pt.x, refKp.pt.y);
+  }
+
+  const srcMat = cv.matFromArray(goodMatches.length, 1, cv.CV_32FC2, srcCoords);
+  const dstMat = cv.matFromArray(goodMatches.length, 1, cv.CV_32FC2, dstCoords);
+  const mask = new cv.Mat();
+  const H = cv.findHomography(srcMat, dstMat, cv.RANSAC, RANSAC_THRESHOLD, mask);
+
+  let inlierCount = 0;
+  const inlierMatches: GoodMatch[] = [];
+  const maskRows = mask.rows ?? 0;
+
+  for (let i = 0; i < maskRows; i++) {
+    if (mask.ucharAt(i, 0) !== 0) {
+      inlierCount++;
+      inlierMatches.push(goodMatches[i]);
+    }
+  }
+
+  srcMat.delete();
+  dstMat.delete();
+  mask.delete();
+
+  if ((H.rows ?? 0) === 0) {
+    H.delete();
+    return null;
+  }
+
+  return {
+    homographyMat: H,
+    inlierCount,
+    totalMatches: goodMatches.length,
+    inlierMatches
+  };
+}
+
+function calculateSiftScore(inlierCount: number, totalMatches: number): number {
+  if (totalMatches === 0) {
+    return SCORE_MIN;
+  }
+
+  return clampScore(Math.round((inlierCount / totalMatches) * SCORE_MAX));
+}
+
+function cleanupSiftResources(
+  sift: OpenCvSift,
+  referenceFeatures: SiftResult,
+  attemptFeatures: SiftResult
+): void {
+  sift.delete();
+  referenceFeatures.keypoints.delete();
+  referenceFeatures.descriptors.delete();
+  attemptFeatures.keypoints.delete();
+  attemptFeatures.descriptors.delete();
 }
 
 function roundSvg(value: number): string {
@@ -858,7 +1212,6 @@ function calculateSimilarityScore(
 
   return clampScore(distanceScore * 0.75 + lengthRatio * 25);
 }
-
 
 function sampleCollection(strokes: ReadonlyArray<Stroke>): ReadonlyArray<StrokePoint> {
   return strokes.flatMap(sampleStroke);

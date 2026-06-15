@@ -57,7 +57,7 @@ const FINALIZED_ATTEMPT: CalligraphyAttempt = {
     ]
 };
 
-vi.mock("../../../src/Shared/OpenCvService", () => ({
+vi.mock("../../../src/Shared/opencv/Loader", () => ({
     getOpenCvRuntime: () =>
         Promise.reject(new Error("Simulated OpenCV unavailability for integration test")),
     initializeOpenCv: () =>
@@ -118,7 +118,18 @@ describe("Calligraphy OpenCV integration", () => {
 
             const evaluationPromise = evaluateCalligraphyAttempt(
                 {
-                    loadReferenceStrokeOrder: async () => REFERENCE_SVG
+                    loadReferenceStrokeOrder: async () => REFERENCE_SVG,
+                    visualComparisonEngine: {
+                        computeSimilarity: async () => ({
+                            score: 0,
+                            strategy: "FALLBACK" as const,
+                            matchedKeypointCount: 0,
+                            fallbackReason: "insufficient_keypoints" as const
+                        }),
+                        computeAlignment: async () => ({
+                            isHomographyApplied: false
+                        })
+                    }
                 },
                 FINALIZED_ATTEMPT
             );

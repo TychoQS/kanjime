@@ -15,7 +15,10 @@ import { CreateCategoryController } from "./Features/Calligraphy/CreateCategoryC
 import type { CategoryInterface } from "./Features/Calligraphy/Contracts/CategoryInterface";
 import { CreateKanjiPracticeController } from "./Features/Calligraphy/CreateKanjiPracticeController";
 import type { KanjiPracticeInterface } from "./Features/Calligraphy/Contracts/KanjiPracticeInterface";
-import { evaluateCalligraphyAttempt } from "./Features/Calligraphy/Services/CalligraphyEvaluationService";
+import {
+  evaluateCalligraphyAttempt,
+  calculateCalligraphyGeneralSimilarity
+} from "./Features/Calligraphy/Services/CalligraphyEvaluationService";
 import { CreateCanvasController } from "./Features/Classification/Canvas/CreateCanvasController";
 import type { CanvasInterface } from "./Features/Classification/Canvas/Contracts/CanvasInterface";
 import { CreateImageController } from "./Features/Classification/Image/CreateImageController";
@@ -81,6 +84,7 @@ import { captureVideoFrame, openRearCameraStream, stopCameraStream } from "./Fea
 import { pickImageFromDevice } from "./Features/Classification/Image/WebImagePicker";
 import { readFirebaseInstallationId } from "./Shared/FirebaseInstallationClient";
 import { initializeOpenCv } from "./Shared/OpenCvService";
+import { createOpenCvAdapter } from "./Shared/opencv/OpenCvAdapter";
 
 export interface AboutDisplayItem {
   readonly label: string;
@@ -516,13 +520,18 @@ export function createCompositionRoot(): CompositionRoot {
 
   const calligraphyCanvasController = CreateCalligraphyCanvasController();
 
+  const openCvEngine = createOpenCvAdapter();
+
   const calligraphyEvaluationController = CreateCalligraphyEvaluationController({
     evaluateAttempt: attempt => evaluateCalligraphyAttempt({
       loadReferenceStrokeOrder: async character => {
         const details = await kanjiRepository.getDetails(character);
         return details.strokeOrder ?? "";
-      }
+      },
+      visualComparisonEngine: openCvEngine
     }, attempt),
+    calculateGeneralSimilarity: (attempt, reference) =>
+      calculateCalligraphyGeneralSimilarity(attempt, reference, openCvEngine),
     createFeedback: result => ({
       score: result.score,
       summary: result.summary,

@@ -1,7 +1,6 @@
 import type { CreateCalligraphyEvaluationControllerDependencies } from "../CreateCalligraphyEvaluationController";
 import type { CalligraphyEvaluationInterface } from "../Contracts/CalligraphyEvaluationInterface";
 import {
-  calculateCalligraphyGeneralSimilarity,
   createCalligraphyVisualComparison
 } from "../Services/CalligraphyEvaluationService";
 import type {
@@ -61,9 +60,11 @@ export function createCalligraphyEvaluationViewModel(
         throw new StrokeError("The calligraphy attempt must be finalized before calculating similarity.");
       }
 
-      return dependencies.calculateGeneralSimilarity
-        ? dependencies.calculateGeneralSimilarity(attempt, reference)
-        : calculateCalligraphyGeneralSimilarity(attempt, reference);
+      if (!dependencies.calculateGeneralSimilarity) {
+        throw new StrokeError("No similarity engine is configured for evaluation.");
+      }
+
+      return dependencies.calculateGeneralSimilarity(attempt, reference);
     },
     createVisualComparison(result: CalligraphyEvaluationResult): CalligraphyVisualComparison {
       if (!result.visualComparison) {

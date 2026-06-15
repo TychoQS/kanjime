@@ -1,23 +1,21 @@
-# Iteration 4 — Mobile improvements
+# Iteration 4 — Admin improvements
 
 ## 1. Purpose
 
-This iteration improves the mobile writing module.
+This iteration improves the admin reports module app.
 
-The mobile app receives three improvements to the calligraphy feature: a kanji search field inside the category screen, a SIFT-based visual similarity metric, and a visual reference-attempt comparison shown after evaluation. The error observability flow is extended to attach an anonymous client identifier to generated reports.
+The admin app receives two improvements to the admin dashboard: The existence of state associated to reports and a filter to filter them in the report section.
 
-This iteration must not rework existing features outside the scope described below. It must not break any passing test.
+This iteration must not rework existing features outside the scope described below. It must not break any passing test. And it must not change anything in the mobile app.
 
 ---
 
 ## 2. Feature order (MANDATORY)
 
-### Mobile
+### Admin
 
-1. Category search
-2. SIFT similarity evaluation
-3. Visual reference-attempt comparison
-4. Anonymous client identifier in error reports
+1. Report status visualization and filtering
+2. Report status change
 
 Do not start the next feature until the current feature passes its affected unit tests, builds correctly, and is integrated through its real View component.
 
@@ -25,184 +23,49 @@ Do not start the next feature until the current feature passes its affected unit
 
 ## 3. Features
 
-### Feature: Category search
+### Feature: Update error status
 
 **Requirements**
 
-* Functional: R67
-* Usability: R29
+* Functional: R72
+* Usability: R32
+  **Description**
 
-**Description**
-
-Allows the user to search for kanji inside the selected category list.
+Allows the administrator to change the status of a reported error from its detail screen.
+Error status must be stored as a field of the existing Firestore error report document.
 
 The feature must:
 
-* accept a non-empty search term in hiragana, katakana, or kanji;
-* reject an empty term by throwing with a message containing `"valid search term"`;
-* return only kanji matching the term that belong to the selected category;
-* return an empty array when no kanji match the term;
-* keep the search field visible before and after any filtering attempt.
+* accept a status from the allowed set: `OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, `DISCARDED`;
+* reject any value outside that set;
+* persist the updated status through the injected dependency;
+* return the updated `AdminErrorDetail` after a successful status change.
+  The UI must:
 
-**Dependencies**
+* show the real assignable statuses clearly differentiated from any visualization-only filter;
+* never expose `"all"` as an assignable status.
+  **Dependencies**
 
-* `CategoryInterface.searchKanjiByCategory`
+* `AdminErrorDetailInterface.updateErrorStatus`
+* `AdminErrorStatus`
+* `AdminErrorDetail`
 
 **Interface / Contracts**
 
 Use the existing contracts:
 
-* `CategoryInterface`
-* `CategoryProps`
+* `AdminErrorDetailInterface`
+* `AdminErrorDetailProps`
+  `AdminErrorDetailProps` already exposes:
 
-`CategoryProps` already exposes:
+* `availableStatuses: ReadonlyArray<AdminErrorStatus>`
+* `onStatusSelected: (status: AdminErrorStatus) => void`
+  The View component that must consume `AdminErrorDetailProps` is:
 
-* `searchTerm`
-* `onSearchTermChanged`
-* `visibleKanji`
-
-The feature must wire these props so the list filters reactively as the user types.
-
-The View component that must consume `CategoryProps` is:
-
-* `CategoryView`
-
-The search field must be visible on the kanji category list screen without opening any additional menu or screen.
-
+* `AdminErrorDetailView`
 ---
 
-### Feature: SIFT similarity evaluation
-
-**Requirements**
-
-* Functional: R68, R69
-
-**Description**
-
-Improves the general similarity metric of the writing evaluation by using a visual image-based comparison (SIFT or equivalent) between the rendered reference character and the user attempt.
-
-The feature must:
-
-* accept a finalized attempt and a renderable reference;
-* reject a non-finalized attempt by throwing with a message containing `"finalized"`;
-* return a `CalligraphySimilarityEvaluation` with `strategy: "SIFT"` when keypoints are sufficient;
-* return a controlled fallback result with `strategy: "FALLBACK"` and `fallbackReason: "insufficient_keypoints"` when SIFT cannot find enough keypoints — it must never throw an uncontrolled exception in this case;
-* never mutate `strokeCount`, `strokeOrder`, or `approximateDirection` when calculating similarity.
-
-**Dependencies**
-
-* `CalligraphyEvaluationInterface.calculateGeneralSimilarity`
-* `CalligraphyReferenceVisual`
-* `CalligraphySimilarityEvaluation`
-
-**Interface / Contracts**
-
-Use the existing contracts:
-
-* `CalligraphyEvaluationInterface`
-* `CalligraphyEvaluationProps`
-
-`evaluateAttempt` must internally use `calculateGeneralSimilarity` to populate `similarityEvaluation` on the returned `CalligraphyEvaluationResult`.
-
-The View component that must consume `CalligraphyEvaluationProps` is:
-
-* `CalligraphyEvaluationView`
-
-The evaluation screen must reflect the updated similarity score.
-
----
-
-### Feature: Visual reference-attempt comparison
-
-**Requirements**
-
-* Functional: R70
-* Usability: R30
-
-**Description**
-
-Shows the user a side-by-side or overlay comparison between the reference character and their writing attempt after an evaluation.
-
-The feature must:
-
-* accept a `CalligraphyEvaluationResult` that contains visual data;
-* reject a result without visual data by throwing with a message containing `"visual comparison"`;
-* return a `CalligraphyVisualComparison` that references the same `targetCharacter` as the input result;
-* expose reference and attempt as differentiated visuals;
-* include homography alignment metadata when correspondences are sufficient — omit it otherwise without throwing.
-* build the reference visual from the same rendered reference stroke data used for the evaluation;
-* build the attempt visual from the user's actual finalized `CalligraphyAttempt.strokes`;
-* calculate homography only from matched points of interest/keypoint correspondences between the rendered reference and the finalized attempt visual;
-* apply homography alignment to the comparison only when there are enough valid correspondences for a stable transform, and expose whether it was applied;
-* reject or show a controlled unavailable state when the real attempt visual cannot be produced.
-
-The feature must not:
-
-* use static placeholder assets, hard-coded character-to-file maps, `attempt://...` URIs, or the target character itself as the attempt visual;
-* set homography metadata without deriving it from real matched points of interest;
-* show two copies of the target character instead of the user's actual drawing and the reference;
-* rely on image `alt` text as visible fallback content for the comparison.
-
-On phone-sized screens, the comparison must remain visible and usable as a primary part of the feedback flow. The layout must not make the comparison effectively available only on large viewports. Reference and attempt visuals must have distinct accessible labels.
-
-**Dependencies**
-
-* `CalligraphyEvaluationInterface.createVisualComparison`
-* `CalligraphyEvaluationResult`
-* `CalligraphyVisualComparison`
-
-**Interface / Contracts**
-
-Use the existing contracts:
-
-* `CalligraphyEvaluationInterface`
-* `CalligraphyEvaluationProps`
-
-`CalligraphyEvaluationProps` already exposes:
-
-* `comparison?: CalligraphyVisualComparison | null`
-
-The visual comparison must appear above the metric breakdown while the evaluation feedback is visible.
-
-The View component that must consume `CalligraphyEvaluationProps` is:
-
-* `CalligraphyEvaluationView`
-
----
-
-### Feature: Anonymous client identifier in error reports
-
-**Requirements**
-
-* Functional: R71
-
-**Description**
-
-Attaches an anonymous client or installation identifier to generated error reports when one is available. The anonymous client identifier must be the Firebase installation ID, obtained via getInstallations from firebase/installations — never a randomly generated value, a UUID, or any other identifier not derived from the Firebase installation.
-
-The feature must:
-
-* include `anonymousClientId` in the generated report when `context.anonymousClientId` is present and valid;
-* reject values that look like personal identifiers (e.g. contain `@`) by throwing with a message containing `"anonymous"`;
-* never include `@` or any other format that suggests personal data in the identifier attached to the report;
-* generate the report normally when no identifier is available.
-
-**Dependencies**
-
-* `ErrorObservabilityInterface.createErrorReport`
-* `ApplicationErrorContext`
-* `ApplicationErrorReport`
-* `firebase/installations` - getInstallations   
-
-**Interface / Contracts**
-
-Use the existing contracts:
-
-* `ErrorObservabilityInterface`
-
-The `ErrorBoundary` must pass the anonymous client identifier through `context` when available.
-
----
+### Feature: Filter errors by status
 
 **Requirements**
 
@@ -231,28 +94,30 @@ Use the existing contracts:
 
 * `AdminErrorsInterface`
 * `AdminErrorDashboardProps`
-
-`AdminErrorDashboardProps` already exposes:
+  `AdminErrorDashboardProps` already exposes:
 
 * `activeFilter: AdminErrorFilter`
 * `availableFilters: ReadonlyArray<AdminErrorFilter>`
 * `availableStatuses: ReadonlyArray<AdminErrorStatus>`
 * `onFilterSelected: (filter: AdminErrorFilter) => void`
-
-The View component that must consume `AdminErrorDashboardProps` is:
+  The View component that must consume `AdminErrorDashboardProps` is:
 
 * `AdminErrorsView`
-
-The `"all"` option must appear only in the filter selector, never in the assignable status list.
-
+  The `"all"` option must appear only in the filter selector, never in the assignable status list.
 ---
+
+### Updates
+Update the contracts and unit tests to take into consideration the new fields of a error report.
+Both anonymousId and errorStatus, to be parsed and displayed as well as the rest of the fields and
+update any unit tests for interface or prop that check for existences of report fields to check the new ones.
+
+**Interface / Contracts**
+* `AdminErrorDetailProps`
 
 ## 4. Dependencies (explicit graph)
 
-- Category search → depends on `CategoryInterface.searchKanjiByCategory` and `CategoryProps`.
-- SIFT similarity → depends on `CalligraphyEvaluationInterface.calculateGeneralSimilarity`.
-- Visual comparison → depends on SIFT similarity and `CalligraphyEvaluationInterface.createVisualComparison`.
-- Anonymous client identifier → depends on `ErrorObservabilityInterface.createErrorReport` and `ApplicationErrorContext`.
+- Update error status → depends on `AdminErrorDetailInterface.updateErrorStatus`.
+- Filter errors → depends on `AdminErrorsInterface.filterReportedErrors` and Update error status (status set must be consistent).
 
 ---
 
@@ -294,12 +159,6 @@ A feature is complete only if:
 * No hardcoded or test-specific logic exists
 * Real implementation exists
 * The corresponding Props contract is consumed by a production View component
-* Every algorithm named in a feature description has a real implementation — not a score, flag, or count derived from its inputs
-* Metadata about a computation reflects its actual result, not its preconditions
-* Unavailable features surface an explicit unavailable state rather than a silent approximation
-* SVG viewBox must be derived from actual point coordinates — never hardcoded when rendering user input
-* All image URIs must be valid data URIs starting with data:image/ — SVG strings, placeholders, and invented URIs are invalid
-* OpenCV.js (@techstark/opencv-js) must be used for homography computation — a boolean flag or identity matrix is not an implementation
 
 
 ---
@@ -326,9 +185,9 @@ A feature is complete only if:
 
 ### Error / Edge cases
 
-* Empty search results must be handled explicitly — show an empty list, not an error
-* Missing visual comparison data must be handled explicitly
-* Repository failures must display clear, non-technical messages
+* Status changes must update the application state immediately after the persistence operation succeeds.
+* The user must not need to reload the page, reopen the detail screen, reapply the filter, or manually refresh the report list to see the updated status.
+* The detail screen and the report list must stay consistent after a status change.
 * UI must not break when data is missing or undefined
 
 ### Invalid UI conditions

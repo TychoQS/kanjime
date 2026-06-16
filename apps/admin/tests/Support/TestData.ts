@@ -46,8 +46,16 @@ export const TEST_ADMIN_E2E_TEST_IDS = {
   versionSaveButton: "admin-version-save-button",
   errorsView: "admin-errors-view",
   errorsList: "admin-errors-list",
+  errorsFilterPrefix: "admin-errors-filter-",
+  errorsStatusPrefix: "admin-errors-status-",
+  errorRowPrefix: "admin-error-row-",
+  errorStatusPrefix: "admin-error-status-",
+  errorOpenButtonPrefix: "admin-error-open-button-",
   errorDetailView: "admin-error-detail-view",
-  errorDetailBackButton: "admin-error-detail-back-button"
+  errorDetailBackButton: "admin-error-detail-back-button",
+  errorDetailCurrentStatusValue: "admin-error-detail-current-status-value",
+  errorDetailStatusSelectorRow: "admin-error-detail-status-selector-row",
+  errorDetailStatusPrefix: "admin-error-detail-status-"
 } as const;
 
 export const TEST_ADMIN_E2E_ROUTES = {
@@ -131,6 +139,45 @@ export const TEST_ADMIN_ERROR_FILTERS: ReadonlyArray<AdminErrorFilter> = [
   "all",
   ...TEST_ADMIN_ERROR_STATUSES
 ];
+
+export const TEST_ADMIN_FILTER_ALL: AdminErrorFilter = "all";
+export const TEST_ADMIN_STATUS_OPEN: AdminErrorStatus = "OPEN";
+export const TEST_ADMIN_STATUS_IN_PROGRESS: AdminErrorStatus = "IN_PROGRESS";
+export const TEST_ADMIN_STATUS_RESOLVED: AdminErrorStatus = "RESOLVED";
+export const TEST_ADMIN_STATUS_CLOSED: AdminErrorStatus = "CLOSED";
+export const TEST_ADMIN_STATUS_DISCARDED: AdminErrorStatus = "DISCARDED";
+export const TEST_ADMIN_STATUS_UPDATE_TARGET: AdminErrorStatus = TEST_ADMIN_STATUS_RESOLVED;
+export const TEST_ADMIN_FILTER_TEST_STATUS: AdminErrorStatus = TEST_ADMIN_STATUS_RESOLVED;
+export const TEST_ADMIN_STATUS_ALL_TEST_ID_SEGMENT = "all";
+export const TEST_ADMIN_STATUS_SOURCE_SEPARATOR = "_";
+export const TEST_ADMIN_STATUS_TEST_ID_SEPARATOR = "-";
+
+export const TEST_ADMIN_E2E_STATUS_ERROR_REPORTS: ReadonlyArray<ApplicationErrorReport> = [
+  {
+    ...TEST_ADMIN_E2E_ERROR_REPORTS[0],
+    id: "report-open",
+    status: TEST_ADMIN_STATUS_OPEN
+  },
+  {
+    ...TEST_ADMIN_E2E_ERROR_REPORTS[1],
+    id: "report-resolved",
+    status: TEST_ADMIN_STATUS_RESOLVED
+  }
+] as const;
+
+export const TEST_ADMIN_E2E_STATUS_ASSERTION_MESSAGES = {
+  seededReports: "The E2E scenario should contain reports with at least two different statuses.",
+  filterVisible: "The errors dashboard should expose the visual filter option.",
+  assignableStatusVisible: "The errors dashboard should expose each real assignable report status.",
+  allOnlyFilter: "The all option should be visible only as a filter and not as an assignable status.",
+  filteredList: "The filtered errors list should contain only reports matching the selected status.",
+  allList: "The all filter should show every seeded reported error.",
+  detailVisible: "The selected error detail should be visible before checking status controls.",
+  detailStatusVisible: "The selected error detail should expose each assignable status.",
+  detailAllNotAssignable: "The selected error detail should not expose all as an assignable status.",
+  detailStatusUpdated: "Selecting an allowed status should update the selected report detail.",
+  detailStoredStatusUpdated: "Selecting an allowed status should persist the selected report status in E2E storage."
+} as const;
 
 export const TEST_ADMIN_ERROR_SUMMARIES: ReadonlyArray<AdminErrorSummary> = [
   {

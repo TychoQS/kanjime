@@ -8,7 +8,8 @@ import {
   TEST_CALLIGRAPHY_JLPT_GROUPING,
   TEST_CALLIGRAPHY_JOYO_CATEGORY_GRADES,
   TEST_CALLIGRAPHY_JOYO_GROUPING,
-  TEST_CALLIGRAPHY_TEST_IDS
+  TEST_CALLIGRAPHY_TEST_IDS,
+  TEST_IONIC_INPUT_SELECTOR
 } from "../../../Support/TestData";
 
 test.beforeEach(async ({ page }) => {
@@ -146,4 +147,71 @@ test("[R49][E2E] CategoryInterface returns from category list to calligraphy hom
     page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.view),
     TEST_CALLIGRAPHY_E2E_MESSAGES.returnedHome
   ).toBeVisible();
+});
+
+test("[R67][E2E] CategoryInterface filters kanji within the selected category", async ({ page }) => {
+  const calligraphy = new E2ECalligraphyPage(page);
+
+  // Requirement: FUNCIONALES R67 - CategoryInterface
+  // @pre The user is on a category kanji list and enters a valid search term.
+  await calligraphy.gotoHome();
+  await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
+  await calligraphy.openCategory(TEST_CALLIGRAPHY_CATEGORY_ID);
+  const entries = await calligraphy.visibleKanjiEntries();
+  const searchEntry = entries[entries.length - 1];
+  expect(searchEntry, TEST_CALLIGRAPHY_E2E_MESSAGES.categoryKanjiVisible).toBeDefined();
+  const searchTerm = searchEntry.character;
+  await calligraphy.fillCategorySearchTerm(searchTerm);
+
+  // @inv The visible results remain attached to the selected category route.
+  await expect.poll(
+    () => page.evaluate(() => window.location.pathname),
+    {
+      message: TEST_CALLIGRAPHY_E2E_MESSAGES.listMatchesSelectedCategory
+    }
+  ).toContain(TEST_CALLIGRAPHY_CATEGORY_ID);
+
+  // @post Only kanji matching the entered term remain visible.
+  await expect.poll(
+    () => calligraphy.visibleKanjiEntries(),
+    {
+      message: TEST_CALLIGRAPHY_E2E_MESSAGES.filteredKanjiVisible
+    }
+  ).toEqual([searchEntry]);
+  const filteredEntries = await calligraphy.visibleKanjiEntries();
+  expect(
+    filteredEntries.every(entry => entry.character.includes(searchTerm)),
+    TEST_CALLIGRAPHY_E2E_MESSAGES.filteredKanjiMatchesTerm
+  ).toBe(true);
+});
+
+test("[R29][E2E] CategoryProps keeps the category search visible before and after filtering", async ({ page }) => {
+  const calligraphy = new E2ECalligraphyPage(page);
+
+  // Requirement: USABILIDAD R29 - CategoryProps
+  // @pre The user is on a category kanji selection screen.
+  await calligraphy.gotoHome();
+  await calligraphy.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
+  await calligraphy.openCategory(TEST_CALLIGRAPHY_CATEGORY_ID);
+  const entries = await calligraphy.visibleKanjiEntries();
+  const searchEntry = entries[entries.length - 1];
+  expect(searchEntry, TEST_CALLIGRAPHY_E2E_MESSAGES.categoryKanjiVisible).toBeDefined();
+  const searchbar = page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.categorySearch);
+
+  // @post The search input is visible without opening additional menus or screens.
+  await expect(
+    searchbar,
+    TEST_CALLIGRAPHY_E2E_MESSAGES.categorySearchVisible
+  ).toBeVisible();
+
+  // @inv The search input remains visible after applying a filter.
+  await calligraphy.fillCategorySearchTerm(searchEntry.character);
+  await expect(
+    searchbar,
+    TEST_CALLIGRAPHY_E2E_MESSAGES.categorySearchKeepsVisible
+  ).toBeVisible();
+  await expect(
+    searchbar.locator(TEST_IONIC_INPUT_SELECTOR),
+    TEST_CALLIGRAPHY_E2E_MESSAGES.categorySearchValue
+  ).toHaveValue(searchEntry.character);
 });

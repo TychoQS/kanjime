@@ -8,7 +8,9 @@ import {
   TEST_CALLIGRAPHY_STROKE_PATH,
   TEST_CALLIGRAPHY_STROKE_COUNT_PATTERN,
   TEST_CALLIGRAPHY_TEST_IDS,
-  TEST_CALLIGRAPHY_WAIT_TIMEOUTS
+  TEST_CALLIGRAPHY_WAIT_TIMEOUTS,
+  TEST_IONIC_INPUT_EVENT,
+  TEST_IONIC_INPUT_SELECTOR
 } from "./TestData";
 
 export interface VisibleCalligraphyKanji {
@@ -144,6 +146,27 @@ export class E2ECalligraphyPage {
     }, {
       prefix: TEST_CALLIGRAPHY_TEST_IDS.kanjiPrefix,
       strokeCountPattern: TEST_CALLIGRAPHY_STROKE_COUNT_PATTERN.source
+    });
+  }
+
+  async fillCategorySearchTerm(term: string): Promise<void> {
+    const searchbar = this.page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.categorySearch);
+    const input = searchbar.locator(TEST_IONIC_INPUT_SELECTOR);
+
+    await input.fill("");
+    await input.click();
+    await this.page.keyboard.insertText(term);
+    await searchbar.evaluate((element, input) => {
+      element.dispatchEvent(new CustomEvent(input.eventName, {
+        bubbles: true,
+        composed: true,
+        detail: {
+          value: input.term
+        }
+      }));
+    }, {
+      eventName: TEST_IONIC_INPUT_EVENT,
+      term
     });
   }
 

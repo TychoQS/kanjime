@@ -884,6 +884,7 @@ export const TEST_CALLIGRAPHY_TEST_IDS = {
   categoriesPanel: "calligraphy-categories-panel",
   categoryPrefix: "calligraphy-category-",
   categoryView: "calligraphy-category-view",
+  categorySearch: "calligraphy-category-search",
   categoryBackButton: "calligraphy-category-back-button",
   kanjiPrefix: "calligraphy-kanji-",
   practiceScreen: "calligraphy-practice-screen",
@@ -899,6 +900,12 @@ export const TEST_CALLIGRAPHY_TEST_IDS = {
   score: "calligraphy-score",
   scoreValue: "calligraphy-score-value",
   evaluationSummary: "calligraphy-evaluation-summary",
+  visualComparison: "calligraphy-visual-comparison",
+  matchingVisual: "calligraphy-matching-visual",
+  referenceVisual: "calligraphy-reference-visual",
+  attemptVisual: "calligraphy-attempt-visual",
+  alignedAttemptVisual: "calligraphy-aligned-attempt-visual",
+  keypoint: "calligraphy-keypoint",
   metricList: "calligraphy-metric-list",
   metricPrefix: "calligraphy-metric-",
   recommendation: "calligraphy-recommendation",
@@ -936,6 +943,9 @@ export const TEST_CALLIGRAPHY_WAIT_TIMEOUTS = {
 } as const;
 
 export const TEST_CALLIGRAPHY_STROKE_COUNT_PATTERN = /\d+/u;
+export const TEST_IONIC_INPUT_SELECTOR = "input";
+export const TEST_IONIC_INPUT_EVENT = "ionInput";
+export const TEST_EMPTY_TEXT = "";
 
 export const TEST_CALLIGRAPHY_E2E_MESSAGES = {
   homeVisible: "The calligraphy home screen should be visible before checking the requirement.",
@@ -980,6 +990,18 @@ export const TEST_CALLIGRAPHY_E2E_MESSAGES = {
   listMatchesSelectedCategory: "The visible kanji list should correspond to the selected category.",
   resultTextReadable: "The visible result metadata should expose a readable stroke count.",
   strokeCount: "All drawn strokes should remain visible on the canvas.",
+  categorySearchVisible: "The category search input should be visible without opening additional screens.",
+  categorySearchKeepsVisible: "The category search input should remain visible after filtering.",
+  categorySearchValue: "The category search input should keep the typed valid term.",
+  filteredKanjiVisible: "The filtered category list should show at least one matching kanji.",
+  filteredKanjiMatchesTerm: "Every visible filtered kanji should match the entered category search term.",
+  evaluationMetricsPreserved: "Stroke count, stroke order, and approximate direction metrics should remain visible after similarity evaluation.",
+  visualComparisonVisible: "The reference-attempt visual comparison should be visible after evaluation.",
+  visualComparisonAboveMetrics: "The reference-attempt comparison should appear above the metrics block.",
+  referenceAndAttemptVisible: "The evaluation should show differentiated reference and attempt visuals.",
+  matchingVisualVisible: "The evaluation should show an aligned matching visual when enough correspondences are available.",
+  evaluationNoControlledError: "The fallback similarity evaluation should not interrupt the flow with a controlled error view.",
+  fallbackScoreVisible: "The fallback similarity evaluation should still show a similarity score."
 } as const;
 
 export const TEST_MOBILE_E2E_STORAGE_KEYS = {
@@ -1001,7 +1023,8 @@ export const TEST_MOBILE_E2E_TEST_IDS = {
   navigationView: "navigation-view",
   navSearch: "nav-search",
   navHistory: "nav-history",
-  navAbout: "nav-about"
+  navAbout: "nav-about",
+  historyScreen: "history-screen"
 } as const;
 
 export const TEST_MOBILE_E2E_ROUTES = {
@@ -1036,6 +1059,21 @@ export const TEST_MOBILE_E2E_LAST_KNOWN_VERSION_CONFIGURATION = {
 export const TEST_MOBILE_E2E_FORCED_ERROR_MESSAGE = "E2E forced unexpected error.";
 export const TEST_MOBILE_E2E_UNEXPECTED_ERROR_MESSAGE = "An unexpected error has occurred. You can keep using the application.";
 export const TEST_MOBILE_E2E_SENSITIVE_MESSAGE_FRAGMENT = "Error:";
+export const TEST_MOBILE_E2E_PERSONAL_DATA_FRAGMENT = "@";
 export const TEST_MOBILE_E2E_MAX_REPORTED_ACTIONS = 10;
 export const TEST_MOBILE_E2E_REPORT_EXPECTED_WEB_ENGINE = "web";
 export const TEST_MOBILE_E2E_REPORT_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
+export const TEST_MOBILE_E2E_ANONYMOUS_CLIENT_ID = "cE2eAnonymousClient001";
+export const TEST_MOBILE_E2E_ANONYMOUS_CLIENT_PATTERN = /^[A-Za-z0-9_-]+$/u;
+export const TEST_MOBILE_E2E_FIREBASE_INSTALLATIONS_ROUTE = "**/firebaseinstallations.googleapis.com/**";
+export const TEST_MOBILE_E2E_FIREBASE_REFRESH_TOKEN = "e2e-refresh-token";
+export const TEST_MOBILE_E2E_FIREBASE_AUTH_TOKEN = "e2e-auth-token";
+export const TEST_MOBILE_E2E_FIREBASE_AUTH_EXPIRES_IN = "604800s";
+export const TEST_MOBILE_E2E_ASSERTION_MESSAGES = {
+  historyReachable: "The history screen should be reachable before generating the observability report.",
+  reportPersisted: "The application should persist a generated error report after capturing an unexpected runtime error.",
+  anonymousClientPreserved: "The generated report should preserve the anonymous installation identifier.",
+  anonymousClientFormat: "The generated report should keep the anonymous installation identifier URL-safe.",
+  anonymousClientNoPersonalData: "The anonymous installation identifier should not expose personal user data.",
+  anonymousClientIncluded: "The generated report should include the anonymous installation identifier."
+} as const;

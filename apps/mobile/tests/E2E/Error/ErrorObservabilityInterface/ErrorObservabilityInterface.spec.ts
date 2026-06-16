@@ -145,23 +145,23 @@ test("[R71][E2E] ErrorObservabilityInterface includes a non-personal anonymous i
 
   const [report] = await readStoredReports(page);
 
-  // @inv The associated identifier does not expose personal user data.
+  // @inv The associated identifier has an anonymous Firebase-like format and does not expose personal user data.
   expect(
-    report.anonymousClientId,
-    TEST_MOBILE_E2E_ASSERTION_MESSAGES.anonymousClientPreserved
+      report.anonymousClientId,
+      TEST_MOBILE_E2E_ASSERTION_MESSAGES.anonymousClientPreserved
   ).toBeDefined();
   expect(
-    report.anonymousClientId,
-    TEST_MOBILE_E2E_ASSERTION_MESSAGES.anonymousClientFormat
+      report.anonymousClientId,
+      TEST_MOBILE_E2E_ASSERTION_MESSAGES.anonymousClientFormat
   ).toMatch(TEST_MOBILE_E2E_ANONYMOUS_CLIENT_PATTERN);
   expect(
-    report.anonymousClientId?.includes(TEST_MOBILE_E2E_PERSONAL_DATA_FRAGMENT),
-    TEST_MOBILE_E2E_ASSERTION_MESSAGES.anonymousClientNoPersonalData
+      report.anonymousClientId?.includes(TEST_MOBILE_E2E_PERSONAL_DATA_FRAGMENT),
+      TEST_MOBILE_E2E_ASSERTION_MESSAGES.anonymousClientNoPersonalData
   ).toBe(false);
 
   // @post The generated report includes the anonymous installation identifier.
   expect(
     report.anonymousClientId?.length,
     TEST_MOBILE_E2E_ASSERTION_MESSAGES.anonymousClientIncluded
-  ).toBeGreaterThan(0);
+  ).toBeTruthy();
 });

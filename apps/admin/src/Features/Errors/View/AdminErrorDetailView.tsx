@@ -11,8 +11,11 @@ import {
   IonSpinner,
   IonText
 } from "@ionic/react";
+import type { AdminErrorStatus } from "@kanjime/shared";
 
 import type { AdminErrorDetailProps } from "../Contracts/AdminErrorDetailProps";
+
+const STATUS_SECTION_LABEL = "Assignable statuses";
 
 /**
  * Displays the selected reported error detail.
@@ -58,6 +61,8 @@ export function AdminErrorDetailView(props: AdminErrorDetailProps): JSX.Element 
     );
   }
 
+  const detail = props.detail;
+
   return (
     <IonCard aria-labelledby="admin-error-detail-title" data-testid="admin-error-detail-view">
       <IonCardHeader className="admin-card-header">
@@ -70,44 +75,79 @@ export function AdminErrorDetailView(props: AdminErrorDetailProps): JSX.Element 
       <IonItem lines="inset" data-testid="admin-error-detail-identifier-row">
         <IonLabel>
           <p className="admin-item-label">Identifier</p>
-          <p className="admin-item-value admin-mono" data-testid="admin-error-detail-identifier-value">{props.detail.id}</p>
+          <p className="admin-item-value admin-mono" data-testid="admin-error-detail-identifier-value">{detail.id}</p>
         </IonLabel>
       </IonItem>
 
       <IonItem lines="inset" data-testid="admin-error-detail-message-row">
         <IonLabel>
           <p className="admin-item-label">Message</p>
-          <p className="admin-item-value" data-testid="admin-error-detail-message-value">{props.detail.message}</p>
+          <p className="admin-item-value" data-testid="admin-error-detail-message-value">{detail.message}</p>
         </IonLabel>
       </IonItem>
 
       <IonItem lines="inset" data-testid="admin-error-detail-occurred-at-row">
         <IonLabel>
           <p className="admin-item-label">Occurred at</p>
-          <p className="admin-item-value" data-testid="admin-error-detail-occurred-at-value">{props.detail.occurredAt}</p>
+          <p className="admin-item-value" data-testid="admin-error-detail-occurred-at-value">{detail.occurredAt}</p>
         </IonLabel>
       </IonItem>
 
       <IonItem lines="inset" data-testid="admin-error-detail-application-version-row">
         <IonLabel>
           <p className="admin-item-label">Application version</p>
-          <p className="admin-item-value" data-testid="admin-error-detail-application-version-value">{props.detail.applicationVersion}</p>
+          <p className="admin-item-value" data-testid="admin-error-detail-application-version-value">{detail.applicationVersion}</p>
+        </IonLabel>
+      </IonItem>
+
+      <IonItem lines="inset" data-testid="admin-error-detail-current-status-row">
+        <IonLabel>
+          <p className="admin-item-label">Current status</p>
+          <p className="admin-item-value" data-testid="admin-error-detail-current-status-value">Current status: {detail.status}</p>
+        </IonLabel>
+      </IonItem>
+
+      <IonItem lines="inset" data-testid="admin-error-detail-status-selector-row">
+        <IonLabel>
+          <p className="admin-item-label">{STATUS_SECTION_LABEL}</p>
+          <div className="admin-status-options" role="group" aria-label={STATUS_SECTION_LABEL}>
+            {props.availableStatuses.map(status => (
+              <IonButton
+                key={status}
+                data-testid={`admin-error-detail-status-${formatStatusTestId(status)}`}
+                fill={detail.status === status ? "solid" : "outline"}
+                size="small"
+                onClick={() => props.onStatusSelected(status)}
+              >
+                {status}
+              </IonButton>
+            ))}
+          </div>
         </IonLabel>
       </IonItem>
 
       <IonItem lines="inset" data-testid="admin-error-detail-web-engine-row">
         <IonLabel>
           <p className="admin-item-label">Web engine</p>
-          <p className="admin-item-value" data-testid="admin-error-detail-web-engine-value">{props.detail.context.webEngine}</p>
+          <p className="admin-item-value" data-testid="admin-error-detail-web-engine-value">{detail.context.webEngine}</p>
         </IonLabel>
       </IonItem>
 
       <IonItem lines="inset" data-testid="admin-error-detail-web-engine-version-row">
         <IonLabel>
           <p className="admin-item-label">Web engine version</p>
-          <p className="admin-item-value" data-testid="admin-error-detail-web-engine-version-value">{props.detail.context.webEngineVersion}</p>
+          <p className="admin-item-value" data-testid="admin-error-detail-web-engine-version-value">{detail.context.webEngineVersion}</p>
         </IonLabel>
       </IonItem>
+
+      {detail.context.anonymousClientId ? (
+        <IonItem lines="inset" data-testid="admin-error-detail-anonymous-client-row">
+          <IonLabel>
+            <p className="admin-item-label">Anonymous client</p>
+            <p className="admin-item-value admin-mono" data-testid="admin-error-detail-anonymous-client-value">{detail.context.anonymousClientId}</p>
+          </IonLabel>
+        </IonItem>
+      ) : null}
 
       <IonItem lines="none" data-testid="admin-error-detail-last-actions-row">
         <IonLabel>
@@ -115,17 +155,17 @@ export function AdminErrorDetailView(props: AdminErrorDetailProps): JSX.Element 
         </IonLabel>
       </IonItem>
 
-      {props.detail.context.lastActions.length === 0 ? (
+      {detail.context.lastActions.length === 0 ? (
         <IonItem lines="none" data-testid="admin-error-detail-empty-actions">
           <IonNote slot="start">No actions recorded before this error.</IonNote>
         </IonItem>
       ) : (
         <IonList className="admin-action-list" data-testid="admin-error-detail-actions-list">
-          {props.detail.context.lastActions.map((action, index) => (
+          {detail.context.lastActions.map((action, index) => (
             <IonItem
               data-testid={`admin-error-detail-action-${index}`}
               key={`${action.occurredAt}-${index}`}
-              lines={index < props.detail!.context.lastActions.length - 1 ? "inset" : "none"}
+              lines={index < detail.context.lastActions.length - 1 ? "inset" : "none"}
             >
               <IonLabel>
                 <p className="admin-item-value admin-mono" data-testid={`admin-error-detail-action-type-${index}`}>{action.type}</p>
@@ -137,4 +177,8 @@ export function AdminErrorDetailView(props: AdminErrorDetailProps): JSX.Element 
       )}
     </IonCard>
   );
+}
+
+function formatStatusTestId(status: AdminErrorStatus): string {
+  return status.toLowerCase().split("_").join("-");
 }

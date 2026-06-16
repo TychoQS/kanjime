@@ -48,6 +48,7 @@ export interface AdminCompositionRoot {
 export function createAdminCompositionRoot(): AdminCompositionRoot {
   const repository = new AdminObservabilityRepository();
   const authentication = createAdminAuthenticationClient();
+  const defaultAdminErrorStatus: AdminErrorStatus = "OPEN";
 
   const loadVersionConfiguration = async (): Promise<VersionConfiguration | null> =>
     repository.getVersionConfiguration();
@@ -66,16 +67,16 @@ export function createAdminCompositionRoot(): AdminCompositionRoot {
   const errorsController = CreateAdminErrorsController({
     listReportedErrors: async () => {
       const reports = await repository.listErrorReports();
-      return reports.map(report => createErrorSummary(report));
+      return reports.map(report => createErrorSummary(report, defaultAdminErrorStatus));
     },
     filterReportedErrors: async (filter: AdminErrorFilter) => {
       const reports = await repository.listErrorReports();
-      const summaries = reports.map(report => createErrorSummary(report));
+      const summaries = reports.map(report => createErrorSummary(report, defaultAdminErrorStatus));
       return filter === "all" ? summaries : summaries.filter(summary => summary.status === filter);
     },
     subscribeToErrors: callback => {
       return repository.subscribeToErrors!(reports => {
-        callback(reports.map(report => createErrorSummary(report)));
+        callback(reports.map(report => createErrorSummary(report, defaultAdminErrorStatus)));
       });
     }
   });
@@ -88,7 +89,7 @@ export function createAdminCompositionRoot(): AdminCompositionRoot {
         throw new Error("The selected error could not be found.");
       }
 
-      return createErrorDetail(report);
+      return createErrorDetail(report, defaultAdminErrorStatus);
     },
     updateErrorStatus: async (errorId: string, status: AdminErrorStatus) => {
       const report = await repository.getErrorReport(errorId);
@@ -97,10 +98,13 @@ export function createAdminCompositionRoot(): AdminCompositionRoot {
         throw new Error("The selected error could not be found.");
       }
 
-      return {
-        ...createErrorDetail(report),
+      const updatedReport: ApplicationErrorReport = {
+        ...report,
         status
       };
+
+      await repository.saveErrorReport(updatedReport);
+      return createErrorDetail(updatedReport, defaultAdminErrorStatus);
     }
   });
 
@@ -149,28 +153,35 @@ export function createAdminCompositionRoot(): AdminCompositionRoot {
   };
 }
 
-function createErrorSummary(report: ApplicationErrorReport): AdminErrorSummary {
+function createErrorSummary(
+  report: ApplicationErrorReport,
+  defaultStatus: AdminErrorStatus
+): AdminErrorSummary {
   return {
     id: report.id,
     message: report.message,
     occurredAt: report.occurredAt,
     applicationVersion: report.applicationVersion,
-    status: "OPEN",
+    status: report.status ?? defaultStatus,
     contextSummary: `${report.webEngine} ${report.webEngineVersion}`.trim()
   };
 }
 
-function createErrorDetail(report: ApplicationErrorReport): AdminErrorDetail {
+function createErrorDetail(
+  report: ApplicationErrorReport,
+  defaultStatus: AdminErrorStatus
+): AdminErrorDetail {
   return {
     id: report.id,
     message: report.message,
     occurredAt: report.occurredAt,
     applicationVersion: report.applicationVersion,
-    status: "OPEN",
+    status: report.status ?? defaultStatus,
     context: {
       applicationVersion: report.applicationVersion,
       webEngine: report.webEngine,
       webEngineVersion: report.webEngineVersion,
+      anonymousClientId: report.anonymousClientId,
       lastActions: report.lastActions
     }
   };

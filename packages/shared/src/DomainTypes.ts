@@ -443,6 +443,7 @@ export interface ApplicationErrorReport {
   readonly webEngine: string;
   readonly webEngineVersion: string;
   readonly anonymousClientId?: string;
+  readonly status?: AdminErrorStatus;
   readonly lastActions: ReadonlyArray<ApplicationUserAction>;
   readonly isReadyForObservability: boolean;
 }

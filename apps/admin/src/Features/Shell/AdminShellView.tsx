@@ -51,6 +51,7 @@ const SIGN_IN_LABEL = "Sign in with Google";
 const SIGN_OUT_LABEL = "Sign out";
 const ADMIN_ERROR_FILTERS: ReadonlyArray<AdminErrorFilter> = ["all", "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "DISCARDED"];
 const ADMIN_ERROR_STATUSES: ReadonlyArray<AdminErrorStatus> = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "DISCARDED"];
+const ALL_ERRORS_FILTER: AdminErrorFilter = "all";
 
 /**
  * Administration shell that composes feature views and navigation.
@@ -136,7 +137,7 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     }
   }, [authUser, composition]);
 
-  const loadErrors = useCallback(async (): Promise<void> => {
+  const loadErrors = useCallback(async (filter: AdminErrorFilter): Promise<void> => {
     if (authUser === null) {
       return;
     }
@@ -145,7 +146,7 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     setErrorsMessage(null);
 
     try {
-      setErrors(await composition.errorsController.listReportedErrors());
+      setErrors(await composition.errorsController.filterReportedErrors(filter));
     } catch {
       setErrors([]);
       setErrorsMessage("The reported errors could not be loaded.");
@@ -176,6 +177,42 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     [authUser, composition.errorDetailController]
   );
 
+  const selectErrorsFilter = useCallback(
+    (filter: AdminErrorFilter): void => {
+      setActiveErrorsFilter(filter);
+      void loadErrors(filter);
+    },
+    [loadErrors]
+  );
+
+  const updateSelectedErrorStatus = useCallback(
+    async (status: AdminErrorStatus): Promise<void> => {
+      if (authUser === null || errorDetail === null) {
+        return;
+      }
+
+      setIsErrorDetailLoading(true);
+      setErrorDetailMessage(null);
+
+      try {
+        const updatedDetail = await composition.errorDetailController.updateErrorStatus(errorDetail.id, status);
+        setErrorDetail(updatedDetail);
+        setErrors(await composition.errorsController.filterReportedErrors(activeErrorsFilter));
+      } catch {
+        setErrorDetailMessage("The selected error status could not be updated.");
+      } finally {
+        setIsErrorDetailLoading(false);
+      }
+    },
+    [
+      activeErrorsFilter,
+      authUser,
+      composition.errorDetailController,
+      composition.errorsController,
+      errorDetail
+    ]
+  );
+
   useEffect(() => {
     if (authUser === null) {
       return;
@@ -195,14 +232,14 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
     }
 
     if (activeSection === "errors") {
-      void loadErrors();
+      void loadErrors(activeErrorsFilter);
       if (composition.errorsController.subscribeToErrors) {
         return composition.errorsController.subscribeToErrors(updatedErrors => {
-          setErrors(updatedErrors);
+          setErrors(filterErrorSummaries(updatedErrors, activeErrorsFilter));
         });
       }
     }
-  }, [activeSection, authUser, loadDashboard, loadErrors, loadVersions, composition]);
+  }, [activeErrorsFilter, activeSection, authUser, loadDashboard, loadErrors, loadVersions, composition]);
 
   const saveVersionConfiguration = async (): Promise<void> => {
     if (!formState.canSave || authUser === null) {
@@ -333,7 +370,7 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
               activeFilter={activeErrorsFilter}
               availableFilters={ADMIN_ERROR_FILTERS}
               availableStatuses={ADMIN_ERROR_STATUSES}
-              onFilterSelected={setActiveErrorsFilter}
+              onFilterSelected={selectErrorsFilter}
               onErrorSelected={errorId => {
                 void openErrorDetail(errorId);
               }}
@@ -345,7 +382,9 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
               isLoading={isErrorDetailLoading}
               errorMessage={errorDetailMessage}
               availableStatuses={ADMIN_ERROR_STATUSES}
-              onStatusSelected={() => undefined}
+              onStatusSelected={status => {
+                void updateSelectedErrorStatus(status);
+              }}
               onBackRequested={() => setActiveSection("errors")}
             />
           ) : null}
@@ -353,4 +392,11 @@ export function AdminShellView(props: AdminShellViewProps): JSX.Element {
       </IonContent>
     </IonPage>
   );
+}
+
+function filterErrorSummaries(
+  errors: ReadonlyArray<AdminErrorSummary>,
+  filter: AdminErrorFilter
+): ReadonlyArray<AdminErrorSummary> {
+  return filter === ALL_ERRORS_FILTER ? errors : errors.filter(error => error.status === filter);
 }

@@ -255,3 +255,31 @@ ion-title {
   border-top: 1px solid var(--app-border);
 }
 
+.admin-filter-panel {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--app-border);
+}
+
+.admin-filter-heading {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.admin-filter-options,
+.admin-status-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-status-chip {
+  --background: var(--ion-color-secondary);
+  --color: var(--ion-color-secondary-contrast);
+  margin-inline: 0;
+  min-height: 30px;
+  font-weight: 700;
+}

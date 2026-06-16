@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, orderBy, query, setDoc, onSnapshot } from "firebase/firestore";
 
 import type {
+  AdminErrorStatus,
   ApplicationErrorReport,
   ApplicationUserAction,
   ObservabilityRepository,
@@ -19,6 +20,14 @@ import { getFirebaseFirestore } from "./FirebaseClient";
 const ERRORS_COLLECTION = "errors";
 const VERSION_CONFIGURATION_COLLECTION = "versionConfiguration";
 const CURRENT_VERSION_CONFIGURATION_DOCUMENT = "current";
+const DEFAULT_ADMIN_ERROR_STATUS: AdminErrorStatus = "OPEN";
+const ADMIN_ERROR_STATUSES = new Set<AdminErrorStatus>([
+  "OPEN",
+  "IN_PROGRESS",
+  "RESOLVED",
+  "CLOSED",
+  "DISCARDED"
+]);
 
 /**
  * Administration observability repository backed by Firestore.
@@ -120,6 +129,8 @@ function parseErrorReport(value: unknown): ApplicationErrorReport | null {
   const applicationVersion = value.applicationVersion;
   const webEngine = value.webEngine;
   const webEngineVersion = value.webEngineVersion;
+  const anonymousClientId = value.anonymousClientId;
+  const status = value.status;
   const isReadyForObservability = value.isReadyForObservability;
   const lastActions = Array.isArray(value.lastActions)
     ? value.lastActions.filter(isApplicationUserAction)
@@ -144,6 +155,8 @@ function parseErrorReport(value: unknown): ApplicationErrorReport | null {
     applicationVersion,
     webEngine,
     webEngineVersion,
+    anonymousClientId: typeof anonymousClientId === "string" ? anonymousClientId : undefined,
+    status: isAdminErrorStatus(status) ? status : DEFAULT_ADMIN_ERROR_STATUS,
     lastActions,
     isReadyForObservability
   };
@@ -178,6 +191,10 @@ function parseVersionConfiguration(value: unknown): VersionConfiguration | null 
 
 function isApplicationUserAction(value: unknown): value is ApplicationUserAction {
   return isRecord(value) && typeof value.type === "string" && typeof value.occurredAt === "string";
+}
+
+function isAdminErrorStatus(value: unknown): value is AdminErrorStatus {
+  return typeof value === "string" && ADMIN_ERROR_STATUSES.has(value as AdminErrorStatus);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

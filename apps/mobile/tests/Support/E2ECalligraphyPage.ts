@@ -300,8 +300,13 @@ export class E2ECalligraphyPage {
     const box = await this.drawingCanvas().boundingBox();
     if (!box) throw new Error("Drawing canvas is not visible.");
 
-    const x = (p: number): number => box.x + box.width * p;
-    const y = (p: number): number => box.y + box.height * p;
+    const drawingSize = Math.min(180, box.width * 0.75, box.height * 0.75);
+
+    const left = box.x + (box.width - drawingSize) / 2;
+    const top = box.y + (box.height - drawingSize) / 2;
+
+    const x = (p: number): number => left + drawingSize * p;
+    const y = (p: number): number => top + drawingSize * p;
 
     const stroke = async (points: Array<[number, number]>): Promise<void> => {
       const [first, ...rest] = points;

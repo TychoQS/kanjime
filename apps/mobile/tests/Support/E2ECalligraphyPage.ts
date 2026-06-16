@@ -170,18 +170,25 @@ export class E2ECalligraphyPage {
     });
   }
 
-  async openFirstVisiblePractice(): Promise<string> {
+  async openVisiblePracticeAt(index: number): Promise<string> {
+    const kanjiButton = this.kanjiButtons().nth(index);
+
     await expect(
-      this.kanjiButtons().first(),
+      kanjiButton,
       TEST_CALLIGRAPHY_E2E_MESSAGES.categoryKanjiVisible
     ).toBeVisible();
-    const testId = await this.kanjiButtons().first().getAttribute("data-testid");
+
+    const testId = await kanjiButton.getAttribute("data-testid");
     const character = (testId ?? "").slice(TEST_CALLIGRAPHY_TEST_IDS.kanjiPrefix.length);
 
-    await this.kanjiButtons().first().click();
+    await kanjiButton.click();
     await this.waitForPractice(character);
 
     return character;
+  }
+
+  async openFirstVisiblePractice(): Promise<string> {
+    return this.openVisiblePracticeAt(0);
   }
 
   async waitForPractice(character: string): Promise<void> {
@@ -258,6 +265,13 @@ export class E2ECalligraphyPage {
     return this.openFirstVisiblePractice();
   }
 
+  async startPracticeFromAnotherCategory(): Promise<string> {
+    await this.gotoHome();
+    await this.selectGrouping(TEST_CALLIGRAPHY_JLPT_GROUPING);
+    await this.openCategory(TEST_CALLIGRAPHY_CATEGORY_ID);
+    return this.openVisiblePracticeAt(20);
+  }
+
   async evaluateDrawnAttempt(): Promise<string> {
     const character = await this.startPracticeFromDefaultCategory();
     await this.drawStroke();
@@ -279,4 +293,98 @@ export class E2ECalligraphyPage {
 
     return character;
   }
+
+  async evaluateComplexDrawAttempt(): Promise<string> {
+    const character = await this.startPracticeFromAnotherCategory();
+
+    const box = await this.drawingCanvas().boundingBox();
+    if (!box) throw new Error("Drawing canvas is not visible.");
+
+    const x = (p: number): number => box.x + box.width * p;
+    const y = (p: number): number => box.y + box.height * p;
+
+    const stroke = async (points: Array<[number, number]>): Promise<void> => {
+      const [first, ...rest] = points;
+
+      await this.page.mouse.move(x(first[0]), y(first[1]));
+      await this.page.mouse.down();
+
+      for (const [px, py] of rest) {
+        await this.page.mouse.move(x(px), y(py), { steps: 16 });
+      }
+
+      await this.page.mouse.up();
+    };
+
+    // Complex drawing
+    await stroke([
+      [0.25, 0.20],
+      [0.38, 0.19],
+      [0.52, 0.21],
+      [0.64, 0.20],
+      [0.75, 0.20],
+    ]);
+
+    await stroke([
+      [0.75, 0.20],
+      [0.76, 0.34],
+      [0.74, 0.50],
+      [0.76, 0.66],
+      [0.75, 0.80],
+    ]);
+
+    await stroke([
+      [0.75, 0.80],
+      [0.63, 0.81],
+      [0.50, 0.79],
+      [0.37, 0.80],
+      [0.25, 0.80],
+    ]);
+
+    await stroke([
+      [0.25, 0.80],
+      [0.24, 0.65],
+      [0.26, 0.50],
+      [0.24, 0.35],
+      [0.25, 0.20],
+    ]);
+
+    await stroke([
+      [0.50, 0.20],
+      [0.51, 0.34],
+      [0.49, 0.50],
+      [0.51, 0.65],
+      [0.50, 0.80],
+    ]);
+
+    await stroke([
+      [0.25, 0.50],
+      [0.38, 0.49],
+      [0.50, 0.51],
+      [0.63, 0.50],
+      [0.75, 0.50],
+    ]);
+
+    await expect.poll(
+      () => this.hasVisibleStroke(),
+      {
+        message: TEST_CALLIGRAPHY_E2E_MESSAGES.strokeVisible
+      }
+    ).toBe(true);
+
+    await expect(
+      this.page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.validateButton),
+      TEST_CALLIGRAPHY_E2E_MESSAGES.validateEnabled
+    ).toBeEnabled();
+
+    await this.page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.validateButton).click();
+
+    await expect(
+      this.page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.evaluationOverlay),
+      TEST_CALLIGRAPHY_E2E_MESSAGES.evaluationOverlayVisible
+    ).toBeVisible();
+
+    return character;
+  }
+
 }

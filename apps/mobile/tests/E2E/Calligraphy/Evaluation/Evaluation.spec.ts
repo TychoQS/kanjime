@@ -167,36 +167,49 @@ test("[R69][E2E] CalligraphyEvaluationInterface shows controlled fallback simila
 test("[R70][E2E] CalligraphyEvaluationInterface displays the evaluated reference-attempt comparison", async ({ page }) => {
   const calligraphy = new E2ECalligraphyPage(page);
 
-  // Requirement: FUNCIONALES R70 - CalligraphyEvaluationInterface
-  // @pre A calculated evaluation exists with reference and attempt visuals available.
-  const selectedCharacter = await calligraphy.evaluateDrawnAttempt();
-  const visualComparison = page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.visualComparison);
-  await expect(
-    visualComparison,
-    TEST_CALLIGRAPHY_E2E_MESSAGES.visualComparisonVisible
-  ).toBeVisible();
-
-  // @inv The visual comparison corresponds to the same target character and evaluated attempt route.
-  await expect.poll(
-    () => page.evaluate(() => decodeURIComponent(window.location.pathname)),
+  const attempts = [
     {
-      message: TEST_CALLIGRAPHY_E2E_MESSAGES.practiceRouteSelected
+      evaluate: () => calligraphy.evaluateDrawnAttempt(),
+      expectedVisuals: [
+        TEST_CALLIGRAPHY_TEST_IDS.referenceVisual,
+        TEST_CALLIGRAPHY_TEST_IDS.attemptVisual,
+      ],
+    },
+    {
+      evaluate: () => calligraphy.evaluateComplexDrawAttempt(),
+      expectedVisuals: [
+        TEST_CALLIGRAPHY_TEST_IDS.matchingVisual,
+      ],
+    },
+  ];
+
+  for (const [index, attempt] of attempts.entries()) {
+    // Requirement: FUNCIONALES R70 - CalligraphyEvaluationInterface
+    // @pre A calculated evaluation exists with reference and attempt visuals available.
+    const selectedCharacter = await attempt.evaluate();
+
+    await expect(
+      page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.visualComparison),
+      TEST_CALLIGRAPHY_E2E_MESSAGES.visualComparisonVisible
+    ).toBeVisible();
+
+    // @inv The visual comparison corresponds to the same target character and evaluated attempt route.
+    await expect.poll(
+      () => page.evaluate(() => decodeURIComponent(window.location.pathname)),
+      {
+        message: `${TEST_CALLIGRAPHY_E2E_MESSAGES.practiceRouteSelected} Iteration ${index + 1}.`,
+      }
+    ).toContain(selectedCharacter);
+
+    // @post Reference and attempt are displayed as differentiated visuals,
+    // or as an aligned visual when homography is available.
+    for (const expectedVisual of attempt.expectedVisuals) {
+      await expect(
+        page.getByTestId(expectedVisual),
+        `${TEST_CALLIGRAPHY_E2E_MESSAGES.referenceAndAttemptVisible} Expected visual: ${expectedVisual}.`
+      ).toBeVisible();
     }
-  ).toContain(selectedCharacter);
-
-  // @post Reference and attempt are displayed as differentiated visuals, or as an aligned matching visual when homography is available.
-  const separateVisualsVisible =
-    await page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.referenceVisual).isVisible().catch(() => false) &&
-    await page.getByTestId(TEST_CALLIGRAPHY_TEST_IDS.attemptVisual).isVisible().catch(() => false);
-  const matchingVisualVisible = await page
-    .getByTestId(TEST_CALLIGRAPHY_TEST_IDS.matchingVisual)
-    .isVisible()
-    .catch(() => false);
-
-  expect(
-    separateVisualsVisible || matchingVisualVisible,
-    TEST_CALLIGRAPHY_E2E_MESSAGES.referenceAndAttemptVisible
-  ).toBe(true);
+  }
 });
 
 test("[R30][E2E] CalligraphyEvaluationProps places the visual comparison above the metrics", async ({ page }) => {

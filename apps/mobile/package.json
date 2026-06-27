@@ -25,7 +25,8 @@
     "data:download": "node ./scripts/data/download-sources.mjs",
     "data:build": "node ./scripts/data/build-database.mjs",
     "data:prepare": "npm run data:download && npm run data:build",
-    "lint": "eslint \"src/**/*.{ts,tsx}\" -f codeframe"
+    "lint": "eslint \"src/**/*.{ts,tsx}\" -f codeframe",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^7.0.2",

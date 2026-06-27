@@ -73,6 +73,7 @@ import { getMeaningLanguagePriority, normalizeLocale, translate, type SupportedL
 import { KanjiRepository, type KanjiSummary, type SourceAttribution } from "./Shared/KanjiRepository";
 import { OcrWorkerClient } from "./Shared/OcrWorkerClient";
 import {
+  readMobileE2EAnonymousClientId,
   isMobileE2EMocksEnabled,
   readMobileE2ELastKnownVersionConfiguration,
   readMobileE2ERemoteVersionConfiguration,
@@ -239,7 +240,7 @@ export function createCompositionRoot(): CompositionRoot {
     const [applicationVersion, deviceInfo, anonymousClientId] = await Promise.all([
       loadCurrentApplicationVersion(),
       loadDeviceInfo(),
-      readFirebaseInstallationId()
+      loadAnonymousClientId()
     ]);
 
     return {
@@ -738,4 +739,16 @@ async function loadDeviceInfo(): Promise<{ readonly webEngine: string; readonly 
       webEngineVersion: "unknown"
     };
   }
+}
+
+async function loadAnonymousClientId(): Promise<string | null> {
+  if (isMobileE2EMocksEnabled()) {
+    const e2eAnonymousClientId = readMobileE2EAnonymousClientId();
+
+    if (e2eAnonymousClientId !== null) {
+      return e2eAnonymousClientId;
+    }
+  }
+
+  return readFirebaseInstallationId();
 }

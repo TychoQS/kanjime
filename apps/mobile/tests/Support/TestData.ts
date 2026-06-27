@@ -1008,7 +1008,8 @@ export const TEST_MOBILE_E2E_STORAGE_KEYS = {
   remoteVersionConfiguration: "kanjime.e2e.versionConfiguration",
   lastKnownVersionConfiguration: "kanjime.e2e.lastKnownVersionConfiguration",
   versionCheckShouldFail: "kanjime.e2e.versionCheckShouldFail",
-  errorReports: "kanjime.e2e.errorReports"
+  errorReports: "kanjime.e2e.errorReports",
+  anonymousClientId: "kanjime.e2e.anonymousClientId"
 } as const;
 
 export const TEST_MOBILE_E2E_TEST_IDS = {

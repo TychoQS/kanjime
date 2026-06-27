@@ -4,6 +4,7 @@ const MOBILE_E2E_VERSION_CONFIGURATION_KEY = "kanjime.e2e.versionConfiguration";
 const MOBILE_E2E_LAST_KNOWN_VERSION_CONFIGURATION_KEY = "kanjime.e2e.lastKnownVersionConfiguration";
 const MOBILE_E2E_VERSION_CHECK_SHOULD_FAIL_KEY = "kanjime.e2e.versionCheckShouldFail";
 const MOBILE_E2E_ERROR_REPORTS_KEY = "kanjime.e2e.errorReports";
+const MOBILE_E2E_ANONYMOUS_CLIENT_ID_KEY = "kanjime.e2e.anonymousClientId";
 
 export function isMobileE2EMocksEnabled(): boolean {
   return import.meta.env.VITE_ENABLE_E2E_MOCKS === "true";
@@ -33,6 +34,22 @@ export function readMobileE2EErrorReports(): ReadonlyArray<ApplicationErrorRepor
 
 export function writeMobileE2EErrorReports(reports: ReadonlyArray<ApplicationErrorReport>): void {
   writeJsonValue(MOBILE_E2E_ERROR_REPORTS_KEY, reports);
+}
+
+export function readMobileE2EAnonymousClientId(): string | null {
+  const identifier = readJsonValue<string>(MOBILE_E2E_ANONYMOUS_CLIENT_ID_KEY);
+
+  if (typeof identifier !== "string") {
+    return null;
+  }
+
+  const normalizedIdentifier = identifier.trim();
+
+  return normalizedIdentifier.length > 0 ? normalizedIdentifier : null;
+}
+
+export function writeMobileE2EAnonymousClientId(identifier: string): void {
+  writeJsonValue(MOBILE_E2E_ANONYMOUS_CLIENT_ID_KEY, identifier);
 }
 
 function readJsonValue<TValue>(key: string): TValue | null {

@@ -6,10 +6,6 @@ import {
   TEST_MOBILE_E2E_ANONYMOUS_CLIENT_ID,
   TEST_MOBILE_E2E_ANONYMOUS_CLIENT_PATTERN,
   TEST_MOBILE_E2E_ASSERTION_MESSAGES,
-  TEST_MOBILE_E2E_FIREBASE_AUTH_EXPIRES_IN,
-  TEST_MOBILE_E2E_FIREBASE_AUTH_TOKEN,
-  TEST_MOBILE_E2E_FIREBASE_INSTALLATIONS_ROUTE,
-  TEST_MOBILE_E2E_FIREBASE_REFRESH_TOKEN,
   TEST_MOBILE_E2E_FORCED_ERROR_MESSAGE,
   TEST_MOBILE_E2E_MAX_REPORTED_ACTIONS,
   TEST_MOBILE_E2E_PERSONAL_DATA_FRAGMENT,
@@ -61,20 +57,15 @@ async function readStoredReports(page: Page): Promise<ReadonlyArray<MobileStored
   }, TEST_MOBILE_E2E_STORAGE_KEYS);
 }
 
-async function mockFirebaseInstallationIdentifier(page: Page): Promise<void> {
-  await page.route(TEST_MOBILE_E2E_FIREBASE_INSTALLATIONS_ROUTE, route =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        fid: TEST_MOBILE_E2E_ANONYMOUS_CLIENT_ID,
-        refreshToken: TEST_MOBILE_E2E_FIREBASE_REFRESH_TOKEN,
-        authToken: {
-          token: TEST_MOBILE_E2E_FIREBASE_AUTH_TOKEN,
-          expiresIn: TEST_MOBILE_E2E_FIREBASE_AUTH_EXPIRES_IN
-        }
-      })
-    })
+async function seedAnonymousClientIdentifier(page: Page): Promise<void> {
+  await page.addInitScript(
+    ({ anonymousClientId, storageKeys }: { readonly anonymousClientId: string; readonly storageKeys: typeof TEST_MOBILE_E2E_STORAGE_KEYS }) => {
+      window.localStorage.setItem(storageKeys.anonymousClientId, JSON.stringify(anonymousClientId));
+    },
+    {
+      anonymousClientId: TEST_MOBILE_E2E_ANONYMOUS_CLIENT_ID,
+      storageKeys: TEST_MOBILE_E2E_STORAGE_KEYS
+    }
   );
 }
 
@@ -121,8 +112,8 @@ test("[R71][E2E] ErrorObservabilityInterface includes a non-personal anonymous i
 
   // Requirement: FUNCIONALES R71 - ErrorObservabilityInterface
   // @pre A controlled error is captured while an anonymous installation identifier is available.
-  await mockFirebaseInstallationIdentifier(page);
   await seedErrorObservabilityScenario(page);
+  await seedAnonymousClientIdentifier(page);
   await app.goto(TEST_MOBILE_E2E_ROUTES.classification);
   await app.openMenu();
   await page.getByTestId(TEST_MOBILE_E2E_TEST_IDS.navHistory).click();

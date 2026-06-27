@@ -1,21 +1,34 @@
-name: tests
+name: ci
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  unit-integration-build:
-    name: unit + integration + build
+  verify:
+    name: lint + build + unit/integration
     runs-on: ubuntu-latest
+    timeout-minutes: 90
 
     env:
       CI: true
+      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+      VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+      VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -27,28 +40,34 @@ jobs:
         run: npm ci
 
       - name: Install data processing system dependencies
-        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils podman
 
       - name: Prepare database
         run: npm run data:prepare
 
-      - name: Clean Vite cache
-        run: rm -rf .vite
+      - name: Build OpenCV.js
+        run: npm run build:opencv -w @kanjime/mobile
 
-      - name: Run unit tests
-        run: npm run test:unit
+      - name: Lint monorepo
+        run: npm run lint
 
-      - name: Run integration tests
-        run: npm run test:integration
-
-      - name: Build application
+      - name: Build monorepo
         run: npm run build
 
-  e2e:
-    name: e2e (${{ matrix.project }})
+      - name: Upload OpenCV.js asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-opencv-js
+          path: apps/mobile/public/opencv
+
+      - name: Run unit and integration tests
+        run: npm run test
+
+  e2e-mobile:
+    name: e2e mobile (${{ matrix.project }})
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    needs: unit-integration-build
+    timeout-minutes: 90
+    needs: verify
 
     env:
       CI: true
@@ -59,19 +78,18 @@ jobs:
         include:
           - project: android
             browser: chromium
-
           - project: ios
             browser: webkit
-
           - project: android-tablet
             browser: chromium
-
           - project: ipad
             browser: webkit
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -88,11 +106,42 @@ jobs:
       - name: Prepare database
         run: npm run data:prepare
 
-      - name: Build application
-        run: npm run build
+      - name: Download OpenCV.js asset
+        uses: actions/download-artifact@v4
+        with:
+          name: mobile-opencv-js
+          path: apps/mobile/public/opencv
 
       - name: Install Playwright browser and dependencies
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
-      - name: Run E2E tests for ${{ matrix.project }}
-        run: npm run test:e2e -- --project=${{ matrix.project }}
+      - name: Run mobile E2E tests for ${{ matrix.project }}
+        run: npm run test:e2e:mobile -- --project=${{ matrix.project }}
+
+  e2e-admin:
+    name: e2e admin
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    needs: verify
+
+    env:
+      CI: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser and dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Run admin E2E tests
+        run: npm run test:e2e:admin -- --project=admin-desktop

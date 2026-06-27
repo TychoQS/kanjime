@@ -1,0 +1,1 @@
+-I/opencv/modules/features2d/include -I/build/opencv-js/modules/features2d -I/opencv/modules/core/include -I/opencv/modules/flann/include -I/opencv/modules/imgproc/include -isystem /build/opencv-js 

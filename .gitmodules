@@ -1,0 +1,3 @@
+[submodule "apps/mobile/scripts/opencv-build/opencv-src"]
+	path = apps/mobile/scripts/opencv-build/opencv-src
+	url = https://github.com/opencv/opencv.git

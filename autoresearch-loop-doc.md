@@ -274,6 +274,8 @@ git diff > .autoresearch-checkpoint.patch
    - Update factory return (delegate only)
 
 5. **TEST**
+   - Run `npm run lint` to check for linting errors
+   - Run `npm run build:mobile` / `npm run build:admin` to check for build errors in the corresponding app
    - Run `npm run test`
 
 6. **HANDLE TEST FAILURES**

@@ -1,0 +1,45 @@
+{
+  "name": "@kanjime/admin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5174",
+    "build": "npm --prefix ../.. run build:shared && npm run build:app",
+    "build:app": "tsc -p tsconfig.json && vite build",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" -f codeframe",
+    "preview": "vite preview",
+    "test": "npm --prefix ../.. run build:shared && npm run test:vitest",
+    "test:all": "npm run lint && npm run test && npm run test:e2e",
+    "test:unit": "npm --prefix ../.. run build:shared && npm run test:unit:app",
+    "test:unit:app": "vitest run tests/Unit",
+    "test:integration": "npm --prefix ../.. run build:shared && npm run test:integration:app",
+    "test:integration:app": "vitest run tests/Integration",
+    "test:integration:live": "npm --prefix ../.. run build:shared && vitest run tests/Integration/**/*FirebaseConnection.test.ts",
+    "test:e2e": "npm --prefix ../.. run build:shared && VITE_ENABLE_E2E_MOCKS=true vite build && playwright test",
+    "test:vitest": "vitest run --exclude=tests/**/*FirebaseConnection.test.ts"
+  },
+  "dependencies": {
+    "@ionic/react": "^8.8.4",
+    "@kanjime/shared": "file:../../packages/shared",
+    "firebase": "^12.13.0",
+    "ionicons": "^8.0.13",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.7.2",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.4",
+    "jsdom": "^29.0.2",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.8",
+    "vitest": "^4.1.4"
+  }
+}

@@ -1,0 +1,49 @@
+\babel@toc {english}{}\relax 
+\contentsline {figure}{\numberline {1}{\ignorespaces Image mode before a photograph or image has been supplied}}{3}{figure.caption.1}%
+\contentsline {figure}{\numberline {2}{\ignorespaces the inline camera-preview state with capture and close controls}}{4}{figure.caption.2}%
+\contentsline {figure}{\numberline {3}{\ignorespaces the controlled camera-capture error alert}}{5}{figure.caption.3}%
+\contentsline {figure}{\numberline {4}{\ignorespaces image-classification results below the uploaded source}}{6}{figure.caption.4}%
+\contentsline {figure}{\numberline {5}{\ignorespaces the crop overlay over an uploaded image}}{7}{figure.caption.5}%
+\contentsline {figure}{\numberline {6}{\ignorespaces Drawing mode with an empty canvas}}{8}{figure.caption.6}%
+\contentsline {figure}{\numberline {7}{\ignorespaces drawing classification while a stroke is being processed}}{9}{figure.caption.7}%
+\contentsline {figure}{\numberline {8}{\ignorespaces drawing-classification results after strokes were entered}}{10}{figure.caption.8}%
+\contentsline {figure}{\numberline {9}{\ignorespaces Recognition-model loading overlay}}{11}{figure.caption.9}%
+\contentsline {figure}{\numberline {10}{\ignorespaces the Search screen before a query is entered}}{13}{figure.caption.10}%
+\contentsline {figure}{\numberline {11}{\ignorespaces the intermediate search state before results are displayed}}{14}{figure.caption.11}%
+\contentsline {figure}{\numberline {12}{\ignorespaces a completed search with no matching result}}{15}{figure.caption.12}%
+\contentsline {figure}{\numberline {13}{\ignorespaces search results for the captured day/sun character query}}{16}{figure.caption.13}%
+\contentsline {figure}{\numberline {14}{\ignorespaces the upper portion of a populated kanji detail screen}}{17}{figure.caption.14}%
+\contentsline {figure}{\numberline {15}{\ignorespaces the lower detail view containing examples and stroke order}}{18}{figure.caption.15}%
+\contentsline {figure}{\numberline {16}{\ignorespaces the kanji detail error state}}{19}{figure.caption.16}%
+\contentsline {figure}{\numberline {17}{\ignorespaces the Calligraphy home screen with JLPT categories}}{21}{figure.caption.17}%
+\contentsline {figure}{\numberline {18}{\ignorespaces the Calligraphy home screen with Joyo grade categories}}{22}{figure.caption.18}%
+\contentsline {figure}{\numberline {19}{\ignorespaces the character list for the captured JLPT N5 route}}{23}{figure.caption.19}%
+\contentsline {figure}{\numberline {20}{\ignorespaces a filtered calligraphy category list}}{24}{figure.caption.20}%
+\contentsline {figure}{\numberline {21}{\ignorespaces the empty result state within a calligraphy category}}{25}{figure.caption.21}%
+\contentsline {figure}{\numberline {22}{\ignorespaces the calligraphy practice canvas before drawing}}{26}{figure.caption.22}%
+\contentsline {figure}{\numberline {23}{\ignorespaces the calligraphy practice canvas with visible strokes}}{27}{figure.caption.23}%
+\contentsline {figure}{\numberline {24}{\ignorespaces the calligraphy evaluation overlay for the captured attempt}}{28}{figure.caption.24}%
+\contentsline {figure}{\numberline {25}{\ignorespaces History with one recorded search entry}}{30}{figure.caption.25}%
+\contentsline {figure}{\numberline {26}{\ignorespaces History with no visible entries in the selected category}}{31}{figure.caption.26}%
+\contentsline {figure}{\numberline {31}{\ignorespaces the open language-selection sheet}}{36}{figure.caption.31}%
+\contentsline {figure}{\numberline {38}{\ignorespaces the administrator login screen before authentication}}{42}{figure.caption.38}%
+\contentsline {figure}{\numberline {39}{\ignorespaces the administrator authentication-in-progress state}}{43}{figure.caption.39}%
+\contentsline {figure}{\numberline {40}{\ignorespaces the administrator authentication error state}}{44}{figure.caption.40}%
+\contentsline {figure}{\numberline {41}{\ignorespaces Authenticated administration dashboard}}{45}{figure.caption.41}%
+\contentsline {figure}{\numberline {42}{\ignorespaces Dashboard loading state}}{46}{figure.caption.42}%
+\contentsline {figure}{\numberline {43}{\ignorespaces Dashboard error state}}{47}{figure.caption.43}%
+\contentsline {figure}{\numberline {44}{\ignorespaces Authenticated version-configuration section}}{48}{figure.caption.44}%
+\contentsline {figure}{\numberline {45}{\ignorespaces Version-configuration edit state}}{49}{figure.caption.45}%
+\contentsline {figure}{\numberline {46}{\ignorespaces Version validation-error state}}{50}{figure.caption.46}%
+\contentsline {figure}{\numberline {47}{\ignorespaces Authenticated error-report list}}{51}{figure.caption.47}%
+\contentsline {figure}{\numberline {48}{\ignorespaces Empty error-report list}}{52}{figure.caption.48}%
+\contentsline {figure}{\numberline {49}{\ignorespaces Error-report list filtered by OPEN}}{53}{figure.caption.49}%
+\contentsline {figure}{\numberline {50}{\ignorespaces Error-report list filtered by IN PROGRESS}}{54}{figure.caption.50}%
+\contentsline {figure}{\numberline {51}{\ignorespaces Error-report list filtered by RESOLVED}}{55}{figure.caption.51}%
+\contentsline {figure}{\numberline {52}{\ignorespaces Error-report list filtered by CLOSED}}{56}{figure.caption.52}%
+\contentsline {figure}{\numberline {53}{\ignorespaces Error-report list filtered by DISCARDED}}{57}{figure.caption.53}%
+\contentsline {figure}{\numberline {54}{\ignorespaces Authenticated error-detail view}}{58}{figure.caption.54}%
+\contentsline {figure}{\numberline {55}{\ignorespaces Error-detail recent-actions area}}{59}{figure.caption.55}%
+\contentsline {figure}{\numberline {56}{\ignorespaces the captured startup file, which visibly matches the initial Recognition state}}{61}{figure.caption.56}%
+\contentsline {figure}{\numberline {57}{\ignorespaces Application update toast}}{62}{figure.caption.57}%
+\contentsline {figure}{\numberline {58}{\ignorespaces Global controlled-error alert}}{63}{figure.caption.58}%

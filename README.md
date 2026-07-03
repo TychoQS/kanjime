@@ -1,164 +1,137 @@
 # KanjiMe
 
-## Project Description
+<p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" alt="React">
+  <img src="https://img.shields.io/badge/Ionic-3880FF?logo=ionic&logoColor=white" alt="Ionic">
+  <img src="https://img.shields.io/badge/Capacitor-119EFF?logo=capacitor&logoColor=white" alt="Capacitor">
+  <img src="https://img.shields.io/badge/Firebase-DD2C00?logo=firebase&logoColor=white" alt="Firebase">
+  <img src="https://img.shields.io/badge/ONNX_Runtime-005CED?logo=onnx&logoColor=white" alt="ONNX Runtime">
+  <img src="https://img.shields.io/badge/OpenCV.js-5C3EE8?logo=opencv&logoColor=white" alt="OpenCV.js">
+  <img src="https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white" alt="Vitest">
+  <img src="https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white" alt="Playwright">
+</p>
 
-KanjiMe is a hybrid application for learning Japanese kanji, developed as an academic Final Degree Project (TFG). The repository is organized as an npm workspaces monorepo and contains the mobile application, the administration panel, shared TypeScript packages, and the native Android project generated through Capacitor.
+<p align="center"><strong>Final Degree Project · Computer Science · ULPGC</strong></p>
 
-### Academic Context
+KanjiMe is an offline-first kanji learning platform developed as a Final Degree
+Project (TFG). It combines on-device character recognition, dictionary search,
+and calligraphy practice in a mobile app, with a separate administration panel
+for version management and error-report support.
 
-This project is part of my Final Degree Project (TFG) for the Degree in Computer Science at the ULPGC.
+<p align="center">
+  <img src="docs/images/readmes/kanjime-collage.png" alt="KanjiMe mobile application screens" width="760">
+</p>
 
-Project name: KanjiMe
+## Applications
 
-Author: Tycho Quintana Santana
+- [Mobile application](apps/mobile) — Ionic React app for recognition, search,
+  study, and calligraphy practice.
+- [Administration panel](apps/admin) — Technical-support interface for error
+  reports and version configuration.
+- [Shared package](packages/shared) — Types and utilities used by both
+  applications.
 
 ## Repository Structure
 
-This repository is an npm workspaces monorepo declared in the root `package.json`.
+KanjiMe uses npm workspaces to keep both applications and their shared code in
+one monorepo.
 
-| Path | Description |
+| Path | Purpose |
 | --- | --- |
-| `apps/mobile` | Hybrid Ionic React + Capacitor application intended for the end user experience. |
-| `apps/admin` | Web administration panel used to review recognition error reports and manage remote version configuration. |
-| `packages/shared` | Shared TypeScript package consumed by both applications. |
-| `android` | Native Android project generated for the mobile app through Capacitor. |
+| `apps/mobile` | Mobile application and its Capacitor native projects |
+| `apps/admin` | Web administration panel |
+| `packages/shared` | Shared TypeScript types and utilities |
+| `docs` | User documentation and README images |
 
 ## Technology Stack
 
 | Area | Technologies |
 | --- | --- |
-| Frontend | React `^18.3.1`, Ionic React `^8.8.4` |
-| Testing | Vitest `^4.1.4`, Playwright `^1.55.1`, Testing Library |
-| Build Tooling | Vite `^8.0.8`, TypeScript `^6.0.2`, npm workspaces |
-| Mobile Runtime | Capacitor core/android/ios `^7.6.1`, `@capacitor-community/sqlite` `^7.0.2` |
-| Data and Inference | ONNX Runtime Web `^1.24.3`, sql.js `^1.14.1`, wanakana `^5.3.1` |
-| Backend / Cloud | Firebase `^12.13.0`, Firestore, Firebase Auth |
+| Interface | React, Ionic React, TypeScript |
+| Mobile runtime | Capacitor |
+| Recognition and evaluation | ONNX Runtime Web, OpenCV.js |
+| Local data | SQLite |
+| Remote services | Firebase Auth, Firestore |
+| Tooling and tests | Vite, Vitest, Playwright |
 
 ## Prerequisites
-- Node.js 22.x (LTS)
-- npm 10.x
-- Android Studio (for Android builds)
-- JDK 21 (required by Gradle)
+
+- Node.js 22 LTS
+- npm 10
+- JDK 21 and Android Studio for Android builds
+- Xcode and macOS for iOS builds
 
 ## Installation
 
-1. Clone the repository, including the configured Git submodule used for the OpenCV.js build pipeline:
+Clone the repository with its OpenCV submodule, install all workspaces, and
+generate the packaged database:
 
 ```bash
 git clone --recurse-submodules <repository-url>
 cd kanjime
-```
-
-2. Install dependencies for every workspace from the monorepo root:
-
-```bash
 npm install
-```
-
-3. Generate the local packaged database before running the applications.
-
-#### Database Generation
-
-Since the processed database is not included in this repository, it must be generated locally before running the application. To download the necessary sources and build the packaged SQLite database, execute the following command:
-
-```bash
 npm run data:prepare
 ```
 
-## Monorepo Commands
+The database generation task downloads the required public sources and creates
+the SQLite asset used by the mobile application.
 
-### Development
+## Development
 
-| Workspace | Command | Purpose |
-| --- | --- | --- |
-| `@kanjime/mobile` | `npm run dev -w @kanjime/mobile` | Start the mobile web development server on port `5173`. |
-| `@kanjime/admin` | `npm run dev -w @kanjime/admin` | Start the administration panel development server on port `5174`. |
-| `@kanjime/shared` | `npm run dev -w @kanjime/shared` | Start the shared package TypeScript watch build. |
+| Task | Command |
+| --- | --- |
+| Start mobile app | `npm run dev:mobile` |
+| Start admin panel | `npm run dev:admin` |
+| Watch shared package | `npm run dev:shared` |
+| Build all workspaces | `npm run build` |
+| Build Android app | `npm run build:android` |
+| Lint all workspaces | `npm run lint` |
+| Run unit and integration tests | `npm run test` |
+| Run end-to-end tests | `npm run test:e2e` |
 
-### Build
+Workspace-specific commands and setup details are documented in the
+[mobile](apps/mobile) and [admin](apps/admin) READMEs.
 
-| Workspace | Command | Purpose |
-| --- | --- | --- |
-| `@kanjime/shared` | `npm run build -w @kanjime/shared` | Build the shared package. |
-| `@kanjime/mobile` | `npm run build -w @kanjime/mobile` | Build the mobile workspace after rebuilding the shared package. |
-| `@kanjime/mobile` | `npm run build:app -w @kanjime/mobile` | Build the mobile web application only. |
-| `@kanjime/mobile` | `npm run build:opencv -w @kanjime/mobile` | Build the vendored OpenCV.js runtime used by calligraphy evaluation. |
-| `@kanjime/mobile` | `npm run build:android -w @kanjime/mobile` | Build the mobile app, sync Capacitor Android, and open Android Studio. The script performs these steps in order: 1. build the web application with `npm run build`, 2. synchronise the output with the Android native project using `npx cap sync android`, and 3. open Android Studio with `npx cap open android`. Android Studio must be installed at `~/Descargas/android-studio/bin/studio.sh`, or `CAPACITOR_ANDROID_STUDIO_PATH` must be updated with the correct path before running the command. |
-| `@kanjime/admin` | `npm run build -w @kanjime/admin` | Build the administration workspace after rebuilding the shared package. |
-| `@kanjime/admin` | `npm run build:app -w @kanjime/admin` | Build the administration web application only. |
+## Testing
 
-### Unit and Integration Testing
-
-| Workspace | Command | Purpose |
-| --- | --- | --- |
-| `@kanjime/mobile` | `npm run test -w @kanjime/mobile` | Run the default mobile Vitest suite after rebuilding shared code. |
-| `@kanjime/mobile` | `npm run test:unit -w @kanjime/mobile` | Run mobile unit tests. |
-| `@kanjime/mobile` | `npm run test:integration -w @kanjime/mobile` | Run mobile integration tests. |
-| `@kanjime/mobile` | `npm run test:integration:live -w @kanjime/mobile` | Run the mobile live Firebase integration test subset. |
-| `@kanjime/admin` | `npm run test -w @kanjime/admin` | Run the default admin Vitest suite after rebuilding shared code. |
-| `@kanjime/admin` | `npm run test:unit -w @kanjime/admin` | Run admin unit tests. |
-| `@kanjime/admin` | `npm run test:integration -w @kanjime/admin` | Run admin integration tests. |
-| `@kanjime/admin` | `npm run test:integration:live -w @kanjime/admin` | Run the admin live Firebase integration test subset. |
-
-### End-to-End Testing
-
-| Workspace | Command | Purpose |
-| --- | --- | --- |
-| `@kanjime/mobile` | `npm run test:e2e -w @kanjime/mobile` | Build the mobile app with E2E mocks and run Playwright. |
-| `@kanjime/admin` | `npm run test:e2e -w @kanjime/admin` | Build the admin app with E2E mocks and run Playwright. |
-
-### Linting
-
-| Workspace | Command | Purpose |
-| --- | --- | --- |
-| `@kanjime/shared` | `npm run lint -w @kanjime/shared` | Lint the shared package. |
-| `@kanjime/mobile` | `npm run lint -w @kanjime/mobile` | Lint the mobile application. |
-| `@kanjime/admin` | `npm run lint -w @kanjime/admin` | Lint the administration panel. |
-
-## Tests
-
-The monorepo uses Vitest for unit and integration coverage in both applications and Playwright for browser-level end-to-end testing.
-
-### Unit and Integration Suites
+Vitest covers unit and integration behavior. Playwright verifies complete
+browser flows for both applications.
 
 ```bash
-npm run test:unit -w @kanjime/mobile
-npm run test:integration -w @kanjime/mobile
-npm run test:unit -w @kanjime/admin
-npm run test:integration -w @kanjime/admin
-```
-
-### End-to-End Suites
-
-```bash
-npm run test:e2e -w @kanjime/mobile
-npm run test:e2e -w @kanjime/admin
+npm run test:unit
+npm run test:integration
+npm run test:e2e
 ```
 
 ## Data Attribution
 
-This project packages locally processed and transformed data derived from the following sources:
+The packaged local database contains project-specific transformations derived
+from:
 
-- JMdict, provided by the Electronic Dictionary Research and Development Group (EDRDG): https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project
-- KANJIDIC2, provided by the Electronic Dictionary Research and Development Group (EDRDG): https://www.edrdg.org/wiki/index.php/KANJIDIC_Project
-- KanjiVG, provided by the KanjiVG project contributors: https://kanjivg.tagaini.net/
-- Tanos JLPT Kanji Lists, provided by Jonathan Waller (Tanos): https://www.tanos.co.uk/jlpt/skills/kanji/
+- [JMdict](https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project)
+  by the Electronic Dictionary Research and Development Group (EDRDG)
+- [KANJIDIC2](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project) by EDRDG
+- [KanjiVG](https://kanjivg.tagaini.net/) by the KanjiVG contributors
+- [Tanos JLPT Kanji Lists](https://www.tanos.co.uk/jlpt/skills/kanji/) by
+  Jonathan Waller
 
-The application does not redistribute the original source datasets directly.
-Instead, custom scripts are used to process and transform the original data into application-specific formats.
+The recognition model was trained with
+[ETL9B](https://etlcdb.db.aist.go.jp/?lang=en), part of the ETL Character
+Database maintained by the National Institute of Advanced Industrial Science
+and Technology (AIST), Japan.
 
-The recognition model used by this project was trained using ETL9B, part of the ETL Character Database, provided by the National Institute of Advanced Industrial Science and Technology (AIST), Japan:
-https://etlcdb.db.aist.go.jp/?lang=en
+Original datasets are not redistributed directly and remain subject to their
+respective licences and attribution requirements.
 
-The original datasets remain subject to their respective licenses and attribution requirements.
+## Academic Context
 
-#### Database Generation
-
-Since the processed database is not included in this repository, it must be generated locally before running the application. To download the necessary sources and build the packaged SQLite database, execute the following command:
-
-```bash
-npm run data:prepare
-```
+|  |  |
+| --- | --- |
+| Project | KanjiMe |
+| Author | Tycho Quintana Santana |
+| Programme | Computer Science, ULPGC |
+| Type | Final Degree Project (TFT) |
 
 ## Copyright
 

@@ -2,84 +2,101 @@
 
 ## Description
 
-KanjiMe Admin is the web administration panel for the KanjiMe project. It provides the technical support interface used to inspect recognition error reports submitted by the mobile application and to manage the remote version configuration consumed by the mobile client. Administrator access is protected through Google Sign-In implemented with Firebase Auth.
+KanjiMe Admin is the technical-support panel for the KanjiMe project. It gives
+authorised administrators access to mobile error reports and remote version
+configuration without mixing administration logic into the mobile app.
 
 ## Features
 
-- Review error reports stored in Firestore through the `errors` collection, including application version, occurrence timestamp, web engine information, and recent user actions when available.
-- Filter reports by status and update their lifecycle state across `OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, and `DISCARDED`.
-- Manage the current remote version configuration stored in Firestore under the `versionConfiguration/current` document, including current version, latest version, minimum supported version, and update timestamp.
-- Authenticate administrators through Google Sign-In backed by Firebase Auth.
-- Subscribe to near real-time Firestore updates for the reported error list and dashboard summary.
+### Authentication
+
+Google Sign-In through Firebase Auth protects all administration routes and
+administration data.
+
+<p align="center">
+  <img src="../../docs/images/readmes/12-admin-login.png" alt="Administrator login" width="760">
+</p>
+
+### Dashboard
+
+The protected dashboard summarises support activity and links to error reports
+and version management.
+
+<p align="center">
+  <img src="../../docs/images/readmes/13-admin-dashboard.png" alt="Administration dashboard" width="760">
+</p>
+
+### Error Reports
+
+Administrators can filter reports by lifecycle status, inspect runtime context,
+and move cases between open, in-progress, resolved, closed, and discarded
+states.
+
+<p align="center">
+  <img src="../../docs/images/readmes/15-admin-errors.png" alt="Error report list" width="760">
+</p>
+
+Each detail view presents the selected report, its current support status, and
+available recent user actions.
+
+<p align="center">
+  <img src="../../docs/images/readmes/16-admin-error-detail.png" alt="Error report details" width="760">
+</p>
+
+### Version Management
+
+Version configuration defines the current, latest, and minimum supported mobile
+releases. The mobile app consumes this configuration to show optional or
+required update states.
+
+<p align="center">
+  <img src="../../docs/images/readmes/14-admin-versions.png" alt="Version configuration" width="760">
+</p>
+
+## Architecture
+
+The admin workspace follows a feature-oriented architecture.
+
+`createAdminCompositionRoot()` assembles the application dependencies and injects
+only the contracts required by each feature. Firestore access is isolated behind
+the observability repository, while authentication is handled through a dedicated
+authentication client. Deterministic substitutes are used during end-to-end
+testing, keeping feature code independent from Firebase implementation details.
 
 ## Technology Stack
 
-| Technology | Version | Source |
-| --- | --- | --- |
-| React | `^18.3.1` | `react`, `react-dom` |
-| Ionic React | `^8.8.4` | `@ionic/react` |
-| Vite | `^8.0.8` | `vite` |
-| TypeScript | `^6.0.2` | `typescript` |
-| Firebase Auth | `^12.13.0` | `firebase` |
-| Firestore | `^12.13.0` | `firebase` |
-| Vitest | `^4.1.4` | `vitest`, `@vitest/coverage-v8` |
-| Playwright | `^1.55.1` | `@playwright/test` |
+| Area | Technologies |
+| --- | --- |
+| Interface | React, Ionic React, TypeScript |
+| Build | Vite |
+| Authentication and data | Firebase Auth, Firestore |
+| Testing | Vitest, Playwright, Testing Library |
 
 ## Installation and Development
 
-All commands in this section are intended to be run from this directory (`apps/admin/`).
-
-Install monorepo dependencies from the repository root before working with this workspace:
+Install monorepo dependencies from the repository root:
 
 ```bash
 npm install
 ```
 
-### Development Server
+Run these workspace commands from `apps/admin`:
 
-```bash
-npm run dev
-```
-
-### Production Build
-
-```bash
-npm run build
-```
-
-### Preview
-
-```bash
-npm run preview
-```
-
-### Unit Tests
-
-```bash
-npm run test:unit
-```
-
-### End-to-End Tests
-
-```bash
-npm run test:e2e
-```
-
-## Testing
-
-The administration panel uses the same testing split as the rest of the monorepo.
-
-- Unit and integration tests run with Vitest against controller-level logic and feature behavior. The controller-based composition exposed through `createAdminCompositionRoot()` and the feature controller factories supports inline dependency injection for test doubles.
-- End-to-end tests run with Playwright against the built application preview served on port `4174`.
-- The codebase includes E2E-specific infrastructure through `src/Shared/E2EMocks.ts`, activated with `VITE_ENABLE_E2E_MOCKS=true` during Playwright runs.
+| Task | Command |
+| --- | --- |
+| Development server | `npm run dev` |
+| Production build | `npm run build` |
+| Local preview | `npm run preview` |
+| Unit tests | `npm run test:unit` |
+| Integration tests | `npm run test:integration` |
+| End-to-end tests | `npm run test:e2e` |
 
 ## Firebase Configuration
 
-The workspace reads Firebase client configuration from `apps/admin/.env` through `import.meta.env` in `src/Shared/FirebaseClient.ts`.
+Create `apps/admin/.env` with the Firebase client variables required by
+`src/Shared/FirebaseClient.ts`:
 
-Required variables:
-
-```bash
+```dotenv
 VITE_FIREBASE_API_KEY=
 VITE_FIREBASE_AUTH_DOMAIN=
 VITE_FIREBASE_PROJECT_ID=
@@ -88,10 +105,16 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 ```
 
-Related files:
+Keep real environment values outside documentation and version control.
 
-- `apps/admin/.env`
-- `apps/admin/src/Shared/FirebaseClient.ts`
-- `apps/admin/src/Shared/AdminObservabilityRepository.ts`
+## Testing
 
-This README documents the required variable names and file locations only. Literal environment values are intentionally not duplicated here.
+Vitest covers feature logic, regressions, views, and integration scenarios.
+
+Playwright verifies the protected administration flows against the production
+preview, including authentication, dashboard navigation, error report filtering,
+error detail updates, and version configuration.
+
+E2E substitutes are wired through the composition root and the shared support
+infrastructure when `VITE_ENABLE_E2E_MOCKS=true`, preserving normal production
+behavior.

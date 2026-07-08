@@ -1,15 +1,36 @@
 # KanjiMe
 
 <p align="center">
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" alt="React">
-  <img src="https://img.shields.io/badge/Ionic-3880FF?logo=ionic&logoColor=white" alt="Ionic">
-  <img src="https://img.shields.io/badge/Capacitor-119EFF?logo=capacitor&logoColor=white" alt="Capacitor">
-  <img src="https://img.shields.io/badge/Firebase-DD2C00?logo=firebase&logoColor=white" alt="Firebase">
-  <img src="https://img.shields.io/badge/ONNX_Runtime-005CED?logo=onnx&logoColor=white" alt="ONNX Runtime">
-  <img src="https://img.shields.io/badge/OpenCV.js-5C3EE8?logo=opencv&logoColor=white" alt="OpenCV.js">
-  <img src="https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white" alt="Vitest">
-  <img src="https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white" alt="Playwright">
+  <a href="https://www.typescriptlang.org/" target="_blank">
+    <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  </a>
+  <a href="https://react.dev/" target="_blank">
+    <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" alt="React">
+  </a>
+  <a href="https://ionicframework.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Ionic-3880FF?logo=ionic&logoColor=white" alt="Ionic">
+  </a>
+  <a href="https://capacitorjs.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Capacitor-119EFF?logo=capacitor&logoColor=white" alt="Capacitor">
+  </a>
+  <a href="https://firebase.google.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Firebase-DD2C00?logo=firebase&logoColor=white" alt="Firebase">
+  </a>
+  <a href="https://onnxruntime.ai/" target="_blank">
+    <img src="https://img.shields.io/badge/ONNX_Runtime-005CED?logo=onnx&logoColor=white" alt="ONNX Runtime">
+  </a>
+  <a href="https://opencv.org/" target="_blank">
+    <img src="https://img.shields.io/badge/OpenCV.js-5C3EE8?logo=opencv&logoColor=white" alt="OpenCV.js">
+  </a>
+  <a href="https://vitest.dev/" target="_blank">
+    <img src="https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white" alt="Vitest">
+  </a>
+  <a href="https://playwright.dev/" target="_blank">
+    <img src="https://img.shields.io/badge/Playwright-2EAD33?logo=playwright&logoColor=white" alt="Playwright">
+  </a>
+  <a href="https://www.ulpgc.es" target="_blank">
+    <img src="https://img.shields.io/badge/ULPGC-TFT-blue" alt="ULPGC TFT">
+  </a>
 </p>
 
 <p align="center"><strong>Final Degree Project · Computer Science · ULPGC</strong></p>
@@ -22,6 +43,19 @@ for version management and error-report support.
 <p align="center">
   <img src="docs/images/readmes/kanjime-collage.png" alt="KanjiMe mobile application screens" width="760">
 </p>
+
+## Academic Information
+
+This repository is part of a Final Degree Project in Computer Science developed at the University of Las Palmas de Gran Canaria.
+
+| |  |
+| --- | --- |
+| Student | Tycho Quintana Santana |
+| Student contact | tycho.quintana@gmail.com |
+| Supervisor | José María Quinteiro González |
+| Degree | Computer Science |
+| School | [Escuela de Ingeniería Informática](https://www.eii.ulpgc.es/es) |
+| University | [Universidad de Las Palmas de Gran Canaria](https://www.ulpgc.es/) |
 
 ## Applications
 

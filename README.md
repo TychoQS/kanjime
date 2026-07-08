@@ -158,15 +158,6 @@ and Technology (AIST), Japan.
 Original datasets are not redistributed directly and remain subject to their
 respective licences and attribution requirements.
 
-## Academic Context
-
-|  |  |
-| --- | --- |
-| Project | KanjiMe |
-| Author | Tycho Quintana Santana |
-| Programme | Computer Science, ULPGC |
-| Type | Final Degree Project (TFT) |
-
 ## Copyright
 
 All rights reserved unless otherwise stated.
